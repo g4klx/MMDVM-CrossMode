@@ -1,0 +1,12 @@
+GitVersion.h
+*.o
+*.a
+*.bak
+*~
+x64
+Debug
+Release
+*.user
+*.onj
+.vs
+
