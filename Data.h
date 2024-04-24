@@ -30,14 +30,19 @@ public:
 	CData(const std::string& callsign, uint32_t dmrId, uint16_t nxdnId);
 	~CData();
 
-	void setDStar(const std::string& source, const std::string& destination, const uint8_t* data);
-	void setDMR(uint32_t source, uint32_t destination, bool group, const uint8_t* data);
-	void setYSFDN(const std::string& source, uint8_t dgId, const uint8_t* data);
-	void setYSFVW(const std::string& source, uint8_t dgId, const uint8_t* data);
-	void setNXDN(uint16_t source, uint16_t destination, bool group, const uint8_t* data);
-	void setP25(uint32_t source, uint32_t destination, bool group, const uint8_t* data);
-	void setM17(const std::string& source, const std::string& destination, const uint8_t* data);
-	void setFM(const uint8_t* data);
+	void setModes(DATA_MODE fromMode, DATA_MODE toMode);
+
+	void setDStar(const std::string& source, const std::string& destination);
+	void setDMR(uint32_t source, uint32_t destination, bool group);
+	void setYSF(const std::string& source, uint8_t dgId);
+	void setNXDN(uint16_t source, uint16_t destination, bool group);
+	void setP25(uint32_t source, uint32_t destination, bool group);
+	void setM17(const std::string& source, const std::string& destination);
+
+	void setData(const uint8_t* data);
+
+	void setEnd();
+	bool isEnd() const;
 
 	void reset();
 
@@ -45,7 +50,8 @@ private:
 	std::string m_defaultCallsign;
 	uint32_t    m_defaultDMRId;
 	uint16_t    m_defaultNXDNId;
-	DATA_MODE   m_mode;
+	DATA_MODE   m_fromMode;
+	DATA_MODE   m_toMode;
 	std::string m_srcCallsign;	// D-Star, YSF, M17
 	std::string m_dstCallsign;	// D-Star, M17
 	uint8_t     m_dgId;			// YSF
@@ -54,7 +60,9 @@ private:
 	uint16_t    m_srcId16;		// NXDN
 	uint16_t    m_dstId16;		// NXDN
 	bool        m_group;		// DMR, NXDN, P25
+	bool        m_end;
 	uint8_t*    m_data;
+	uint16_t    m_length;
 };
 
 #endif

@@ -16,35 +16,35 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#ifndef	DStarNetwork_H
+#if !defined(DStarNetwork_H)
 #define	DStarNetwork_H
 
 #include "DStarDefines.h"
 #include "RingBuffer.h"
 #include "UDPSocket.h"
+#include "Network.h"
 #include "Timer.h"
 
 #include <cstdint>
 #include <string>
 #include <random>
 
-class CDStarNetwork {
+class CDStarNetwork : public INetwork {
 public:
-	CDStarNetwork(const std::string& gatewayAddress, unsigned short gatewayPort, const std::string& localAddress, unsigned short localPort, bool debug);
-	~CDStarNetwork();
+	CDStarNetwork(const std::string& localAddress, unsigned short localPort, const std::string& remoteAddress, unsigned short remotePort, bool debug);
+	virtual ~CDStarNetwork();
 
-	bool open();
+	virtual bool open();
 
-	bool writeHeader(const uint8_t* header, unsigned int length, bool busy);
-	bool writeData(const uint8_t* data, unsigned int length, unsigned int errors, bool end, bool busy);
+	virtual bool write(const CData& data);
 
-	unsigned int read(uint8_t* data, unsigned int length);
+	virtual bool read(CData& data);
 
-	void reset();
+	virtual void reset();
 
-	void close();
+	virtual void close();
 
-	void clock(unsigned int ms);
+	virtual void clock(unsigned int ms);
 
 private:
 	CUDPSocket       m_socket;

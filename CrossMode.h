@@ -19,6 +19,7 @@
 #if !defined(CrossMode_H)
 #define	CrossMode_H
 
+#include "Network.h"
 #include "Defines.h"
 #include "Conf.h"
 
@@ -35,6 +36,11 @@ private:
 	CConf     m_conf;
 	DATA_MODE m_fromMode;
 	DATA_MODE m_toMode;
+	INetwork* m_fromNetwork;
+	INetwork* m_toNetwork;
+
+	bool createFromNetwork();
+	bool createToNetwork();
 };
 
 #endif

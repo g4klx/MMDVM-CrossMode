@@ -16,9 +16,28 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#if !defined(VERSION_H)
-#define	VERSION_H
+#if !defined(Network_H)
+#define	Network_H
 
-const char* VERSION = "20240424";
+#include "Data.h"
+
+class INetwork {
+public:
+	virtual ~INetwork() = 0;
+
+	virtual bool open() = 0;
+
+	virtual bool write(const CData& data) = 0;
+
+	virtual bool read(CData& data) = 0;
+
+	virtual void reset() = 0;
+
+	virtual void close() = 0;
+
+	virtual void clock(unsigned int ms) = 0;
+
+private:
+};
 
 #endif

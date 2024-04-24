@@ -21,28 +21,27 @@
 
 #include "RingBuffer.h"
 #include "UDPSocket.h"
+#include "Network.h"
 
 #include <cstdint>
 #include <string>
 
-class CFMNetwork {
+class CFMNetwork : public INetwork {
 public:
-	CFMNetwork(const std::string& callsign, const std::string& protocol, const std::string& localAddress, unsigned short localPort, const std::string& gatewayAddress, unsigned short gatewayPort, bool debug);
-	~CFMNetwork();
+	CFMNetwork(const std::string& callsign, const std::string& localAddress, unsigned short localPort, const std::string& remoteAddress, unsigned short remotePort, bool debug);
+	virtual ~CFMNetwork();
 
-	bool open();
+	virtual bool open();
 
-	bool writeData(const float* data, unsigned int nSamples);
+	virtual bool write(const CData& data);
 
-	bool writeEnd();
+	virtual bool read(CData& data);
 
-	unsigned int readData(float* out, unsigned int nOut);
+	virtual void reset();
 
-	void reset();
+	virtual void close();
 
-	void close();
-
-	void clock(unsigned int ms);
+	virtual void clock(unsigned int ms);
 
 private:
 	std::string      m_callsign;

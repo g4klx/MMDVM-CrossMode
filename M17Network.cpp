@@ -27,7 +27,7 @@
 
 const unsigned int BUFFER_LENGTH = 200U;
 
-CM17Network::CM17Network(const std::string& localAddress, unsigned short localPort, const std::string& gatewayAddress, unsigned short gatewayPort, bool debug) :
+CM17Network::CM17Network(const std::string& localAddress, unsigned short localPort, const std::string& remoteAddress, unsigned short remotePort, bool debug) :
 m_socket(localAddress, localPort),
 m_addr(),
 m_addrLen(0U),
@@ -38,7 +38,7 @@ m_buffer(1000U, "M17 Network"),
 m_random(),
 m_timer(1000U, 5U)
 {
-	if (CUDPSocket::lookup(gatewayAddress, gatewayPort, m_addr, m_addrLen) != 0) {
+	if (CUDPSocket::lookup(remoteAddress, remotePort, m_addr, m_addrLen) != 0) {
 		m_addrLen = 0U;
 		return;
 	}

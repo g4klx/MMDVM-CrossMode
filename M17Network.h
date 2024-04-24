@@ -22,27 +22,28 @@
 #include "M17Defines.h"
 #include "RingBuffer.h"
 #include "UDPSocket.h"
+#include "Network.h"
 #include "Timer.h"
 
 #include <random>
 #include <cstdint>
 
-class CM17Network {
+class CM17Network : public INetwork {
 public:
-	CM17Network(const std::string& localAddress, unsigned short localPort, const std::string& gatewayAddress, unsigned short gatewayPort, bool debug);
-	~CM17Network();
+	CM17Network(const std::string& localAddress, unsigned short localPort, const std::string& remoteAddress, unsigned short remotePort, bool debug);
+	virtual ~CM17Network();
 
-	bool open();
+	virtual bool open();
 
-	bool write(const uint8_t* data);
+	virtual bool write(const CData& data);
 
-	bool read(uint8_t* data);
+	virtual bool read(CData& data);
 
-	void reset();
+	virtual void reset();
 
-	void close();
+	virtual void close();
 
-	void clock(unsigned int ms);
+	virtual void clock(unsigned int ms);
 
 private:
 	CUDPSocket       m_socket;

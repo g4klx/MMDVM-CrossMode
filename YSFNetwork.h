@@ -16,33 +16,34 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#ifndef	YSFNetwork_H
+#if !defined(YSFNetwork_H)
 #define	YSFNetwork_H
 
 #include "YSFDefines.h"
 #include "RingBuffer.h"
 #include "UDPSocket.h"
+#include "Network.h"
 #include "Timer.h"
 
 #include <cstdint>
 #include <string>
 
-class CYSFNetwork {
+class CYSFNetwork : public INetwork {
 public:
-	CYSFNetwork(const std::string& localAddress, unsigned short localPort, const std::string& gatewayAddress, unsigned short gatewayPort, const std::string& callsign, bool debug);
-	~CYSFNetwork();
+	CYSFNetwork(const std::string& callsign, const std::string& localAddress, unsigned short localPort, const std::string& remoteAddress, unsigned short remotePort, bool debug);
+	virtual ~CYSFNetwork();
 
-	bool open();
+	virtual bool open();
 
-	bool write(const uint8_t* src, const uint8_t* dest, const uint8_t* data, unsigned int count, bool end);
+	virtual bool write(const CData& data);
 
-	unsigned int read(uint8_t* data);
+	virtual bool read(CData& data);
 
-	void reset();
+	virtual void reset();
 
-	void close();
+	virtual void close();
 
-	void clock(unsigned int ms);
+	virtual void clock(unsigned int ms);
 
 private:
 	CUDPSocket       m_socket;

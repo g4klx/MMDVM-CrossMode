@@ -17,11 +17,24 @@
  */
 
 #include "CrossMode.h"
+
+#include "DStarNetwork.h"
+#include "YSFNetwork.h"
+#include "M17Network.h"
+#include "FMNetwork.h"
+#include "StopWatch.h"
 #include "Version.h"
+#include "Thread.h"
 #include "Log.h"
 #include "GitVersion.h"
 
 #include <cassert>
+
+enum DIRECTION {
+	DIR_NONE,
+	DIR_FROM_TO,
+	DIR_TO_FROM
+};
 
 #if defined(_WIN32) || defined(_WIN64)
 const char* DEFAULT_INI_FILE = "CrossMode.ini";
@@ -46,25 +59,46 @@ static void sigHandler2(int signum)
 }
 #endif
 
+DATA_MODE convertMode(const char* text)
+{
+	if (::strcmp(text, "dstar") == 0)
+		return DATA_MODE_DSTAR;
+	else if (::strcmp(text, "dmr") == 0)
+		return DATA_MODE_DMR;
+	else if (::strcmp(text, "nxdn") == 0)
+		return DATA_MODE_NXDN;
+	else if (::strcmp(text, "ysfdn") == 0)
+		return DATA_MODE_YSFDN;
+	else if (::strcmp(text, "ysfvw") == 0)
+		return DATA_MODE_YSFVW;
+	else if (::strcmp(text, "p15") == 0)
+		return DATA_MODE_P25;
+	else if (::strcmp(text, "m17") == 0)
+		return DATA_MODE_M17;
+	else if (::strcmp(text, "fm") == 0)
+		return DATA_MODE_FM;
+	else
+		return DATA_MODE_NONE;
+}
+
 int main(int argc, char** argv)
 {
-	const char* iniFile = DEFAULT_INI_FILE;
+	std::string iniFile = DEFAULT_INI_FILE;
 	DATA_MODE fromMode  = DATA_MODE_DSTAR;
 	DATA_MODE toMode    = DATA_MODE_M17;
 
-	if (argc > 1) {
-		for (int currentArg = 1; currentArg < argc; ++currentArg) {
-			std::string arg = argv[currentArg];
-			if ((arg == "-v") || (arg == "--version")) {
-				::fprintf(stdout, "CrossMode version %s git #%.7s\n", VERSION, gitversion);
-				return 0;
-			} else if (arg.substr(0, 1) == "-") {
-				::fprintf(stderr, "Usage: CrossMode [-v|--version] [<filename> <from> <to>]\n");
-				return 1;
-			} else {
-				iniFile = argv[currentArg];
-			}
-		}
+	if ((argc == 2) && ((::strcmp(argv[1U], "-v") == 0) || (::strcmp(argv[1U], "--version") == 0))) {
+		::fprintf(stdout, "CrossMode version %s git #%.7s\n", VERSION, gitversion);
+		return 0;
+	}
+
+	if (argc == 4) {
+		iniFile  = std::string(argv[1U]);
+		fromMode = convertMode(argv[2U]);
+		toMode   = convertMode(argv[3U]);
+	} else {
+		::fprintf(stderr, "Usage: CrossMode [-v|--version] [<filename> <from> <to>]\n");
+		return 1;
 	}
 
 #if !defined(_WIN32) && !defined(_WIN64)
@@ -79,7 +113,7 @@ int main(int argc, char** argv)
 	do {
 		m_signal = 0;
 
-		CCrossMode* host = new CCrossMode(std::string(iniFile), fromMode, toMode);
+		CCrossMode* host = new CCrossMode(iniFile, fromMode, toMode);
 		ret = host->run();
 
 		delete host;
@@ -111,7 +145,9 @@ int main(int argc, char** argv)
 CCrossMode::CCrossMode(const std::string& fileName, DATA_MODE fromMode, DATA_MODE toMode) :
 m_conf(fileName),
 m_fromMode(fromMode),
-m_toMode(toMode)
+m_toMode(toMode),
+m_fromNetwork(NULL),
+m_toNetwork(NULL)
 {
 	assert(!fileName.empty());
 }
@@ -202,9 +238,201 @@ int CCrossMode::run()
 	}
 #endif
 
-	while (!m_killed) {
+	ret = createFromNetwork();
+	if (!ret)
+		return 1;
 
+	ret = createToNetwork();
+	if (!ret) {
+		m_fromNetwork->close();
+		delete m_fromNetwork;
+		return 1;
 	}
 
+	CData data(m_conf.getDefaultCallsign(), m_conf.getDefaultDMRId(), m_conf.getDefaultNXDNId());
+
+	CStopWatch stopwatch;
+
+	DIRECTION direction = DIR_NONE;
+
+	while (!m_killed) {
+		stopwatch.start();
+
+		switch (direction) {
+		case DIR_FROM_TO:
+			ret = m_fromNetwork->read(data);
+			if (ret) {
+				m_toNetwork->write(data);
+				ret = data.isEnd();
+				if (ret) {
+					m_fromNetwork->reset();
+					m_toNetwork->reset();
+					data.reset();
+					direction = DIR_NONE;
+				}
+			}
+			break;
+
+		case DIR_TO_FROM:
+			ret = m_toNetwork->read(data);
+			if (ret) {
+				m_fromNetwork->write(data);
+				ret = data.isEnd();
+				if (ret) {
+					m_fromNetwork->reset();
+					m_toNetwork->reset();
+					data.reset();
+					direction = DIR_NONE;
+				}
+			}
+			break;
+
+		default:
+			ret = m_fromNetwork->read(data);
+			if (ret) {
+				m_toNetwork->write(data);
+				data.setModes(m_fromMode, m_toMode);
+				direction = DIR_FROM_TO;
+			} else {
+				ret = m_toNetwork->read(data);
+				if (ret) {
+					m_fromNetwork->write(data);
+					data.setModes(m_toMode, m_fromMode);
+					direction = DIR_TO_FROM;
+				}
+			}
+			break;
+		}
+
+		CThread::sleep(10U);
+
+		unsigned int elapsed = stopwatch.elapsed();
+
+		m_fromNetwork->clock(elapsed);
+		m_toNetwork->clock(elapsed);
+	}
+
+	m_fromNetwork->close();
+	m_toNetwork->close();
+
+	delete m_fromNetwork;
+	delete m_toNetwork;
+
 	return 0;
+}
+
+bool CCrossMode::createFromNetwork()
+{
+	std::string callsign = m_conf.getDefaultCallsign();
+	std::string localAddress;
+	uint16_t    localPort;
+	std::string remoteAddress;
+	uint16_t    remotePort;
+	bool        debug;
+
+	switch (m_fromMode) {
+	case DATA_MODE_DSTAR:
+		remoteAddress = m_conf.getDStarFromRemoteAddress();
+		localAddress  = m_conf.getDStarFromLocalAddress();
+		remotePort    = m_conf.getDStarFromRemotePort();
+		localPort     = m_conf.getDStarFromLocalPort();
+		debug         = m_conf.getDStarFromDebug();
+		m_fromNetwork = new CDStarNetwork(localAddress, localPort, remoteAddress, remotePort, debug);
+		break;
+	case DATA_MODE_YSFDN:
+	case DATA_MODE_YSFVW:
+		remoteAddress = m_conf.getYSFFromRemoteAddress();
+		localAddress  = m_conf.getYSFFromLocalAddress();
+		remotePort    = m_conf.getYSFFromRemotePort();
+		localPort     = m_conf.getYSFFromLocalPort();
+		debug         = m_conf.getYSFFromDebug();
+		m_fromNetwork = new CYSFNetwork(callsign, localAddress, localPort, remoteAddress, remotePort, debug);
+		break;
+	case DATA_MODE_FM:
+		remoteAddress = m_conf.getFMFromRemoteAddress();
+		localAddress  = m_conf.getFMFromLocalAddress();
+		remotePort    = m_conf.getFMFromRemotePort();
+		localPort     = m_conf.getFMFromLocalPort();
+		debug         = m_conf.getFMFromDebug();
+		m_fromNetwork = new CFMNetwork(callsign, localAddress, localPort, remoteAddress, remotePort, debug);
+		break;
+	case DATA_MODE_M17:
+		remoteAddress = m_conf.getM17FromRemoteAddress();
+		localAddress  = m_conf.getM17FromLocalAddress();
+		remotePort    = m_conf.getM17FromRemotePort();
+		localPort     = m_conf.getM17FromLocalPort();
+		debug         = m_conf.getM17FromDebug();
+		m_fromNetwork = new CM17Network(localAddress, localPort, remoteAddress, remotePort, debug);
+		break;
+	default:
+		::LogError("Unknown from mode specified");
+		return false;
+	}
+
+	bool ret = m_fromNetwork->open();
+	if (!ret) {
+		::LogError("Unable to open the from network interface");
+		delete m_fromNetwork;
+		return false;
+	}
+
+	return true;
+}
+
+bool CCrossMode::createToNetwork()
+{
+	std::string callsign = m_conf.getDefaultCallsign();
+	std::string localAddress;
+	uint16_t    localPort;
+	std::string remoteAddress;
+	uint16_t    remotePort;
+	bool        debug;
+
+	switch (m_toMode) {
+	case DATA_MODE_DSTAR:
+		remoteAddress = m_conf.getDStarToRemoteAddress();
+		localAddress  = m_conf.getDStarToLocalAddress();
+		remotePort    = m_conf.getDStarToRemotePort();
+		localPort     = m_conf.getDStarToLocalPort();
+		debug         = m_conf.getDStarToDebug();
+		m_toNetwork = new CDStarNetwork(localAddress, localPort, remoteAddress, remotePort, debug);
+		break;
+	case DATA_MODE_YSFDN:
+	case DATA_MODE_YSFVW:
+		remoteAddress = m_conf.getYSFToRemoteAddress();
+		localAddress  = m_conf.getYSFToLocalAddress();
+		remotePort    = m_conf.getYSFToRemotePort();
+		localPort     = m_conf.getYSFToLocalPort();
+		debug         = m_conf.getYSFToDebug();
+		m_toNetwork = new CYSFNetwork(callsign, localAddress, localPort, remoteAddress, remotePort, debug);
+		break;
+	case DATA_MODE_FM:
+		remoteAddress = m_conf.getFMToRemoteAddress();
+		localAddress  = m_conf.getFMToLocalAddress();
+		remotePort    = m_conf.getFMToRemotePort();
+		localPort     = m_conf.getFMToLocalPort();
+		debug         = m_conf.getFMToDebug();
+		m_toNetwork = new CFMNetwork(callsign, localAddress, localPort, remoteAddress, remotePort, debug);
+		break;
+	case DATA_MODE_M17:
+		remoteAddress = m_conf.getM17ToRemoteAddress();
+		localAddress  = m_conf.getM17ToLocalAddress();
+		remotePort    = m_conf.getM17ToRemotePort();
+		localPort     = m_conf.getM17ToLocalPort();
+		debug         = m_conf.getM17ToDebug();
+		m_toNetwork = new CM17Network(localAddress, localPort, remoteAddress, remotePort, debug);
+		break;
+	default:
+		::LogError("Unknown to mode specified");
+		return false;
+	}
+
+	bool ret = m_toNetwork->open();
+	if (!ret) {
+		::LogError("Unable to open the to network interface");
+		delete m_toNetwork;
+		return false;
+	}
+
+	return true;
 }

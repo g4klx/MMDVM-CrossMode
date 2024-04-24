@@ -16,9 +16,8 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#if !defined(VERSION_H)
-#define	VERSION_H
+#include "Network.h"
 
-const char* VERSION = "20240424";
-
-#endif
+INetwork::~INetwork()
+{
+}
