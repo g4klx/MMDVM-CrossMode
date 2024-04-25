@@ -33,7 +33,7 @@ public:
 
 	virtual bool open();
 
-	virtual bool write(const CData& data);
+	virtual bool write(CData& data);
 
 	virtual bool read(CData& data);
 
@@ -53,6 +53,7 @@ private:
 	unsigned int     m_seqNo;
 
 	bool writeStart();
+	bool writeEnd();
 };
 
 #endif

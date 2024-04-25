@@ -35,7 +35,7 @@ public:
 
 	virtual bool open();
 
-	virtual bool write(const CData& data);
+	virtual bool write(CData& data);
 
 	virtual bool read(CData& data);
 
