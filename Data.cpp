@@ -20,6 +20,7 @@
 
 #include "DStarDefines.h"
 #include "YSFDefines.h"
+#include "M17Defines.h"
 
 #include <cassert>
 
@@ -193,6 +194,26 @@ void CData::setEnd()
 	m_end = true;
 }
 
+void CData::getDStar(uint8_t* source, uint8_t* destination) const
+{
+	assert(source != nullptr);
+	assert(destination != nullptr);
+
+	// This is only true for M17
+	stringToBytes(source,      DSTAR_LONG_CALLSIGN_LENGTH, m_srcCallsign);
+	stringToBytes(destination, DSTAR_LONG_CALLSIGN_LENGTH, m_dstCallsign);
+}
+
+void CData::getM17(uint8_t* source, uint8_t* destination) const
+{
+	assert(source != nullptr);
+	assert(destination != nullptr);
+
+	// This is only true for D-Star
+	stringToBytes(source,      M17_CALLSIGN_LENGTH, m_srcCallsign);
+	stringToBytes(destination, M17_CALLSIGN_LENGTH, m_dstCallsign);
+}
+
 bool CData::getData(uint8_t* data)
 {
 	assert(data != nullptr);
@@ -241,4 +262,18 @@ std::string CData::bytesToString(const uint8_t* str, unsigned int length) const
 	}
 
 	return callsign;
+}
+
+void CData::stringToBytes(uint8_t* str, unsigned int length, const std::string& callsign) const
+{
+	assert(str != nullptr);
+
+	::memset(str, ' ', length);
+
+	unsigned int len = callsign.length();
+	if (len > length)
+		len = length;
+
+	for (unsigned int i = 0U; i < len; i++)
+		str[i] = callsign[i];
 }

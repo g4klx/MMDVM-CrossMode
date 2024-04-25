@@ -30,6 +30,7 @@ enum SECTION {
 	SECTION_NONE,
 	SECTION_GENERAL,
 	SECTION_TRANSCODER,
+	SECTION_DSTAR,
 	SECTION_DSTAR_NETWORK_FROM,
 	SECTION_DSTAR_NETWORK_TO,
 	SECTION_YSF_NETWORK_FROM,
@@ -49,6 +50,7 @@ m_defaultNXDNId(1234U),
 m_daemon(false),
 m_transcoderPort(),
 m_transcoderSpeed(460800U),
+m_dStarCallsign("G9BF   B"),
 m_dStarFromRemoteAddress("127.0.0.1"),
 m_dStarFromRemotePort(20011U),
 m_dStarFromLocalAddress(),
@@ -121,6 +123,8 @@ bool CConf::read()
 				section = SECTION_GENERAL;
 			else if (::strncmp(buffer, "[Transcoder]", 12U) == 0)
 				section = SECTION_TRANSCODER;
+			else if (::strncmp(buffer, "[D-Star]", 8U) == 0)
+				section = SECTION_DSTAR;
 			else if (::strncmp(buffer, "[D-Star Network From]", 21U) == 0)
 				section = SECTION_DSTAR_NETWORK_FROM;
 			else if (::strncmp(buffer, "[D-Star Network To]", 19U) == 0)
@@ -169,6 +173,9 @@ bool CConf::read()
 				m_defaultNXDNId = uint16_t(::atoi(value));
 			else if (::strcmp(key, "Daemon") == 0)
 				m_daemon = ::atoi(value) == 1;
+		} else if (section == SECTION_DSTAR) {
+			if (::strcmp(key, "RepeaterCallsign") == 0)
+				m_dStarCallsign = value;
 		} else if (section == SECTION_TRANSCODER) {
 			if (::strcmp(key, "Port") == 0)
 				m_transcoderPort = value;
@@ -309,6 +316,11 @@ std::string CConf::getTranscoderPort() const
 uint32_t CConf::getTranscoderSpeed() const
 {
 	return m_transcoderSpeed;
+}
+
+std::string CConf::getDStarCallsign() const
+{
+	return m_dStarCallsign;
 }
 
 std::string CConf::getDStarFromRemoteAddress() const

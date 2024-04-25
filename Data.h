@@ -46,6 +46,8 @@ public:
 
 	void setEnd();
 
+	void getDStar(uint8_t* source, uint8_t* destination) const;
+	void getM17(uint8_t* source, uint8_t* destination) const;
 	bool getData(uint8_t* data);
 
 	bool isEnd() const;
@@ -76,6 +78,7 @@ private:
 	uint16_t    m_length;
 
 	std::string bytesToString(const uint8_t* str, unsigned int length) const;
+	void stringToBytes(uint8_t* str, unsigned int length, const std::string& callsign) const;
 };
 
 #endif

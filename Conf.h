@@ -40,6 +40,9 @@ public:
 	std::string  getTranscoderPort() const;
 	uint32_t     getTranscoderSpeed() const;
 
+	// The D-Star section
+	std::string  getDStarCallsign() const;
+
 	// The From D-Star Network section
 	std::string  getDStarFromRemoteAddress() const;
 	uint16_t     getDStarFromRemotePort() const;
@@ -113,6 +116,8 @@ private:
 
 	std::string  m_transcoderPort;
 	uint32_t     m_transcoderSpeed;
+
+	std::string  m_dStarCallsign;
 
 	std::string  m_dStarFromRemoteAddress;
 	uint16_t     m_dStarFromRemotePort;

@@ -337,7 +337,8 @@ int CCrossMode::run()
 
 bool CCrossMode::createFromNetwork()
 {
-	std::string callsign = m_conf.getDefaultCallsign();
+	const std::string callsign1 = m_conf.getDefaultCallsign();
+	const std::string callsign2 = m_conf.getDStarCallsign();
 	std::string localAddress;
 	uint16_t    localPort;
 	std::string remoteAddress;
@@ -351,7 +352,7 @@ bool CCrossMode::createFromNetwork()
 		remotePort    = m_conf.getDStarFromRemotePort();
 		localPort     = m_conf.getDStarFromLocalPort();
 		debug         = m_conf.getDStarFromDebug();
-		m_fromNetwork = new CDStarNetwork(localAddress, localPort, remoteAddress, remotePort, debug);
+		m_fromNetwork = new CDStarNetwork(callsign2, localAddress, localPort, remoteAddress, remotePort, debug);
 		break;
 /*
 	case DATA_MODE_YSFDN:
@@ -361,7 +362,7 @@ bool CCrossMode::createFromNetwork()
 		remotePort    = m_conf.getYSFFromRemotePort();
 		localPort     = m_conf.getYSFFromLocalPort();
 		debug         = m_conf.getYSFFromDebug();
-		m_fromNetwork = new CYSFNetwork(callsign, localAddress, localPort, remoteAddress, remotePort, debug);
+		m_fromNetwork = new CYSFNetwork(callsign1, localAddress, localPort, remoteAddress, remotePort, debug);
 		break;
 */
 	case DATA_MODE_FM:
@@ -370,7 +371,7 @@ bool CCrossMode::createFromNetwork()
 		remotePort    = m_conf.getFMFromRemotePort();
 		localPort     = m_conf.getFMFromLocalPort();
 		debug         = m_conf.getFMFromDebug();
-		m_fromNetwork = new CFMNetwork(callsign, localAddress, localPort, remoteAddress, remotePort, debug);
+		m_fromNetwork = new CFMNetwork(callsign1, localAddress, localPort, remoteAddress, remotePort, debug);
 		break;
 	case DATA_MODE_M17:
 		remoteAddress = m_conf.getM17FromRemoteAddress();
@@ -397,7 +398,8 @@ bool CCrossMode::createFromNetwork()
 
 bool CCrossMode::createToNetwork()
 {
-	std::string callsign = m_conf.getDefaultCallsign();
+	const std::string callsign1 = m_conf.getDefaultCallsign();
+	const std::string callsign2 = m_conf.getDStarCallsign();
 	std::string localAddress;
 	uint16_t    localPort;
 	std::string remoteAddress;
@@ -411,7 +413,7 @@ bool CCrossMode::createToNetwork()
 		remotePort    = m_conf.getDStarToRemotePort();
 		localPort     = m_conf.getDStarToLocalPort();
 		debug         = m_conf.getDStarToDebug();
-		m_toNetwork = new CDStarNetwork(localAddress, localPort, remoteAddress, remotePort, debug);
+		m_toNetwork = new CDStarNetwork(callsign2, localAddress, localPort, remoteAddress, remotePort, debug);
 		break;
 /*
 	case DATA_MODE_YSFDN:
@@ -421,7 +423,7 @@ bool CCrossMode::createToNetwork()
 		remotePort    = m_conf.getYSFToRemotePort();
 		localPort     = m_conf.getYSFToLocalPort();
 		debug         = m_conf.getYSFToDebug();
-		m_toNetwork = new CYSFNetwork(callsign, localAddress, localPort, remoteAddress, remotePort, debug);
+		m_toNetwork = new CYSFNetwork(callsign1, localAddress, localPort, remoteAddress, remotePort, debug);
 		break;
 */
 	case DATA_MODE_FM:
@@ -430,7 +432,7 @@ bool CCrossMode::createToNetwork()
 		remotePort    = m_conf.getFMToRemotePort();
 		localPort     = m_conf.getFMToLocalPort();
 		debug         = m_conf.getFMToDebug();
-		m_toNetwork = new CFMNetwork(callsign, localAddress, localPort, remoteAddress, remotePort, debug);
+		m_toNetwork = new CFMNetwork(callsign1, localAddress, localPort, remoteAddress, remotePort, debug);
 		break;
 	case DATA_MODE_M17:
 		remoteAddress = m_conf.getM17ToRemoteAddress();

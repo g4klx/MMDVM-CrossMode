@@ -31,12 +31,12 @@
 
 class CDStarNetwork : public INetwork {
 public:
-	CDStarNetwork(const std::string& localAddress, unsigned short localPort, const std::string& remoteAddress, unsigned short remotePort, bool debug);
+	CDStarNetwork(const std::string& callsign, const std::string& localAddress, unsigned short localPort, const std::string& remoteAddress, unsigned short remotePort, bool debug);
 	virtual ~CDStarNetwork();
 
 	virtual bool open();
 
-	virtual bool write(const CData& data);
+	virtual bool write(CData& data);
 
 	virtual bool read(CData& data);
 
@@ -47,6 +47,7 @@ public:
 	virtual void clock(unsigned int ms);
 
 private:
+	std::string      m_callsign;
 	CUDPSocket       m_socket;
 	sockaddr_storage m_addr;
 	unsigned int     m_addrLen;
@@ -57,10 +58,16 @@ private:
 	CRingBuffer<uint8_t> m_buffer;
 	CTimer           m_pollTimer;
 	std::mt19937     m_random;
+	uint8_t*         m_header;
 
-	bool writeHeader(const uint8_t* header, unsigned int length, bool busy);
-	bool writeData(const uint8_t* data, unsigned int length, unsigned int errors, bool end, bool busy);
+	bool writeHeader(const CData& data);
+	bool writeData(CData& data);
 	bool writePoll(const char* text);
+
+	void createHeader(const CData& data);
+	void addSlowData(uint8_t* buffer);
+	void stringToBytes(uint8_t* str, const std::string& callsign) const;
+	void addHeaderCRC();
 };
 
 #endif

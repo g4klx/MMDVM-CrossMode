@@ -27,7 +27,7 @@ public:
 
 	virtual bool open() = 0;
 
-	virtual bool write(const CData& data) = 0;
+	virtual bool write(CData& data) = 0;
 
 	virtual bool read(CData& data) = 0;
 

@@ -39,7 +39,7 @@ const unsigned int M17_LICH_FRAGMENT_FEC_LENGTH_BYTES = M17_LICH_FRAGMENT_FEC_LE
 const unsigned int M17_PAYLOAD_LENGTH_BITS  = 128U;
 const unsigned int M17_PAYLOAD_LENGTH_BYTES = M17_PAYLOAD_LENGTH_BITS / 8U;
 
-const uint8_t M17_NULL_NONCE[] = {0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U};
+const uint8_t       M17_NULL_NONCE[] = {0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U};
 const unsigned int  M17_META_LENGTH_BITS  = 112U;
 const unsigned int  M17_META_LENGTH_BYTES = M17_META_LENGTH_BITS / 8U;
 
@@ -66,5 +66,7 @@ const uint8_t M17_ENCRYPTION_TYPE_SCRAMBLE = 0x02U;
 const uint8_t M17_ENCRYPTION_SUB_TYPE_TEXT       = 0x00U;
 const uint8_t M17_ENCRYPTION_SUB_TYPE_GPS        = 0x01U;
 const uint8_t M17_ENCRYPTION_SUB_TYPE_CALLSIGNS  = 0x02U;
+
+const unsigned int M17_CALLSIGN_LENGTH = 9U;
 
 #endif
