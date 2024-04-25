@@ -4,13 +4,13 @@ the appropriate mode gateway, or maybe after a mode gateway and another mode gat
 
 The final version will transcode between all of the following digital and non-digital voice modes.
 
-D-Star
-DMR
-System Fusion (DN and VW modes)
-P25 phase 1
-NXDN
-FM
-M17
+- D-Star
+- DMR
+- System Fusion (DN and VW modes)
+- P25 phase 1
+- NXDN
+- FM
+- M17
 
 The initial versions will only allow for D-Star, M17, and FM, with System Fusion being possible, depending on the time available before Hamvention 2024.
 

@@ -58,6 +58,8 @@ private:
 	CTimer           m_pollTimer;
 	std::mt19937     m_random;
 
+	bool writeHeader(const uint8_t* header, unsigned int length, bool busy);
+	bool writeData(const uint8_t* data, unsigned int length, unsigned int errors, bool end, bool busy);
 	bool writePoll(const char* text);
 };
 

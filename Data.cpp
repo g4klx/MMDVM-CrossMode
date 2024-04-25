@@ -18,9 +18,13 @@
 
 #include "Data.h"
 
+#include "DStarDefines.h"
+#include "YSFDefines.h"
+
 #include <cassert>
 
-CData::CData(const std::string& callsign, uint32_t dmrId, uint16_t nxdnId) :
+CData::CData(const std::string& port, uint32_t speed, const std::string& callsign, uint32_t dmrId, uint16_t nxdnId) :
+m_transoder(port, speed),
 m_defaultCallsign(callsign),
 m_defaultDMRId(dmrId),
 m_defaultNXDNId(nxdnId),
@@ -51,46 +55,83 @@ CData::~CData()
 	delete[] m_data;
 }
 
-void CData::setModes(DATA_MODE fromMode, DATA_MODE toMode)
+bool CData::open()
+{
+	return m_transoder.open();
+}
+
+bool CData::setModes(DATA_MODE fromMode, DATA_MODE toMode)
 {
 	m_fromMode = fromMode;
 	m_toMode   = toMode;
 
+	uint8_t transFromMode;
+	uint8_t transToMode;
+
 	switch (m_fromMode) {
 	case DATA_MODE_DSTAR:
-		m_length = DSTAR_DATA_LENGTH;
+		transFromMode = MODE_DSTAR;
 		break;
 	case DATA_MODE_DMR:
 	case DATA_MODE_NXDN:
-		m_length = DMR_NXDN_DATA_LENGTH;
+		transFromMode = MODE_DMR_NXDN;
 		break;
 	case DATA_MODE_YSFDN:
-		m_length = YSFDN_DATA_LENGTH;
+		transFromMode = MODE_YSFDN;
 		break;
 	case DATA_MODE_YSFVW:
-		m_length = IMBE_FEC_DATA_LENGTH;
+		transFromMode = MODE_IMBE_FEC;
 		break;
 	case DATA_MODE_P25:
-		m_length = IMBE_DATA_LENGTH;
+		transFromMode = MODE_IMBE;
 		break;
 	case DATA_MODE_FM:
-		m_length = PCM_DATA_LENGTH;
+		transFromMode = MODE_PCM;
 		break;
 	case DATA_MODE_M17:
-		m_length = CODEC2_3200_DATA_LENGTH;
+		transFromMode = MODE_CODEC2_3200;
 		break;
 	default:
-		break;
+		return false;
 	}
+
+	switch (m_toMode) {
+	case DATA_MODE_DSTAR:
+		transToMode = MODE_DSTAR;
+		break;
+	case DATA_MODE_DMR:
+	case DATA_MODE_NXDN:
+		transToMode = MODE_DMR_NXDN;
+		break;
+	case DATA_MODE_YSFDN:
+		transToMode = MODE_YSFDN;
+		break;
+	case DATA_MODE_YSFVW:
+		transToMode = MODE_IMBE_FEC;
+		break;
+	case DATA_MODE_P25:
+		transToMode = MODE_IMBE;
+		break;
+	case DATA_MODE_FM:
+		transToMode = MODE_PCM;
+		break;
+	case DATA_MODE_M17:
+		transToMode = MODE_CODEC2_3200;
+		break;
+	default:
+		return false;
+	}
+
+	return m_transoder.setConversion(fromMode, toMode);
 }
 
-void CData::setDStar(const std::string& source, const std::string& destination)
+void CData::setDStar(const uint8_t* source, const uint8_t* destination)
 {
-	assert(!source.empty());
-	assert(!destination.empty());
+	assert(source != nullptr);
+	assert(destination != nullptr);
 
-	m_srcCallsign = source;
-	m_dstCallsign = destination;
+	m_srcCallsign = bytesToString(source, DSTAR_LONG_CALLSIGN_LENGTH);
+	m_dstCallsign = bytesToString(destination, DSTAR_LONG_CALLSIGN_LENGTH);
 }
 
 void CData::setDMR(uint32_t source, uint32_t destination, bool group)
@@ -103,11 +144,11 @@ void CData::setDMR(uint32_t source, uint32_t destination, bool group)
 	m_group   = group;
 }
 
-void CData::setYSF(const std::string& source, uint8_t dgId)
+void CData::setYSF(const uint8_t* source, uint8_t dgId)
 {
-	assert(!source.empty());
+	assert(source != nullptr);
 
-	m_srcCallsign = source;
+	m_srcCallsign = bytesToString(source, YSF_CALLSIGN_LENGTH);
 	m_dgId        = dgId;
 }
 
@@ -140,16 +181,29 @@ void CData::setM17(const std::string& source, const std::string& destination)
 	m_dstCallsign = destination;
 }
 
-void CData::setData(const uint8_t* data)
+bool CData::setData(const uint8_t* data)
 {
 	assert(data != nullptr);
 
-	::memcpy(m_data, data, m_length);
+	return m_transoder.write(data);
 }
 
 void CData::setEnd()
 {
 	m_end = true;
+}
+
+bool CData::getData(uint8_t* data)
+{
+	assert(data != nullptr);
+
+	if (m_length > 0U) {
+		::memcpy(data, m_data, m_length);
+		m_length = 0U;
+		return true;
+	}
+
+	return false;
 }
 
 bool CData::isEnd() const
@@ -159,5 +213,32 @@ bool CData::isEnd() const
 
 void CData::reset()
 {
-	m_end = false;
+	m_end    = false;
+	m_length = 0U;
+}
+
+void CData::clock(unsigned int ms)
+{
+	m_length = m_transoder.read(m_data);
+}
+
+void CData::close()
+{
+	m_transoder.close();
+}
+
+std::string CData::bytesToString(const uint8_t* str, unsigned int length) const
+{
+	assert(str != nullptr);
+
+	std::string callsign;
+
+	for (unsigned int i = 0U; i < length; i++) {
+		if ((str[i] != ' ') && (str[i] != '/') && (str[i] != '-'))
+			callsign += char(str[i]);
+		else
+			break;
+	}
+
+	return callsign;
 }

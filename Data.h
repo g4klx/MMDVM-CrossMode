@@ -20,6 +20,7 @@
 #define	Data_H
 
 #include "TranscoderDefines.h"
+#include "Transcoder.h"
 #include "Defines.h"
 
 #include <string>
@@ -27,26 +28,36 @@
 
 class CData {
 public:
-	CData(const std::string& callsign, uint32_t dmrId, uint16_t nxdnId);
+	CData(const std::string& port, uint32_t speed, const std::string& callsign, uint32_t dmrId, uint16_t nxdnId);
 	~CData();
 
-	void setModes(DATA_MODE fromMode, DATA_MODE toMode);
+	bool open();
 
-	void setDStar(const std::string& source, const std::string& destination);
+	bool setModes(DATA_MODE fromMode, DATA_MODE toMode);
+
+	void setDStar(const uint8_t* source, const uint8_t* destination);
 	void setDMR(uint32_t source, uint32_t destination, bool group);
-	void setYSF(const std::string& source, uint8_t dgId);
+	void setYSF(const uint8_t* source, uint8_t dgId);
 	void setNXDN(uint16_t source, uint16_t destination, bool group);
 	void setP25(uint32_t source, uint32_t destination, bool group);
 	void setM17(const std::string& source, const std::string& destination);
 
-	void setData(const uint8_t* data);
+	bool setData(const uint8_t* data);
 
 	void setEnd();
+
+	bool getData(uint8_t* data);
+
 	bool isEnd() const;
+
+	void clock(unsigned int ms);
 
 	void reset();
 
+	void close();
+
 private:
+	CTranscoder m_transoder;
 	std::string m_defaultCallsign;
 	uint32_t    m_defaultDMRId;
 	uint16_t    m_defaultNXDNId;
@@ -63,6 +74,8 @@ private:
 	bool        m_end;
 	uint8_t*    m_data;
 	uint16_t    m_length;
+
+	std::string bytesToString(const uint8_t* str, unsigned int length) const;
 };
 
 #endif

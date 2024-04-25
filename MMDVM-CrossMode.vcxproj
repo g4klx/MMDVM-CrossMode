@@ -101,7 +101,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32_MEAN_AND_LEAN</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
     <Link>
@@ -167,8 +167,6 @@
     <ClInclude Include="UDPSocket.h" />
     <ClInclude Include="Utils.h" />
     <ClInclude Include="Version.h" />
-    <ClInclude Include="YSFDefines.h" />
-    <ClInclude Include="YSFNetwork.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CrossMode.cpp" />
@@ -186,7 +184,6 @@
     <ClCompile Include="UARTController.cpp" />
     <ClCompile Include="UDPSocket.cpp" />
     <ClCompile Include="Utils.cpp" />
-    <ClCompile Include="YSFNetwork.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

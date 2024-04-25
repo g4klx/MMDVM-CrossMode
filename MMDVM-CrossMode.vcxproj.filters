@@ -59,16 +59,10 @@
     <ClInclude Include="FMNetwork.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="YSFNetwork.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="DStarDefines.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="M17Defines.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="YSFDefines.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="CrossMode.h">
@@ -119,9 +113,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="FMNetwork.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="YSFNetwork.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CrossMode.cpp">

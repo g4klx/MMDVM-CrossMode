@@ -19,7 +19,6 @@
 #include "CrossMode.h"
 
 #include "DStarNetwork.h"
-#include "YSFNetwork.h"
 #include "M17Network.h"
 #include "FMNetwork.h"
 #include "StopWatch.h"
@@ -249,7 +248,15 @@ int CCrossMode::run()
 		return 1;
 	}
 
-	CData data(m_conf.getDefaultCallsign(), m_conf.getDefaultDMRId(), m_conf.getDefaultNXDNId());
+	CData data(m_conf.getTranscoderPort(), m_conf.getTranscoderSpeed(), m_conf.getDefaultCallsign(), m_conf.getDefaultDMRId(), m_conf.getDefaultNXDNId());
+	ret = data.open();
+	if (!ret) {
+		m_fromNetwork->close();
+		m_toNetwork->close();
+		delete m_fromNetwork;
+		delete m_toNetwork;
+		return 1;
+	}
 
 	CStopWatch stopwatch;
 
@@ -291,13 +298,17 @@ int CCrossMode::run()
 			ret = m_fromNetwork->read(data);
 			if (ret) {
 				m_toNetwork->write(data);
-				data.setModes(m_fromMode, m_toMode);
+				ret = data.setModes(m_fromMode, m_toMode);
+				if (!ret)
+					break;
 				direction = DIR_FROM_TO;
 			} else {
 				ret = m_toNetwork->read(data);
 				if (ret) {
 					m_fromNetwork->write(data);
-					data.setModes(m_toMode, m_fromMode);
+					ret = data.setModes(m_toMode, m_fromMode);
+					if (!ret)
+						break;
 					direction = DIR_TO_FROM;
 				}
 			}
@@ -310,7 +321,10 @@ int CCrossMode::run()
 
 		m_fromNetwork->clock(elapsed);
 		m_toNetwork->clock(elapsed);
+		data.clock(elapsed);
 	}
+
+	data.close();
 
 	m_fromNetwork->close();
 	m_toNetwork->close();
@@ -339,6 +353,7 @@ bool CCrossMode::createFromNetwork()
 		debug         = m_conf.getDStarFromDebug();
 		m_fromNetwork = new CDStarNetwork(localAddress, localPort, remoteAddress, remotePort, debug);
 		break;
+/*
 	case DATA_MODE_YSFDN:
 	case DATA_MODE_YSFVW:
 		remoteAddress = m_conf.getYSFFromRemoteAddress();
@@ -348,6 +363,7 @@ bool CCrossMode::createFromNetwork()
 		debug         = m_conf.getYSFFromDebug();
 		m_fromNetwork = new CYSFNetwork(callsign, localAddress, localPort, remoteAddress, remotePort, debug);
 		break;
+*/
 	case DATA_MODE_FM:
 		remoteAddress = m_conf.getFMFromRemoteAddress();
 		localAddress  = m_conf.getFMFromLocalAddress();
@@ -397,6 +413,7 @@ bool CCrossMode::createToNetwork()
 		debug         = m_conf.getDStarToDebug();
 		m_toNetwork = new CDStarNetwork(localAddress, localPort, remoteAddress, remotePort, debug);
 		break;
+/*
 	case DATA_MODE_YSFDN:
 	case DATA_MODE_YSFVW:
 		remoteAddress = m_conf.getYSFToRemoteAddress();
@@ -406,6 +423,7 @@ bool CCrossMode::createToNetwork()
 		debug         = m_conf.getYSFToDebug();
 		m_toNetwork = new CYSFNetwork(callsign, localAddress, localPort, remoteAddress, remotePort, debug);
 		break;
+*/
 	case DATA_MODE_FM:
 		remoteAddress = m_conf.getFMToRemoteAddress();
 		localAddress  = m_conf.getFMToLocalAddress();

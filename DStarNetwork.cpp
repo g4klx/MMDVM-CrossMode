@@ -57,7 +57,7 @@ CDStarNetwork::~CDStarNetwork()
 bool CDStarNetwork::open()
 {
 	if (m_addrLen == 0U) {
-		LogError("Unable to resolve the address of the ircDDB Gateway");
+		LogError("Unable to resolve the address of the remote");
 		return false;
 	}
 
@@ -172,7 +172,7 @@ void CDStarNetwork::clock(unsigned int ms)
 {
 	m_pollTimer.clock(ms);
 	if (m_pollTimer.hasExpired()) {
-		writePoll("mmdvm");
+		writePoll("cross-mode");
 		m_pollTimer.start();
 	}
 
@@ -233,8 +233,7 @@ void CDStarNetwork::clock(unsigned int ms)
 			if ((buffer[7] & 0x40U) == 0x40U) {
 				m_inId = 0U;
 				ctrl[1U] = TAG_EOT;
-			}
-			else {
+			} else {
 				ctrl[1U] = TAG_DATA;
 			}
 
@@ -248,35 +247,46 @@ void CDStarNetwork::clock(unsigned int ms)
 		break;
 
 	default:
-		CUtils::dump("Unknown D-Star packet from the Gateway", buffer, length);
+		CUtils::dump("Unknown D-Star packet from the remote", buffer, length);
 		break;
 	}
 }
 
-unsigned int CDStarNetwork::read(uint8_t* data, unsigned int length)
+bool CDStarNetwork::read(CData& data)
 {
-	assert(data != NULL);
-
 	if (m_buffer.isEmpty())
-		return 0U;
+		return false;
 
-	uint8_t c = 0U;
-	m_buffer.getData(&c, 1U);
+	uint8_t length = 0U;
+	m_buffer.getData(&length, 1U);
 
-	assert(c <= 100U);
-	assert(c <= length);
+	uint8_t type = 0U;
+	m_buffer.getData(&type, 1U);
 
 	uint8_t buffer[100U];
-	m_buffer.getData(buffer, c);
+	m_buffer.getData(buffer, length - 1U);
 
-	::memcpy(data, buffer, c);
+	switch (type) {
+	case TAG_HEADER:
+		data.setDStar();
+		break;
+	case TAG_DATA:
+		data.setData();
+		break;
+	case TAG_EOT:
+		data.setEnd();
+		break;
+	default:
+		return false;
+	}
 
-	return c;
+	return true;
 }
 
 void CDStarNetwork::reset()
 {
-	m_inId = 0U;
+	m_inId  = 0U;
+	m_outId = 0U;
 }
 
 void CDStarNetwork::close()
