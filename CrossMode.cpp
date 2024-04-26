@@ -31,6 +31,12 @@
 #include <cstring>
 #include <cassert>
 
+#if !defined(_WIN32) && !defined(_WIN64)
+#include <sys/types.h>
+#include <signal.h>
+#include <pwd.h>
+#endif
+
 enum DIRECTION {
 	DIR_NONE,
 	DIR_FROM_TO,
@@ -225,7 +231,6 @@ int CCrossMode::run()
 			}
 		}
 	}
-}
 #endif
 
 #if !defined(_WIN32) && !defined(_WIN64)

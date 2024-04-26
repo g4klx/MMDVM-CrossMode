@@ -22,6 +22,7 @@
 #include "YSFDefines.h"
 #include "M17Defines.h"
 
+#include <cstring>
 #include <cassert>
 
 CData::CData(const std::string& port, uint32_t speed, const std::string& callsign, uint32_t dmrId, uint16_t nxdnId) :

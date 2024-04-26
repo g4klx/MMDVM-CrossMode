@@ -110,8 +110,10 @@ bool CM17Network::write(CData& data)
 
 	if (data.isEnd()) {
 		buffer[34U] |= 0x80U;
-		::memcpy(buffer + 36U, M17_3200_SILENCE, M17_PAYLOAD_LENGTH_BYTES);
+		::memcpy(buffer + 36U, M17_3200_SILENCE, M17_PAYLOAD_LENGTH_BYTES / 2U);
+		::memcpy(buffer + 44U, M17_3200_SILENCE, M17_PAYLOAD_LENGTH_BYTES / 2U);
 	} else {
+		// XXX FIXME This is only 20ms worth of audio
 		data.getData(buffer + 36U);
 	}
 

@@ -9,4 +9,5 @@ Release
 *.user
 *.onj
 .vs
+CrossMode
 

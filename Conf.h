@@ -143,18 +143,6 @@ private:
 	uint16_t     m_ysfToLocalPort;
 	bool         m_ysfToDebug;
 
-	std::string  m_m17FromRemoteAddress;
-	uint16_t     m_m17FromRemotePort;
-	std::string  m_m17FromLocalAddress;
-	uint16_t     m_m17FromLocalPort;
-	bool         m_m17FromDebug;
-
-	std::string  m_m17ToRemoteAddress;
-	uint16_t     m_m17ToRemotePort;
-	std::string  m_m17ToLocalAddress;
-	uint16_t     m_m17ToLocalPort;
-	bool         m_m17ToDebug;
-
 	std::string  m_fmFromRemoteAddress;
 	uint16_t     m_fmFromRemotePort;
 	std::string  m_fmFromLocalAddress;
@@ -166,6 +154,18 @@ private:
 	std::string  m_fmToLocalAddress;
 	uint16_t     m_fmToLocalPort;
 	bool         m_fmToDebug;
+
+	std::string  m_m17FromRemoteAddress;
+	uint16_t     m_m17FromRemotePort;
+	std::string  m_m17FromLocalAddress;
+	uint16_t     m_m17FromLocalPort;
+	bool         m_m17FromDebug;
+
+	std::string  m_m17ToRemoteAddress;
+	uint16_t     m_m17ToRemotePort;
+	std::string  m_m17ToLocalAddress;
+	uint16_t     m_m17ToLocalPort;
+	bool         m_m17ToDebug;
 
 	uint32_t     m_logDisplayLevel;
 	uint32_t     m_logFileLevel;

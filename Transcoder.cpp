@@ -337,7 +337,7 @@ bool CTranscoder::validateOptions() const
 		break;
 
 	case HAS_2AMBE_CHIPS:
-		return true;
+		break;
 
 	default:
 		if ((m_inMode == MODE_DSTAR) && (m_outMode != MODE_DSTAR)) {
@@ -364,6 +364,8 @@ bool CTranscoder::validateOptions() const
 			::fprintf(stderr, "Transcoding isn't possinle without an AMBE chip\n");
 			return false;
 		}
-		return true;
+		break;
 	}
+
+	return true;
 }
