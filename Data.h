@@ -42,12 +42,13 @@ public:
 	void setP25(uint32_t source, uint32_t destination, bool group);
 	void setM17(const std::string& source, const std::string& destination);
 
-	bool setData(const uint8_t* data);
-
 	void setEnd();
 
 	void getDStar(uint8_t* source, uint8_t* destination) const;
 	void getM17(uint8_t* source, uint8_t* destination) const;
+
+	bool setData(const uint8_t* data);
+	bool hasData() const;
 	bool getData(uint8_t* data);
 
 	bool isEnd() const;

@@ -214,6 +214,11 @@ void CData::getM17(uint8_t* source, uint8_t* destination) const
 	stringToBytes(destination, M17_CALLSIGN_LENGTH, m_dstCallsign);
 }
 
+bool CData::hasData() const
+{
+	return m_length > 0U;
+}
+
 bool CData::getData(uint8_t* data)
 {
 	assert(data != nullptr);

@@ -24,9 +24,11 @@
 #include "StopWatch.h"
 #include "Version.h"
 #include "Thread.h"
+#include "Timer.h"
 #include "Log.h"
 #include "GitVersion.h"
 
+#include <cstring>
 #include <cassert>
 
 enum DIRECTION {
@@ -64,18 +66,18 @@ DATA_MODE convertMode(const char* text)
 		return DATA_MODE_DSTAR;
 	else if (::strcmp(text, "dmr") == 0)
 		return DATA_MODE_DMR;
-	else if (::strcmp(text, "nxdn") == 0)
-		return DATA_MODE_NXDN;
 	else if (::strcmp(text, "ysfdn") == 0)
 		return DATA_MODE_YSFDN;
 	else if (::strcmp(text, "ysfvw") == 0)
 		return DATA_MODE_YSFVW;
-	else if (::strcmp(text, "p15") == 0)
+	else if (::strcmp(text, "p25") == 0)
 		return DATA_MODE_P25;
-	else if (::strcmp(text, "m17") == 0)
-		return DATA_MODE_M17;
+	else if (::strcmp(text, "nxdn") == 0)
+		return DATA_MODE_NXDN;
 	else if (::strcmp(text, "fm") == 0)
 		return DATA_MODE_FM;
+	else if (::strcmp(text, "m17") == 0)
+		return DATA_MODE_M17;
 	else
 		return DATA_MODE_NONE;
 }
@@ -97,6 +99,12 @@ int main(int argc, char** argv)
 		toMode   = convertMode(argv[3U]);
 	} else {
 		::fprintf(stderr, "Usage: CrossMode [-v|--version] [<filename> <from> <to>]\n");
+		return 1;
+	}
+
+	if ((fromMode == DATA_MODE_NONE) || (toMode == DATA_MODE_NONE)) {
+		::fprintf(stderr, "CrossMode: <from> and <to> must be one of:\n");
+		::fprintf(stderr, "\tdstar, dmr, ysfdn, ysfvw, p25, nxdn, fm, m17\n");
 		return 1;
 	}
 
@@ -259,6 +267,7 @@ int CCrossMode::run()
 	}
 
 	CStopWatch stopwatch;
+	CTimer watchdog(1000U, 0U, 500U);
 
 	DIRECTION direction = DIR_NONE;
 
@@ -268,51 +277,53 @@ int CCrossMode::run()
 		switch (direction) {
 		case DIR_FROM_TO:
 			ret = m_fromNetwork->read(data);
-			if (ret) {
+			if (ret)
+				watchdog.start();
+			if (data.hasData() || data.isEnd())
 				m_toNetwork->write(data);
-				ret = data.isEnd();
-				if (ret) {
-					m_fromNetwork->reset();
-					m_toNetwork->reset();
-					data.reset();
-					direction = DIR_NONE;
-				}
-			}
 			break;
 
 		case DIR_TO_FROM:
 			ret = m_toNetwork->read(data);
-			if (ret) {
+			if (ret)
+				watchdog.start();
+			if (data.hasData() || data.isEnd())
 				m_fromNetwork->write(data);
-				ret = data.isEnd();
-				if (ret) {
-					m_fromNetwork->reset();
-					m_toNetwork->reset();
-					data.reset();
-					direction = DIR_NONE;
-				}
-			}
 			break;
 
 		default:
 			ret = m_fromNetwork->read(data);
 			if (ret) {
-				m_toNetwork->write(data);
+				watchdog.start();
+
 				ret = data.setModes(m_fromMode, m_toMode);
 				if (!ret)
 					break;
+
 				direction = DIR_FROM_TO;
-			} else {
-				ret = m_toNetwork->read(data);
-				if (ret) {
-					m_fromNetwork->write(data);
-					ret = data.setModes(m_toMode, m_fromMode);
-					if (!ret)
-						break;
-					direction = DIR_TO_FROM;
-				}
+				break;
+			}
+
+			ret = m_toNetwork->read(data);
+			if (ret) {
+				watchdog.start();
+
+				ret = data.setModes(m_toMode, m_fromMode);
+				if (!ret)
+					break;
+
+				direction = DIR_TO_FROM;
+				break;
 			}
 			break;
+		}
+
+		if (data.isEnd()) {
+			m_fromNetwork->reset();
+			m_toNetwork->reset();
+			data.reset();
+			direction = DIR_NONE;
+			watchdog.stop();
 		}
 
 		CThread::sleep(10U);
@@ -322,6 +333,18 @@ int CCrossMode::run()
 		m_fromNetwork->clock(elapsed);
 		m_toNetwork->clock(elapsed);
 		data.clock(elapsed);
+
+		watchdog.clock(elapsed);
+		if (watchdog.isRunning() && watchdog.hasExpired()) {
+			::LogMessage("The watchdog timer has exprired");
+
+			m_fromNetwork->reset();
+			m_toNetwork->reset();
+			data.reset();
+			direction = DIR_NONE;
+
+			watchdog.stop();
+		}
 	}
 
 	data.close();
