@@ -175,9 +175,6 @@ void CData::setP25(uint32_t source, uint32_t destination, bool group)
 
 void CData::setM17(const std::string& source, const std::string& destination)
 {
-	assert(!source.empty());
-	assert(!destination.empty());
-
 	m_srcCallsign = source;
 	m_dstCallsign = destination;
 }
@@ -204,14 +201,10 @@ void CData::getDStar(uint8_t* source, uint8_t* destination) const
 	stringToBytes(destination, DSTAR_LONG_CALLSIGN_LENGTH, m_dstCallsign);
 }
 
-void CData::getM17(uint8_t* source, uint8_t* destination) const
+void CData::getM17(std::string& source, std::string& destination) const
 {
-	assert(source != nullptr);
-	assert(destination != nullptr);
-
-	// This is only true for D-Star
-	stringToBytes(source,      M17_CALLSIGN_LENGTH, m_srcCallsign);
-	stringToBytes(destination, M17_CALLSIGN_LENGTH, m_dstCallsign);
+	source      = m_srcCallsign;
+	destination = m_dstCallsign;
 }
 
 bool CData::hasData() const

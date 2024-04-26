@@ -51,12 +51,18 @@ private:
 	unsigned int     m_addrLen;
 	bool             m_debug;
 	uint16_t         m_outId;
+	uint16_t         m_outSeq;
 	uint16_t         m_inId;
 	CRingBuffer<uint8_t> m_buffer;
 	std::mt19937     m_random;
 	CTimer           m_timer;
+	uint8_t*         m_lich;
+	bool             m_hasMeta;
 
 	void sendPing();
+	void createLICH(const CData& data);
+	void encodeCallsign(const std::string& callsign, uint8_t* encoded) const;
+	void decodeCallsign(const uint8_t* encoded, std::string& callsign) const;
 };
 
 #endif

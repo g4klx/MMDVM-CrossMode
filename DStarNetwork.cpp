@@ -112,6 +112,9 @@ bool CDStarNetwork::open()
 
 bool CDStarNetwork::write(CData& data)
 {
+	if (m_addrLen == 0U)
+		return false;
+
 	if (m_outId == 0U)
 		return writeHeader(data);
 	else

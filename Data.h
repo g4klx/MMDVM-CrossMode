@@ -45,7 +45,7 @@ public:
 	void setEnd();
 
 	void getDStar(uint8_t* source, uint8_t* destination) const;
-	void getM17(uint8_t* source, uint8_t* destination) const;
+	void getM17(std::string& source, std::string& destination) const;
 
 	bool setData(const uint8_t* data);
 	bool hasData() const;

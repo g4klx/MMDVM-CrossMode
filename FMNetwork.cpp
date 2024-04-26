@@ -59,7 +59,7 @@ CFMNetwork::~CFMNetwork()
 bool CFMNetwork::open()
 {
 	if (m_addrLen == 0U) {
-		LogError("Unable to resolve the address of the FM Gateway");
+		LogError("Unable to resolve the address of the remote");
 		return false;
 	}
 
@@ -70,6 +70,9 @@ bool CFMNetwork::open()
 
 bool CFMNetwork::write(CData& data)
 {
+	if (m_addrLen == 0U)
+		return false;
+
 	if (data.isEnd())
 		return writeEnd();
 

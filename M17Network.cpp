@@ -25,6 +25,8 @@
 #include <cassert>
 #include <cstring>
 
+const std::string M17_CHARS = " ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-/.";
+
 const unsigned int BUFFER_LENGTH = 200U;
 
 CM17Network::CM17Network(const std::string& localAddress, unsigned short localPort, const std::string& remoteAddress, unsigned short remotePort, bool debug) :
@@ -33,15 +35,20 @@ m_addr(),
 m_addrLen(0U),
 m_debug(debug),
 m_outId(0U),
+m_outSeq(0U),
 m_inId(0U),
 m_buffer(1000U, "M17 Network"),
 m_random(),
-m_timer(1000U, 5U)
+m_timer(1000U, 5U),
+m_lich(nullptr),
+m_hasMeta(false)
 {
 	if (CUDPSocket::lookup(remoteAddress, remotePort, m_addr, m_addrLen) != 0) {
 		m_addrLen = 0U;
 		return;
 	}
+
+	m_lich = new uint8_t[M17_LICH_LENGTH_BYTES];
 
 	std::random_device rd;
 	std::mt19937 mt(rd());
@@ -50,12 +57,13 @@ m_timer(1000U, 5U)
 
 CM17Network::~CM17Network()
 {
+	delete[] m_lich;
 }
 
 bool CM17Network::open()
 {
 	if (m_addrLen == 0U) {
-		LogError("M17, unable to resolve the gateway address");
+		LogError("M17, unable to resolve the remote address");
 		return false;
 	}
 
@@ -71,12 +79,10 @@ bool CM17Network::open()
 	}
 }
 
-bool CM17Network::write(const uint8_t* data)
+bool CM17Network::write(CData& data)
 {
 	if (m_addrLen == 0U)
 		return false;
-
-	assert(data != NULL);
 
 	uint8_t buffer[100U];
 
@@ -89,12 +95,25 @@ bool CM17Network::write(const uint8_t* data)
 	if (m_outId == 0U) {
 		std::uniform_int_distribution<uint16_t> dist(0x0001, 0xFFFE);
 		m_outId = dist(m_random);
+
+		createLICH(data);
 	}
 
 	buffer[4U] = m_outId / 256U;	// Unique session id
 	buffer[5U] = m_outId % 256U;
 
-	::memcpy(buffer + 6U, data, 46U);
+	::memcpy(buffer + 6U, m_lich, M17_LICH_LENGTH_BYTES);
+
+	buffer[34U] = m_outSeq / 256U;
+	buffer[35U] = m_outSeq % 256U;
+	m_outSeq++;
+
+	if (data.isEnd()) {
+		buffer[34U] |= 0x80U;
+		::memcpy(buffer + 36U, M17_3200_SILENCE, M17_PAYLOAD_LENGTH_BYTES);
+	} else {
+		data.getData(buffer + 36U);
+	}
 
 	// Dummy CRC
 	buffer[52U] = 0x00U;
@@ -146,23 +165,30 @@ void CM17Network::clock(unsigned int ms)
 			return;
 	}
 
-	uint8_t c = length - 6U;
-	m_buffer.addData(&c, 1U);
-
-	m_buffer.addData(buffer + 6U, length - 6U);
+	m_buffer.addData(buffer + 6U, 46U);
 }
 
-bool CM17Network::read(uint8_t* data)
+bool CM17Network::read(CData& data)
 {
-	assert(data != NULL);
-
 	if (m_buffer.isEmpty())
 		return false;
 
-	uint8_t c = 0U;
-	m_buffer.getData(&c, 1U);
+	uint8_t buffer[80U];
+	m_buffer.getData(buffer, 46U);
 
-	m_buffer.getData(data, c);
+	if (!m_hasMeta) {
+		std::string src, dst;
+		decodeCallsign(buffer + 6U, src);
+		decodeCallsign(buffer + 0U, dst);
+		data.setM17(src, dst);
+
+		m_hasMeta = true;
+	}
+
+	if ((buffer[28U] & 0x80U) == 0x80U)
+		data.setEnd();
+	else
+		data.setData(buffer + 30U);
 
 	return true;
 }
@@ -176,8 +202,10 @@ void CM17Network::close()
 
 void CM17Network::reset()
 {
-	m_outId = 0U;
-	m_inId  = 0U;
+	m_outId   = 0U;
+	m_outSeq  = 0U;
+	m_inId    = 0U;
+	m_hasMeta = false;
 }
 
 void CM17Network::sendPing()
@@ -193,4 +221,80 @@ void CM17Network::sendPing()
 		CUtils::dump(1U, "M17 Network Transmitted", buffer, 4U);
 
 	m_socket.write(buffer, 4U, m_addr, m_addrLen);
+}
+
+void CM17Network::createLICH(const CData& data)
+{
+	std::string src, dst;
+	data.getM17(src, dst);
+
+	encodeCallsign(src, m_lich + 6U);
+	encodeCallsign(dst, m_lich + 0U);
+
+	m_lich[13U] = M17_STREAM_TYPE | (M17_DATA_TYPE_VOICE << 1) | (M17_ENCRYPTION_TYPE_NONE << 3);
+}
+
+void CM17Network::encodeCallsign(const std::string& callsign, uint8_t* encoded) const
+{
+	assert(encoded != NULL);
+
+	if (callsign == "ALL" || callsign == "ALL      ") {
+		encoded[0U] = 0xFFU;
+		encoded[1U] = 0xFFU;
+		encoded[2U] = 0xFFU;
+		encoded[3U] = 0xFFU;
+		encoded[4U] = 0xFFU;
+		encoded[5U] = 0xFFU;
+		return;
+	}
+
+	unsigned int len = callsign.size();
+	if (len > 9U)
+		len = 9U;
+
+	uint64_t enc = 0ULL;
+	for (int i = len - 1; i >= 0; i--) {
+		size_t pos = M17_CHARS.find(callsign[i]);
+		if (pos == std::string::npos)
+			pos = 0ULL;
+
+		enc *= 40ULL;
+		enc += pos;
+	}
+
+	encoded[0U] = (enc >> 40) & 0xFFU;
+	encoded[1U] = (enc >> 32) & 0xFFU;
+	encoded[2U] = (enc >> 24) & 0xFFU;
+	encoded[3U] = (enc >> 16) & 0xFFU;
+	encoded[4U] = (enc >> 8) & 0xFFU;
+	encoded[5U] = (enc >> 0) & 0xFFU;
+}
+
+void CM17Network::decodeCallsign(const uint8_t* encoded, std::string& callsign) const
+{
+	assert(encoded != NULL);
+
+	callsign.clear();
+
+	if (encoded[0U] == 0xFFU && encoded[1U] == 0xFFU && encoded[2U] == 0xFFU &&
+		encoded[3U] == 0xFFU && encoded[4U] == 0xFFU && encoded[5U] == 0xFFU) {
+		callsign = "ALL";
+		return;
+	}
+
+	uint64_t enc =
+		(uint64_t(encoded[0U]) << 40) +
+		(uint64_t(encoded[1U]) << 32) +
+		(uint64_t(encoded[2U]) << 24) +
+		(uint64_t(encoded[3U]) << 16) +
+		(uint64_t(encoded[4U]) << 8) +
+		(uint64_t(encoded[5U]) << 0);
+
+	if (enc >= 262144000000000ULL)	// 40^9
+		return;
+
+	while (enc > 0ULL) {
+		callsign += " ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-/."[enc % 40ULL];
+		enc /= 40ULL;
+	}
 }
