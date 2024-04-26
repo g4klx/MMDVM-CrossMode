@@ -41,7 +41,9 @@ m_buffer(1000U, "M17 Network"),
 m_random(),
 m_timer(1000U, 5U),
 m_lich(nullptr),
-m_hasMeta(false)
+m_hasMeta(false),
+m_audio(nullptr),
+m_audioCount(0U)
 {
 	if (CUDPSocket::lookup(remoteAddress, remotePort, m_addr, m_addrLen) != 0) {
 		m_addrLen = 0U;
@@ -49,6 +51,8 @@ m_hasMeta(false)
 	}
 
 	m_lich = new uint8_t[M17_LICH_LENGTH_BYTES];
+
+	m_audio = new uint8_t[M17_PAYLOAD_LENGTH_BYTES];
 
 	std::random_device rd;
 	std::mt19937 mt(rd());
@@ -58,6 +62,7 @@ m_hasMeta(false)
 CM17Network::~CM17Network()
 {
 	delete[] m_lich;
+	delete[] m_audio;
 }
 
 bool CM17Network::open()
@@ -83,6 +88,15 @@ bool CM17Network::write(CData& data)
 {
 	if (m_addrLen == 0U)
 		return false;
+
+	if (m_audioCount == 0U) {
+		data.getData(m_audio + 0U);
+		m_audioCount = 1U;
+		return true;
+	} else {
+		data.getData(m_audio + 8U);
+		m_audioCount = 0U;
+	}
 
 	uint8_t buffer[100U];
 
@@ -113,8 +127,7 @@ bool CM17Network::write(CData& data)
 		::memcpy(buffer + 36U, M17_3200_SILENCE, M17_PAYLOAD_LENGTH_BYTES / 2U);
 		::memcpy(buffer + 44U, M17_3200_SILENCE, M17_PAYLOAD_LENGTH_BYTES / 2U);
 	} else {
-		// XXX FIXME This is only 20ms worth of audio
-		data.getData(buffer + 36U);
+		::memcpy(buffer + 36U, m_audio, M17_PAYLOAD_LENGTH_BYTES);
 	}
 
 	// Dummy CRC
@@ -172,6 +185,12 @@ void CM17Network::clock(unsigned int ms)
 
 bool CM17Network::read(CData& data)
 {
+	if (m_audioCount == 1U) {
+		data.setData(m_audio + 8U);
+		m_audioCount = 0U;
+		return true;
+	}
+
 	if (m_buffer.isEmpty())
 		return false;
 
@@ -187,10 +206,15 @@ bool CM17Network::read(CData& data)
 		m_hasMeta = true;
 	}
 
-	if ((buffer[28U] & 0x80U) == 0x80U)
+	if ((buffer[28U] & 0x80U) == 0x80U) {
 		data.setEnd();
-	else
-		data.setData(buffer + 30U);
+		return true;
+	}
+
+	::memcpy(m_audio, buffer + 30U, M17_PAYLOAD_LENGTH_BYTES);
+	m_audioCount = 1U;
+
+	data.setData(m_audio + 0U);
 
 	return true;
 }
@@ -208,6 +232,7 @@ void CM17Network::reset()
 	m_outSeq  = 0U;
 	m_inId    = 0U;
 	m_hasMeta = false;
+	m_audioCount = 0U;
 }
 
 void CM17Network::sendPing()

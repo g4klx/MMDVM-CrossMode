@@ -58,6 +58,8 @@ private:
 	CTimer           m_timer;
 	uint8_t*         m_lich;
 	bool             m_hasMeta;
+	uint8_t*         m_audio;
+	uint8_t          m_audioCount;
 
 	void sendPing();
 	void createLICH(const CData& data);
