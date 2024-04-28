@@ -64,6 +64,9 @@ bool CData::open()
 
 bool CData::setModes(DATA_MODE fromMode, DATA_MODE toMode)
 {
+	if ((m_fromMode == fromMode) && (m_toMode == toMode))
+		return true;
+
 	m_fromMode = fromMode;
 	m_toMode   = toMode;
 
@@ -124,7 +127,7 @@ bool CData::setModes(DATA_MODE fromMode, DATA_MODE toMode)
 		return false;
 	}
 
-	return m_transoder.setConversion(fromMode, toMode);
+	return m_transoder.setConversion(transFromMode, transToMode);
 }
 
 void CData::setDStar(const uint8_t* source, const uint8_t* destination)

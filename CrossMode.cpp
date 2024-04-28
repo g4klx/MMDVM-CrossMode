@@ -299,7 +299,7 @@ int CCrossMode::run()
 			break;
 
 		default:
-			ret = m_fromNetwork->read(data);
+			ret = m_fromNetwork->hasData();
 			if (ret) {
 				watchdog.start();
 
@@ -311,7 +311,7 @@ int CCrossMode::run()
 				break;
 			}
 
-			ret = m_toNetwork->read(data);
+			ret = m_toNetwork->hasData();
 			if (ret) {
 				watchdog.start();
 

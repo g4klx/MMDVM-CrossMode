@@ -299,6 +299,11 @@ bool CDStarNetwork::read(CData& data)
 	}
 }
 
+bool CDStarNetwork::hasData()
+{
+	return !m_buffer.isEmpty();
+}
+
 void CDStarNetwork::reset()
 {
 	m_inId  = 0U;

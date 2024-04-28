@@ -37,6 +37,8 @@ public:
 
 	virtual bool read(CData& data);
 
+	virtual bool hasData();
+
 	virtual void reset();
 
 	virtual void close();

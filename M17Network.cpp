@@ -219,6 +219,11 @@ bool CM17Network::read(CData& data)
 	return true;
 }
 
+bool CM17Network::hasData()
+{
+	return !m_buffer.isEmpty();
+}
+
 void CM17Network::close()
 {
 	m_socket.close();

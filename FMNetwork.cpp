@@ -168,6 +168,11 @@ bool CFMNetwork::read(CData& data)
 	return true;
 }
 
+bool CFMNetwork::hasData()
+{
+	return !m_buffer.isEmpty();
+}
+
 void CFMNetwork::reset()
 {
 	m_seqNo = 0U;

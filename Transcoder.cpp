@@ -155,6 +155,9 @@ bool CTranscoder::setConversion(uint8_t inMode, uint8_t outMode)
 		return false;
 	}
 
+	m_inMode  = inMode;
+	m_outMode = outMode;
+
 	if (m_debug)
 		CUtils::dump("Transcoder read", buffer, len);
 
@@ -165,8 +168,6 @@ bool CTranscoder::setConversion(uint8_t inMode, uint8_t outMode)
 
 	case TYPE_ACK:
 		::fprintf(stdout, "Conversion modes - set\n");
-		m_inMode  = inMode;
-		m_outMode = outMode;
 		return true;
 
 	default:
@@ -313,8 +314,10 @@ uint16_t CTranscoder::getBlockLength(uint8_t mode) const
 		return IMBE_FEC_DATA_LENGTH;
 	case MODE_CODEC2_3200:
 		return CODEC2_3200_DATA_LENGTH;
-	default:
+	case MODE_PCM:
 		return PCM_DATA_LENGTH;
+	default:
+		return 0U;
 	}
 }
 
@@ -333,8 +336,10 @@ const uint8_t* CTranscoder::getDataHeader(uint8_t mode) const
 		return IMBE_FEC_DATA_HEADER;
 	case MODE_CODEC2_3200:
 		return CODEC2_3200_DATA_HEADER;
-	default:
+	case MODE_PCM:
 		return PCM_DATA_HEADER;
+	default:
+		return nullptr;
 	}
 }
 
