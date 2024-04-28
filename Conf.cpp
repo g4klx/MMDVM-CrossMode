@@ -50,6 +50,7 @@ m_defaultNXDNId(1234U),
 m_daemon(false),
 m_transcoderPort(),
 m_transcoderSpeed(460800U),
+m_transcoderDebug(false),
 m_dStarCallsign("G9BF   B"),
 m_dStarFromRemoteAddress("127.0.0.1"),
 m_dStarFromRemotePort(20011U),
@@ -129,9 +130,9 @@ bool CConf::read()
 				section = SECTION_DSTAR_NETWORK_FROM;
 			else if (::strncmp(buffer, "[D-Star Network To]", 19U) == 0)
 				section = SECTION_DSTAR_NETWORK_TO;
-			else if (::strncmp(buffer, "[YSF Network From]", 18U) == 0)
+			else if (::strncmp(buffer, "[System Fusion Network From]", 28U) == 0)
 				section = SECTION_YSF_NETWORK_FROM;
-			else if (::strncmp(buffer, "[YSF Network To]", 16U) == 0)
+			else if (::strncmp(buffer, "[System Fusion Network To]", 26U) == 0)
 				section = SECTION_YSF_NETWORK_TO;
 			else if (::strncmp(buffer, "[FM Network From]", 17U) == 0)
 				section = SECTION_FM_NETWORK_FROM;
@@ -181,6 +182,8 @@ bool CConf::read()
 				m_transcoderPort = value;
 			else if (::strcmp(key, "Speed") == 0)
 				m_transcoderSpeed = uint32_t(::atoi(value));
+			else if (::strcmp(key, "Debug") == 0)
+				m_transcoderDebug = ::atoi(value) == 1;
 		} else if (section == SECTION_DSTAR_NETWORK_FROM) {
 			if (::strcmp(key, "RemoteAddress") == 0)
 				m_dStarFromRemoteAddress = value;
@@ -316,6 +319,11 @@ std::string CConf::getTranscoderPort() const
 uint32_t CConf::getTranscoderSpeed() const
 {
 	return m_transcoderSpeed;
+}
+
+bool CConf::getTranscoderDebug() const
+{
+	return m_transcoderDebug;
 }
 
 std::string CConf::getDStarCallsign() const

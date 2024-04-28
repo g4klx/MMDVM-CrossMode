@@ -74,7 +74,6 @@ m_outId(0U),
 m_outSeq(0U),
 m_inId(0U),
 m_buffer(1000U, "D-Star Network"),
-m_pollTimer(1000U, 60U),
 m_random(),
 m_header(nullptr)
 {
@@ -99,13 +98,11 @@ CDStarNetwork::~CDStarNetwork()
 bool CDStarNetwork::open()
 {
 	if (m_addrLen == 0U) {
-		LogError("Unable to resolve the address of the remote");
+		LogError("D-Star, unable to resolve the address of the remote");
 		return false;
 	}
 
 	LogMessage("Opening D-Star network connection");
-
-	m_pollTimer.start();
 
 	return m_socket.open(m_addr);
 }
@@ -194,38 +191,8 @@ bool CDStarNetwork::writeData(CData& data)
 	return m_socket.write(buffer, length, m_addr, m_addrLen);
 }
 
-bool CDStarNetwork::writePoll(const char* text)
-{
-	assert(text != NULL);
-
-	uint8_t buffer[40U];
-
-	buffer[0] = 'D';
-	buffer[1] = 'S';
-	buffer[2] = 'R';
-	buffer[3] = 'P';
-
-	buffer[4] = 0x0A;				// Poll with text
-
-	unsigned int length = ::strlen(text);
-
-	// Include the nul at the end also
-	::memcpy(buffer + 5U, text, length + 1U);
-
-	// if (m_debug)
-	//	CUtils::dump(1U, "D-Star Network Poll Sent", buffer, 6U + length);
-
-	return m_socket.write(buffer, 6U + length, m_addr, m_addrLen);
-}
-
 void CDStarNetwork::clock(unsigned int ms)
 {
-	m_pollTimer.clock(ms);
-	if (m_pollTimer.hasExpired()) {
-		writePoll("cross-mode");
-		m_pollTimer.start();
-	}
-
 	uint8_t buffer[BUFFER_LENGTH];
 
 	sockaddr_storage address;
@@ -247,6 +214,7 @@ void CDStarNetwork::clock(unsigned int ms)
 	case 0x00U:			// NETWORK_TEXT;
 	case 0x01U:			// NETWORK_TEMPTEXT;
 	case 0x04U:			// NETWORK_STATUS1..5
+	case 0x0AU:			// PING
 	case 0x24U:			// NETWORK_DD_DATA
 		return;
 

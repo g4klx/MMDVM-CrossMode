@@ -39,6 +39,7 @@ public:
 	// The Transcoder section
 	std::string  getTranscoderPort() const;
 	uint32_t     getTranscoderSpeed() const;
+	bool         getTranscoderDebug() const;
 
 	// The D-Star section
 	std::string  getDStarCallsign() const;
@@ -116,6 +117,7 @@ private:
 
 	std::string  m_transcoderPort;
 	uint32_t     m_transcoderSpeed;
+	bool         m_transcoderDebug;
 
 	std::string  m_dStarCallsign;
 

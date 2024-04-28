@@ -20,13 +20,15 @@
 
 #include "TranscoderDefines.h"
 #include "StopWatch.h"
+#include "Utils.h"
 
 #include <cstring>
 #include <cassert>
 
 
-CTranscoder::CTranscoder(const std::string& port, uint32_t speed) :
+CTranscoder::CTranscoder(const std::string& port, uint32_t speed, bool debug) :
 m_serial(port, speed),
+m_debug(debug),
 m_inMode(MODE_PCM),
 m_outMode(MODE_PCM),
 m_hasAMBE(NO_AMBE_CHIP)
@@ -47,7 +49,7 @@ bool CTranscoder::open()
 		return false;
 	}
 
-	int16_t ret2 = m_serial.write(GET_VERSION, GET_VERSION_LEN);
+	int16_t ret2 = write(GET_VERSION, GET_VERSION_LEN);
 	if (ret2 <= 0) {
 		::fprintf(stderr, "Error writing the data to the transcoder\n");
 		return false;
@@ -60,6 +62,9 @@ bool CTranscoder::open()
 		m_serial.close();
 		return false;
 	}
+
+	if (m_debug)
+		CUtils::dump("Transcoder read", buffer, len);
 
 	switch (buffer[TYPE_POS]) {
 	case TYPE_NAK:
@@ -83,7 +88,7 @@ bool CTranscoder::open()
 		return false;
 	}
 
-	ret2 = m_serial.write(GET_CAPABILITIES, GET_CAPABILITIES_LEN);
+	ret2 = write(GET_CAPABILITIES, GET_CAPABILITIES_LEN);
 	if (ret2 <= 0) {
 		::fprintf(stderr, "Error writing data to the transcoder\n");
 		return false;
@@ -95,6 +100,9 @@ bool CTranscoder::open()
 		m_serial.close();
 		return false;
 	}
+
+	if (m_debug)
+		CUtils::dump("Transcoder read", buffer, len);
 
 	switch (buffer[TYPE_POS]) {
 	case TYPE_NAK:
@@ -134,7 +142,7 @@ bool CTranscoder::setConversion(uint8_t inMode, uint8_t outMode)
 	command[INPUT_MODE_POS]  = inMode;
 	command[OUTPUT_MODE_POS] = outMode;
 
-	int16_t ret = m_serial.write(command, SET_MODE_LEN);
+	int16_t ret = write(command, SET_MODE_LEN);
 	if (ret <= 0) {
 		::fprintf(stderr, "Error writing data to the transcoder\n");
 		return false;
@@ -146,6 +154,9 @@ bool CTranscoder::setConversion(uint8_t inMode, uint8_t outMode)
 		::fprintf(stderr, "Set mode read timeout (200 me)\n");
 		return false;
 	}
+
+	if (m_debug)
+		CUtils::dump("Transcoder read", buffer, len);
 
 	switch (buffer[TYPE_POS]) {
 	case TYPE_NAK:
@@ -172,7 +183,6 @@ void CTranscoder::close()
 uint16_t CTranscoder::read(uint8_t* buffer, uint16_t timeout)
 {
 	assert(buffer != NULL);
-	assert(timeout > 0U);
 
 	uint16_t len = 0U;
 	uint16_t ptr = 0U;
@@ -225,6 +235,17 @@ uint16_t CTranscoder::read(uint8_t* buffer, uint16_t timeout)
 	}
 }
 
+int16_t CTranscoder::write(const uint8_t* buffer, uint16_t length)
+{
+	assert(buffer != nullptr);
+	assert(length > 0U);
+
+	if (m_debug)
+		CUtils::dump("Transcoder write", buffer, length);
+
+	return m_serial.write(buffer, length);
+}
+
 uint16_t CTranscoder::read(uint8_t* data)
 {
 	assert(data != nullptr);
@@ -235,6 +256,9 @@ uint16_t CTranscoder::read(uint8_t* data)
 	uint16_t len = read(buffer, 0U);
 	if (len == 0U)
 		return 0U;
+
+	if (m_debug)
+		CUtils::dump("Transcoder read", buffer, len);
 
 	switch (buffer[TYPE_POS]) {
 	case TYPE_NAK:
@@ -265,7 +289,7 @@ bool CTranscoder::write(const uint8_t* data)
 	::memcpy(buffer + 0U, header, DATA_HEADER_LEN);
 	::memcpy(buffer + DATA_START_POS, data, length);
 
-	int16_t ret = m_serial.write(buffer, length + DATA_HEADER_LEN);
+	int16_t ret = write(buffer, length + DATA_HEADER_LEN);
 	if (ret <= 0) {
 		::fprintf(stderr, "Error writing the data to the transcoder\n");
 		return false;

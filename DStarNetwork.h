@@ -23,7 +23,6 @@
 #include "RingBuffer.h"
 #include "UDPSocket.h"
 #include "Network.h"
-#include "Timer.h"
 
 #include <cstdint>
 #include <string>
@@ -56,13 +55,11 @@ private:
 	uint8_t          m_outSeq;
 	uint16_t         m_inId;
 	CRingBuffer<uint8_t> m_buffer;
-	CTimer           m_pollTimer;
 	std::mt19937     m_random;
 	uint8_t*         m_header;
 
 	bool writeHeader(const CData& data);
 	bool writeData(CData& data);
-	bool writePoll(const char* text);
 
 	void createHeader(const CData& data);
 	void addSlowData(uint8_t* buffer);

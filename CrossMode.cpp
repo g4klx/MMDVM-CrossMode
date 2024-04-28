@@ -250,6 +250,8 @@ int CCrossMode::run()
 	}
 #endif
 
+	CUDPSocket::startup();
+
 	ret = createFromNetwork();
 	if (!ret)
 		return 1;
@@ -261,7 +263,7 @@ int CCrossMode::run()
 		return 1;
 	}
 
-	CData data(m_conf.getTranscoderPort(), m_conf.getTranscoderSpeed(), m_conf.getDefaultCallsign(), m_conf.getDefaultDMRId(), m_conf.getDefaultNXDNId());
+	CData data(m_conf.getTranscoderPort(), m_conf.getTranscoderSpeed(), m_conf.getTranscoderDebug(), m_conf.getDefaultCallsign(), m_conf.getDefaultDMRId(), m_conf.getDefaultNXDNId());
 	ret = data.open();
 	if (!ret) {
 		m_fromNetwork->close();
@@ -359,6 +361,8 @@ int CCrossMode::run()
 
 	delete m_fromNetwork;
 	delete m_toNetwork;
+
+	CUDPSocket::shutdown();
 
 	return 0;
 }

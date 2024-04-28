@@ -28,7 +28,7 @@
 
 class CData {
 public:
-	CData(const std::string& port, uint32_t speed, const std::string& callsign, uint32_t dmrId, uint16_t nxdnId);
+	CData(const std::string& port, uint32_t speed, bool debug, const std::string& callsign, uint32_t dmrId, uint16_t nxdnId);
 	~CData();
 
 	bool open();

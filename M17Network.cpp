@@ -161,9 +161,6 @@ void CM17Network::clock(unsigned int ms)
 		return;
 	}
 
-	if (m_debug)
-		CUtils::dump(1U, "M17 Network Received", buffer, length);
-
 	if (::memcmp(buffer + 0U, "PING", 4U) == 0)
 		return;
 
@@ -171,6 +168,9 @@ void CM17Network::clock(unsigned int ms)
 		CUtils::dump(2U, "M17, received unknown packet", buffer, length);
 		return;
 	}
+
+	if (m_debug)
+		CUtils::dump(1U, "M17 Network Received", buffer, length);
 
 	uint16_t id = (buffer[4U] << 8) + (buffer[5U] << 0);
 	if (m_inId == 0U) {
@@ -244,8 +244,8 @@ void CM17Network::sendPing()
 	buffer[2U] = 'N';
 	buffer[3U] = 'G';
 
-	if (m_debug)
-		CUtils::dump(1U, "M17 Network Transmitted", buffer, 4U);
+	// if (m_debug)
+	//	CUtils::dump(1U, "M17 Network Transmitted", buffer, 4U);
 
 	m_socket.write(buffer, 4U, m_addr, m_addrLen);
 }
