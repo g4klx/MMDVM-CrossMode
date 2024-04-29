@@ -135,7 +135,7 @@ bool CM17Network::write(CData& data)
 	buffer[53U] = 0x00U;
 
 	if (m_debug)
-		CUtils::dump(1U, "M17 Network Transmitted", buffer, 54U);
+		CUtils::dump(1U, "M17 Network Data Transmitted", buffer, 54U);
 
 	return m_socket.write(buffer, 54U, m_addr, m_addrLen);
 }
@@ -170,7 +170,7 @@ void CM17Network::clock(unsigned int ms)
 	}
 
 	if (m_debug)
-		CUtils::dump(1U, "M17 Network Received", buffer, length);
+		CUtils::dump(1U, "M17 Network Data Received", buffer, length);
 
 	uint16_t id = (buffer[4U] << 8) + (buffer[5U] << 0);
 	if (m_inId == 0U) {
@@ -250,13 +250,15 @@ void CM17Network::sendPing()
 	buffer[3U] = 'G';
 
 	// if (m_debug)
-	//	CUtils::dump(1U, "M17 Network Transmitted", buffer, 4U);
+	//	CUtils::dump(1U, "M17 Network Poll Transmitted", buffer, 4U);
 
 	m_socket.write(buffer, 4U, m_addr, m_addrLen);
 }
 
 void CM17Network::createLICH(const CData& data)
 {
+	::memset(m_lich, 0x00U, M17_LICH_LENGTH_BYTES);
+
 	std::string src, dst;
 	data.getM17(src, dst);
 
@@ -270,7 +272,7 @@ void CM17Network::encodeCallsign(const std::string& callsign, uint8_t* encoded) 
 {
 	assert(encoded != NULL);
 
-	if (callsign == "ALL" || callsign == "ALL      ") {
+	if ((callsign == "ALL") || (callsign == "CQCQCQ")) {
 		encoded[0U] = 0xFFU;
 		encoded[1U] = 0xFFU;
 		encoded[2U] = 0xFFU;

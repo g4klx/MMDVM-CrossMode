@@ -21,6 +21,7 @@
 #include "TranscoderDefines.h"
 #include "StopWatch.h"
 #include "Utils.h"
+#include "Log.h"
 
 #include <cstring>
 #include <cassert>
@@ -43,22 +44,24 @@ CTranscoder::~CTranscoder()
 
 bool CTranscoder::open()
 {
+	LogMessage("Opening the transcoder connection");
+
 	bool ret1 = m_serial.open();
 	if (!ret1) {
-		::fprintf(stderr, "Transcoder: cannot open the transcoder port\n");
+		LogError("Cannot open the transcoder port");
 		return false;
 	}
 
 	int16_t ret2 = write(GET_VERSION, GET_VERSION_LEN);
 	if (ret2 <= 0) {
-		::fprintf(stderr, "Error writing the data to the transcoder\n");
+		LogError("Error writing data to the transcoder");
 		return false;
 	}
 
 	uint8_t buffer[400U];
 	uint16_t len = read(buffer, 200U);
 	if (len == 0U) {
-		::fprintf(stderr, "Transcoder version read timeout (200 me)\n");
+		LogError("Transcoder version read timeout (200 me)");
 		m_serial.close();
 		return false;
 	}
@@ -68,35 +71,35 @@ bool CTranscoder::open()
 
 	switch (buffer[TYPE_POS]) {
 	case TYPE_NAK:
-		::fprintf(stderr, "NAK returned for get version - %u\n", buffer[NAK_ERROR_POS]);
+		LogError("NAK returned for get version - %u", buffer[NAK_ERROR_POS]);
 		m_serial.close();
 		return false;
 
 	case TYPE_GET_VERSION:
 		if (buffer[GET_VERSION_PROTOCOL_POS] != PROTOCOL_VERSION) {
-			::fprintf(stderr, "Unknown protocol version - %u\n", buffer[GET_VERSION_PROTOCOL_POS]);
+			LogError("Unknown protocol version - %u", buffer[GET_VERSION_PROTOCOL_POS]);
 			m_serial.close();
 			return false;
 		}
 
-		::fprintf(stdout, "Transcoder version - %.*s\n", len - 5U, buffer + 5U);
+		LogInfo("Transcoder version - %.*s", len - 5U, buffer + 5U);
 		break;
 
 	default:
-		::fprintf(stderr, "Unknown response from the transcoder to get version - 0x%02X\n", buffer[TYPE_POS]);
+		LogError("Unknown response from the transcoder to get version - 0x%02X", buffer[TYPE_POS]);
 		m_serial.close();
 		return false;
 	}
 
 	ret2 = write(GET_CAPABILITIES, GET_CAPABILITIES_LEN);
 	if (ret2 <= 0) {
-		::fprintf(stderr, "Error writing data to the transcoder\n");
+		LogError("Error writing data to the transcoder");
 		return false;
 	}
 
 	len = read(buffer, 50U);
 	if (len == 0U) {
-		::fprintf(stderr, "Transcoder capabilities read timeout (200 me)\n");
+		LogError("Transcoder capabilities read timeout (200 me)");
 		m_serial.close();
 		return false;
 	}
@@ -106,7 +109,7 @@ bool CTranscoder::open()
 
 	switch (buffer[TYPE_POS]) {
 	case TYPE_NAK:
-		::fprintf(stderr, "NAK returned for get capabilities - %u\n", buffer[NAK_ERROR_POS]);
+		LogError("NAK returned for get capabilities - %u", buffer[NAK_ERROR_POS]);
 		m_serial.close();
 		return false;
 
@@ -114,7 +117,7 @@ bool CTranscoder::open()
 		break;
 
 	default:
-		::fprintf(stderr, "Unknown response from the transcoder to get capabilities - 0x%02X\n", buffer[TYPE_POS]);
+		LogError("Unknown response from the transcoder to get capabilities - 0x%02X", buffer[TYPE_POS]);
 		m_serial.close();
 		return false;
 	}
@@ -122,13 +125,13 @@ bool CTranscoder::open()
 	m_hasAMBE = buffer[GET_CAPABILITIES_AMBE_TYPE_POS];
 	switch (m_hasAMBE) {
 	case HAS_1AMBE_CHIP:
-		::fprintf(stdout, "Transcoder has 1 AMBE chip\n");
+		LogInfo("Transcoder has 1 AMBE chip");
 		break;
 	case HAS_2AMBE_CHIPS:
-		::fprintf(stdout, "Transcoder has 2 AMBE chips\n");
+		LogInfo("Transcoder has 2 AMBE chips");
 		break;
 	default:
-		::fprintf(stdout, "Transcoder has no AMBE chips\n");
+		LogInfo("Transcoder has no AMBE chips");
 		break;
 	}
 
@@ -144,14 +147,14 @@ bool CTranscoder::setConversion(uint8_t inMode, uint8_t outMode)
 
 	int16_t ret = write(command, SET_MODE_LEN);
 	if (ret <= 0) {
-		::fprintf(stderr, "Error writing data to the transcoder\n");
+		LogError("Error writing data to the transcoder");
 		return false;
 	}
 
 	uint8_t buffer[50U];
 	uint16_t len = read(buffer, 200U);
 	if (len == 0U) {
-		::fprintf(stderr, "Set mode read timeout (200 me)\n");
+		LogError("Set mode read timeout (200 me)");
 		return false;
 	}
 
@@ -163,15 +166,15 @@ bool CTranscoder::setConversion(uint8_t inMode, uint8_t outMode)
 
 	switch (buffer[TYPE_POS]) {
 	case TYPE_NAK:
-		::fprintf(stderr, "NAK returned for set mode - %u\n", buffer[NAK_ERROR_POS]);
+		LogError("NAK returned for set mode - %u", buffer[NAK_ERROR_POS]);
 		return false;
 
 	case TYPE_ACK:
-		::fprintf(stdout, "Conversion modes - set\n");
+		LogDebug("Conversion modes - set");
 		return true;
 
 	default:
-		::fprintf(stderr, "Unknown response from the transcoder to set mode - 0x%02X\n", buffer[TYPE_POS]);
+		LogError("Unknown response from the transcoder to set mode - 0x%02X", buffer[TYPE_POS]);
 		return false;
 	}
 }
@@ -226,7 +229,7 @@ uint16_t CTranscoder::read(uint8_t* buffer, uint16_t timeout)
 		} else {
 			unsigned long elapsed = stopwatch.elapsed() / 1000U;
 			if (elapsed > timeout) {
-				::fprintf(stderr, "Read has timed out after %u ms\n", timeout);
+				LogError("Read has timed out after %u ms", timeout);
 				return len;
 			}
 		}
@@ -263,14 +266,14 @@ uint16_t CTranscoder::read(uint8_t* data)
 
 	switch (buffer[TYPE_POS]) {
 	case TYPE_NAK:
-		::fprintf(stderr, "NAK returned for transcoding - %u\n", buffer[NAK_ERROR_POS]);
+		LogError("NAK returned for transcoding - %u", buffer[NAK_ERROR_POS]);
 		return false;
 
 	case TYPE_DATA:
 		break;
 
 	default:
-		::fprintf(stderr, "Unknown response from the transcoder to transcoding - 0x%02X\n", buffer[TYPE_POS]);
+		LogError("Unknown response from the transcoder to transcoding - 0x%02X", buffer[TYPE_POS]);
 		return false;
 	}
 
@@ -292,7 +295,7 @@ bool CTranscoder::write(const uint8_t* data)
 
 	int16_t ret = write(buffer, length + DATA_HEADER_LEN);
 	if (ret <= 0) {
-		::fprintf(stderr, "Error writing the data to the transcoder\n");
+		LogError("Error writing the data to the transcoder");
 		return false;
 	}
 
@@ -348,19 +351,19 @@ bool CTranscoder::validateOptions() const
 	switch (m_hasAMBE) {
 	case HAS_1AMBE_CHIP:
 		if ((m_inMode == MODE_DSTAR) && (m_outMode == MODE_DMR_NXDN)) {
-			::fprintf(stderr, "Transcoding isn't possible without an AMBE chip\n");
+			LogError("Transcoding isn't possible without an AMBE chip");
 			return false;
 		}
 		if ((m_inMode == MODE_DMR_NXDN) && (m_outMode == MODE_DSTAR)) {
-			::fprintf(stderr, "Transcoding isn't possible without an AMBE chip\n");
+			LogError("Transcoding isn't possible without an AMBE chip");
 			return false;
 		}
 		if ((m_inMode == MODE_DSTAR) && (m_outMode == MODE_YSFDN)) {
-			::fprintf(stderr, "Transcoding isn't possible without an AMBE chip\n");
+			LogError("Transcoding isn't possible without an AMBE chip");
 			return false;
 		}
 		if ((m_inMode == MODE_YSFDN) && (m_outMode == MODE_DSTAR)) {
-			::fprintf(stderr, "Transcoding isn't possible without an AMBE chip\n");
+			LogError("Transcoding isn't possible without an AMBE chip");
 			return false;
 		}
 		break;
@@ -370,27 +373,27 @@ bool CTranscoder::validateOptions() const
 
 	default:
 		if ((m_inMode == MODE_DSTAR) && (m_outMode != MODE_DSTAR)) {
-			::fprintf(stderr, "Transcoding isn't possible without an AMBE chip\n");
+			LogError("Transcoding isn't possible without an AMBE chip");
 			return false;
 		}
 		if ((m_inMode != MODE_DSTAR) && (m_outMode == MODE_DSTAR)) {
-			::fprintf(stderr, "Transcoding isn't possible without an AMBE chip\n");
+			LogError("Transcoding isn't possible without an AMBE chip");
 			return false;
 		}
 		if ((m_inMode == MODE_DMR_NXDN) && ((m_outMode != MODE_DMR_NXDN) && (m_outMode != MODE_YSFDN))) {
-			::fprintf(stderr, "Transcoding isn't possinle without an AMBE chip\n");
+			LogError("Transcoding isn't possible without an AMBE chip");
 			return false;
 		}
 		if ((m_outMode == MODE_DMR_NXDN) && ((m_inMode != MODE_DMR_NXDN) && (m_inMode != MODE_YSFDN))) {
-			::fprintf(stderr, "Transcoding isn't possinle without an AMBE chip\n");
+			LogError("Transcoding isn't possible without an AMBE chip");
 			return false;
 		}
 		if ((m_inMode == MODE_YSFDN) && ((m_outMode != MODE_DMR_NXDN) && (m_outMode != MODE_YSFDN))) {
-			::fprintf(stderr, "Transcoding isn't possinle without an AMBE chip\n");
+			LogError("Transcoding isn't possible without an AMBE chip");
 			return false;
 		}
 		if ((m_outMode == MODE_YSFDN) && ((m_inMode != MODE_DMR_NXDN) && (m_inMode != MODE_YSFDN))) {
-			::fprintf(stderr, "Transcoding isn't possinle without an AMBE chip\n");
+			LogError("Transcoding isn't possible without an AMBE chip");
 			return false;
 		}
 		break;

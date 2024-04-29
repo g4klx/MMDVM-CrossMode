@@ -207,6 +207,7 @@ void CData::getDStar(uint8_t* source, uint8_t* destination) const
 
 void CData::getM17(std::string& source, std::string& destination) const
 {
+	// This is only true for D-Star
 	source      = m_srcCallsign;
 	destination = m_dstCallsign;
 }

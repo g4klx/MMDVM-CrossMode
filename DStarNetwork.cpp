@@ -74,6 +74,7 @@ m_outId(0U),
 m_outSeq(0U),
 m_inId(0U),
 m_buffer(1000U, "D-Star Network"),
+m_pollTimer(1000U, 60U),
 m_random(),
 m_header(nullptr)
 {
@@ -104,6 +105,8 @@ bool CDStarNetwork::open()
 
 	LogMessage("Opening D-Star network connection");
 
+	m_pollTimer.start();
+
 	return m_socket.open(m_addr);
 }
 
@@ -112,10 +115,13 @@ bool CDStarNetwork::write(CData& data)
 	if (m_addrLen == 0U)
 		return false;
 
-	if (m_outId == 0U)
-		return writeHeader(data);
-	else
-		return writeData(data);
+	if (m_outId == 0U) {
+		bool ret = writeHeader(data);
+		if (!ret)
+			return false;
+	}
+
+	return writeData(data);
 }
 
 bool CDStarNetwork::writeHeader(const CData& data)
@@ -147,13 +153,7 @@ bool CDStarNetwork::writeHeader(const CData& data)
 	if (m_debug)
 		CUtils::dump(1U, "D-Star Network Header Sent", buffer, 49U);
 
-	for (unsigned int i = 0U; i < 2U; i++) {
-		bool ret = m_socket.write(buffer, 49U, m_addr, m_addrLen);
-		if (!ret)
-			return false;
-	}
-
-	return true;
+	return m_socket.write(buffer, 49U, m_addr, m_addrLen);
 }
 
 bool CDStarNetwork::writeData(CData& data)
@@ -191,8 +191,38 @@ bool CDStarNetwork::writeData(CData& data)
 	return m_socket.write(buffer, length, m_addr, m_addrLen);
 }
 
+bool CDStarNetwork::writePoll(const char* text)
+{
+	assert(text != NULL);
+
+	uint8_t buffer[40U];
+
+	buffer[0] = 'D';
+	buffer[1] = 'S';
+	buffer[2] = 'R';
+	buffer[3] = 'P';
+
+	buffer[4] = 0x0A;				// Poll with text
+
+	unsigned int length = ::strlen(text);
+
+	// Include the nul at the end also
+	::memcpy(buffer + 5U, text, length + 1U);
+
+	// if (m_debug)
+	//	CUtils::dump(1U, "D-Star Network Poll Sent", buffer, 6U + length);
+
+	return m_socket.write(buffer, 6U + length, m_addr, m_addrLen);
+}
+
 void CDStarNetwork::clock(unsigned int ms)
 {
+	m_pollTimer.clock(ms);
+	if (m_pollTimer.hasExpired()) {
+		writePoll("cross-mode");
+		m_pollTimer.start();
+	}
+
 	uint8_t buffer[BUFFER_LENGTH];
 
 	sockaddr_storage address;
@@ -325,15 +355,23 @@ void CDStarNetwork::createHeader(const CData& data)
 	m_header[1U] = 0x00U;
 	m_header[2U] = 0x00U;
 
-	data.getDStar(m_header + 27U, m_header + 19U);
+	uint8_t src[DSTAR_LONG_CALLSIGN_LENGTH], dst[DSTAR_LONG_CALLSIGN_LENGTH];
+	data.getDStar(src, dst);
+
+	if (::memcmp(dst, "ALL     ", DSTAR_LONG_CALLSIGN_LENGTH) == 0)
+		::memcpy(m_header + 19U, "CQCQCQ  ", DSTAR_LONG_CALLSIGN_LENGTH);
+	else
+		::memcpy(m_header + 19U, dst, DSTAR_LONG_CALLSIGN_LENGTH);
+
+	::memcpy(m_header + 27U, src, DSTAR_LONG_CALLSIGN_LENGTH);
 
 	uint8_t rpt[DSTAR_LONG_CALLSIGN_LENGTH];
 
 	stringToBytes(rpt, m_callsign);
-	::memcpy(m_header + 3U, rpt, DSTAR_LONG_CALLSIGN_LENGTH);
+	::memcpy(m_header + 11U, rpt, DSTAR_LONG_CALLSIGN_LENGTH);
 
 	rpt[DSTAR_LONG_CALLSIGN_LENGTH - 1U] = 'G';
-	::memcpy(m_header + 11U, rpt, DSTAR_LONG_CALLSIGN_LENGTH);
+	::memcpy(m_header + 3U, rpt, DSTAR_LONG_CALLSIGN_LENGTH);
 
 	addHeaderCRC();
 }
