@@ -283,19 +283,27 @@ int CCrossMode::run()
 
 		switch (direction) {
 		case DIR_FROM_TO:
-			ret = m_fromNetwork->read(data);
-			if (ret)
-				watchdog.start();
+			if (data.isReady()) {
+				ret = m_fromNetwork->read(data);
+				if (ret)
+					watchdog.start();
+			}
+
 			if (data.hasData() || data.isEnd())
 				m_toNetwork->write(data);
+
 			break;
 
 		case DIR_TO_FROM:
-			ret = m_toNetwork->read(data);
-			if (ret)
-				watchdog.start();
+			if (data.isReady()) {
+				ret = m_toNetwork->read(data);
+				if (ret)
+					watchdog.start();
+			}
+
 			if (data.hasData() || data.isEnd())
 				m_fromNetwork->write(data);
+
 			break;
 
 		default:

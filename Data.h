@@ -53,6 +53,8 @@ public:
 
 	bool isEnd() const;
 
+	bool isReady() const;
+
 	void clock(unsigned int ms);
 
 	void reset();
@@ -77,6 +79,7 @@ private:
 	bool        m_end;
 	uint8_t*    m_data;
 	uint16_t    m_length;
+	bool        m_ready;
 
 	std::string bytesToString(const uint8_t* str, unsigned int length) const;
 	void stringToBytes(uint8_t* str, unsigned int length, const std::string& callsign) const;
