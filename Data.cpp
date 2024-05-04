@@ -26,7 +26,7 @@
 #include <cassert>
 
 CData::CData(const std::string& port, uint32_t speed, bool debug, const std::string& callsign, uint32_t dmrId, uint16_t nxdnId) :
-m_transoder(port, speed, debug),
+m_transcoder(port, speed, debug),
 m_defaultCallsign(callsign),
 m_defaultDMRId(dmrId),
 m_defaultNXDNId(nxdnId),
@@ -41,26 +41,21 @@ m_srcId16(0U),
 m_dstId16(0U),
 m_group(false),
 m_end(false),
-m_data(nullptr),
-m_length(0U),
-m_ready(true)
+m_inData(1000U, "CData::m_inData"),
+m_outData(1000U, "CData::m_outData")
 {
 	assert(!callsign.empty());
 	assert(dmrId > 0U);
 	assert(nxdnId > 0U);
-
-	// The longest data possible
-	m_data = new uint8_t[PCM_DATA_LENGTH];
 }
 
 CData::~CData()
 {
-	delete[] m_data;
 }
 
 bool CData::open()
 {
-	return m_transoder.open();
+	return m_transcoder.open();
 }
 
 bool CData::setModes(DATA_MODE fromMode, DATA_MODE toMode)
@@ -128,7 +123,7 @@ bool CData::setModes(DATA_MODE fromMode, DATA_MODE toMode)
 		return false;
 	}
 
-	return m_transoder.setConversion(transFromMode, transToMode);
+	return m_transcoder.setConversion(transFromMode, transToMode);
 }
 
 void CData::setDStar(const uint8_t* source, const uint8_t* destination)
@@ -188,11 +183,12 @@ bool CData::setData(const uint8_t* data)
 {
 	assert(data != nullptr);
 
-	bool ret = m_transoder.write(data);
-	if (!ret)
-		return false;
-
-	m_ready = false;
+	bool ret = m_transcoder.write(data);
+	if (!ret) {
+		uint16_t length = m_transcoder.getInLength();
+		m_inData.addData(data, length);
+		return true;
+	}
 
 	return true;
 }
@@ -219,23 +215,34 @@ void CData::getM17(std::string& source, std::string& destination) const
 	destination = m_dstCallsign;
 }
 
+uint8_t CData::getDataCount() const
+{
+	uint16_t dataLength = m_outData.dataSize();
+	if (dataLength == 0U)
+		return 0U;
+
+	uint16_t blockLength = m_transcoder.getOutLength();
+
+	return dataLength / blockLength;
+}
+
 bool CData::hasData() const
 {
-	return m_length > 0U;
+	return m_outData.hasData();
 }
 
 bool CData::getData(uint8_t* data)
 {
 	assert(data != nullptr);
 
-	if (m_length > 0U) {
-		::memcpy(data, m_data, m_length);
-		m_length = 0U;
-		m_ready  = true;
-		return true;
-	}
+	if (m_outData.isEmpty())
+		return false;
 
-	return false;
+	uint16_t length = m_transcoder.getOutLength();
+
+	m_outData.getData(data, length);
+
+	return true;
 }
 
 bool CData::isEnd() const
@@ -243,26 +250,32 @@ bool CData::isEnd() const
 	return m_end;
 }
 
-bool CData::isReady() const
-{
-	return m_ready;
-}
-
 void CData::reset()
 {
-	m_end    = false;
-	m_length = 0U;
-	m_ready  = true;
+	m_end = false;
+
+	m_inData.clear();
+	m_outData.clear();
 }
 
 void CData::clock(unsigned int ms)
 {
-	m_length = m_transoder.read(m_data);
+	uint8_t buffer[300U];
+	uint16_t length = m_transcoder.read(buffer);
+	if (length > 0U) {
+		m_outData.addData(buffer, length);
+
+		if (m_inData.hasData()) {
+			length = m_transcoder.getInLength();
+			m_inData.getData(buffer, length);
+			m_transcoder.write(buffer);
+		}
+	}
 }
 
 void CData::close()
 {
-	m_transoder.close();
+	m_transcoder.close();
 }
 
 std::string CData::bytesToString(const uint8_t* str, unsigned int length) const

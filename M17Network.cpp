@@ -41,9 +41,11 @@ m_buffer(1000U, "M17 Network"),
 m_random(),
 m_timer(1000U, 5U),
 m_lich(nullptr),
-m_hasMeta(false),
-m_audio(nullptr),
-m_audioCount(0U)
+m_hasMeta(false)
+#if defined(DUMP_M17)
+, m_fpIn(nullptr),
+m_fpOut(nullptr)
+#endif
 {
 	if (CUDPSocket::lookup(remoteAddress, remotePort, m_addr, m_addrLen) != 0) {
 		m_addrLen = 0U;
@@ -51,8 +53,6 @@ m_audioCount(0U)
 	}
 
 	m_lich = new uint8_t[M17_LICH_LENGTH_BYTES];
-
-	m_audio = new uint8_t[M17_PAYLOAD_LENGTH_BYTES];
 
 	std::random_device rd;
 	std::mt19937 mt(rd());
@@ -62,7 +62,6 @@ m_audioCount(0U)
 CM17Network::~CM17Network()
 {
 	delete[] m_lich;
-	delete[] m_audio;
 }
 
 bool CM17Network::open()
@@ -75,6 +74,11 @@ bool CM17Network::open()
 	LogMessage("Opening M17 network connection");
 
 	bool ret = m_socket.open(m_addr);
+
+#if defined(DUMP_M17)
+	m_fpIn  = ::fopen("dump_in.m17", "wb");
+	m_fpOut = ::fopen("dump_out.m17", "wb");
+#endif
 
 	if (ret) {
 		m_timer.start();
@@ -89,14 +93,9 @@ bool CM17Network::write(CData& data)
 	if (m_addrLen == 0U)
 		return false;
 
-	if (m_audioCount == 0U) {
-		data.getData(m_audio + 0U);
-		m_audioCount = 1U;
+	uint8_t count = data.getDataCount();
+	if ((count < 2U) && !data.isEnd())
 		return true;
-	} else {
-		data.getData(m_audio + 8U);
-		m_audioCount = 0U;
-	}
 
 	uint8_t buffer[100U];
 
@@ -122,13 +121,30 @@ bool CM17Network::write(CData& data)
 	buffer[35U] = m_outSeq % 256U;
 	m_outSeq++;
 
-	if (data.isEnd()) {
-		buffer[34U] |= 0x80U;
-		::memcpy(buffer + 36U, M17_3200_SILENCE, M17_PAYLOAD_LENGTH_BYTES / 2U);
-		::memcpy(buffer + 44U, M17_3200_SILENCE, M17_PAYLOAD_LENGTH_BYTES / 2U);
-	} else {
-		::memcpy(buffer + 36U, m_audio, M17_PAYLOAD_LENGTH_BYTES);
+	::memcpy(buffer + 36U, M17_3200_SILENCE, M17_PAYLOAD_LENGTH_BYTES / 2U);
+	::memcpy(buffer + 44U, M17_3200_SILENCE, M17_PAYLOAD_LENGTH_BYTES / 2U);
+
+	if (count == 1U) {
+		data.getData(buffer + 36U);
+#if defined(DUMP_M17)
+		if (m_fpOut != nullptr) {
+			::fwrite(buffer + 36U, 1U, M17_PAYLOAD_LENGTH_BYTES / 2U, m_fpOut);
+			::fflush(m_fpOut);
+		}
+#endif
+	} else if (count == 2U) {
+		data.getData(buffer + 36U);
+		data.getData(buffer + 44U);
+#if defined(DUMP_M17)
+		if (m_fpOut != nullptr) {
+			::fwrite(buffer + 36U, 1U, M17_PAYLOAD_LENGTH_BYTES, m_fpOut);
+			::fflush(m_fpOut);
+		}
+#endif
 	}
+
+	if (data.isEnd())
+		buffer[34U] |= 0x80U;
 
 	// Dummy CRC
 	buffer[52U] = 0x00U;
@@ -185,17 +201,11 @@ void CM17Network::clock(unsigned int ms)
 
 bool CM17Network::read(CData& data)
 {
-	if (m_audioCount == 1U) {
-		data.setData(m_audio + 8U);
-		m_audioCount = 0U;
-		return true;
-	}
-
 	if (m_buffer.isEmpty())
 		return false;
 
 	uint8_t buffer[80U];
-	m_buffer.getData(buffer, 46U);
+	m_buffer.getData(buffer + 0U, 46U);
 
 	if (!m_hasMeta) {
 		std::string src, dst;
@@ -211,10 +221,15 @@ bool CM17Network::read(CData& data)
 		return true;
 	}
 
-	::memcpy(m_audio, buffer + 30U, M17_PAYLOAD_LENGTH_BYTES);
-	m_audioCount = 1U;
+#if defined(DUMP_M17)
+	if (m_fpIn != nullptr) {
+		::fwrite(buffer + 30U, 1U, M17_PAYLOAD_LENGTH_BYTES, m_fpIn);
+		::fflush(m_fpIn);
+	}
+#endif
 
-	data.setData(m_audio + 0U);
+	data.setData(buffer + 30U);
+	data.setData(buffer + 38U);
 
 	return true;
 }
@@ -228,6 +243,18 @@ void CM17Network::close()
 {
 	m_socket.close();
 
+#if defined(DUMP_M17)
+	if (m_fpIn != nullptr) {
+		::fclose(m_fpIn);
+		m_fpIn = nullptr;
+	}
+
+	if (m_fpOut != nullptr) {
+		::fclose(m_fpOut);
+		m_fpOut = nullptr;
+	}
+#endif
+
 	LogMessage("Closing M17 network connection");
 }
 
@@ -237,7 +264,6 @@ void CM17Network::reset()
 	m_outSeq  = 0U;
 	m_inId    = 0U;
 	m_hasMeta = false;
-	m_audioCount = 0U;
 }
 
 void CM17Network::sendPing()

@@ -29,6 +29,8 @@
 #include <string>
 #include <random>
 
+#define	DUMP_DSTAR
+
 class CDStarNetwork : public INetwork {
 public:
 	CDStarNetwork(const std::string& callsign, const std::string& localAddress, unsigned short localPort, const std::string& remoteAddress, unsigned short remotePort, bool debug);
@@ -61,6 +63,10 @@ private:
 	CTimer           m_pollTimer;
 	std::mt19937     m_random;
 	uint8_t*         m_header;
+#if defined(DUMP_DSTAR)
+	FILE*            m_fpIn;
+	FILE*            m_fpOut;
+#endif
 
 	bool writeHeader(const CData& data);
 	bool writeData(CData& data);

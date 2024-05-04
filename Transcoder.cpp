@@ -32,6 +32,8 @@ m_serial(port, speed),
 m_debug(debug),
 m_inMode(MODE_PCM),
 m_outMode(MODE_PCM),
+m_inLength(0U),
+m_outLength(0U),
 m_hasAMBE(NO_AMBE_CHIP)
 {
 	assert(!port.empty());
@@ -161,6 +163,9 @@ bool CTranscoder::setConversion(uint8_t inMode, uint8_t outMode)
 	m_inMode  = inMode;
 	m_outMode = outMode;
 
+	m_inLength  = getBlockLength(m_inMode);
+	m_outLength = getBlockLength(m_outMode);
+
 	if (m_debug)
 		CUtils::dump("Transcoder read", buffer, len);
 
@@ -254,8 +259,6 @@ uint16_t CTranscoder::read(uint8_t* data)
 {
 	assert(data != nullptr);
 
-	uint16_t length = getBlockLength(m_outMode);
-
 	uint8_t buffer[400U];
 	uint16_t len = read(buffer, 0U);
 	if (len == 0U)
@@ -277,29 +280,38 @@ uint16_t CTranscoder::read(uint8_t* data)
 		return false;
 	}
 
-	::memcpy(data, buffer + DATA_START_POS, length);
+	::memcpy(data, buffer + DATA_START_POS, m_outLength);
 
-	return length;
+	return m_outLength;
 }
 
 bool CTranscoder::write(const uint8_t* data)
 {
 	assert(data != nullptr);
 
-	uint16_t length       = getBlockLength(m_inMode);
 	const uint8_t* header = getDataHeader(m_inMode);
 
 	uint8_t buffer[400U];
 	::memcpy(buffer + 0U, header, DATA_HEADER_LEN);
-	::memcpy(buffer + DATA_START_POS, data, length);
+	::memcpy(buffer + DATA_START_POS, data, m_inLength);
 
-	int16_t ret = write(buffer, length + DATA_HEADER_LEN);
+	int16_t ret = write(buffer, m_inLength + DATA_HEADER_LEN);
 	if (ret <= 0) {
 		LogError("Error writing the data to the transcoder");
 		return false;
 	}
 
 	return true;
+}
+
+uint16_t CTranscoder::getInLength() const
+{
+	return m_inLength;
+}
+
+uint16_t CTranscoder::getOutLength() const
+{
+	return m_outLength;
 }
 
 uint16_t CTranscoder::getBlockLength(uint8_t mode) const

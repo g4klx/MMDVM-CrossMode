@@ -28,6 +28,8 @@
 #include <random>
 #include <cstdint>
 
+#define	DUMP_M17
+
 class CM17Network : public INetwork {
 public:
 	CM17Network(const std::string& localAddress, unsigned short localPort, const std::string& remoteAddress, unsigned short remotePort, bool debug);
@@ -60,8 +62,10 @@ private:
 	CTimer           m_timer;
 	uint8_t*         m_lich;
 	bool             m_hasMeta;
-	uint8_t*         m_audio;
-	uint8_t          m_audioCount;
+#if defined(DUMP_M17)
+	FILE*            m_fpIn;
+	FILE*            m_fpOut;
+#endif
 
 	void sendPing();
 	void createLICH(const CData& data);

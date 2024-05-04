@@ -77,6 +77,10 @@ m_buffer(1000U, "D-Star Network"),
 m_pollTimer(1000U, 60U),
 m_random(),
 m_header(nullptr)
+#if defined(DUMP_DSTAR)
+, m_fpIn(nullptr),
+m_fpOut(nullptr)
+#endif
 {
 	assert(!callsign.empty());
 	assert(remotePort > 0U);
@@ -106,6 +110,14 @@ bool CDStarNetwork::open()
 	LogMessage("Opening D-Star network connection");
 
 	m_pollTimer.start();
+
+#if defined(DUMP_DSTAR)
+	m_fpIn  = ::fopen("dump_in.dstar", "wb");
+	m_fpOut = ::fopen("dump_out.dstar", "wb");
+
+	::fwrite("AMBE", 1U, 4U, m_fpIn);
+	::fwrite("AMBE", 1U, 4U, m_fpOut);
+#endif
 
 	return m_socket.open(m_addr);
 }
@@ -173,14 +185,22 @@ bool CDStarNetwork::writeData(CData& data)
 	unsigned int length = 9U;
 
 	buffer[7] = m_outSeq;
-	if (data.isEnd()) {
-		buffer[7] |= 0x40U;			// End of data marker
-		::memcpy(buffer + 9U, DSTAR_END_PATTERN_BYTES, DSTAR_END_PATTERN_LENGTH_BYTES);
-		length += DSTAR_END_PATTERN_LENGTH_BYTES;
-	} else {
+
+	if (data.hasData()) {
 		data.getData(buffer + 9U);
 		addSlowData(buffer + 18U);
 		length += DSTAR_VOICE_FRAME_LENGTH_BYTES + DSTAR_DATA_FRAME_LENGTH_BYTES;
+#if defined(DUMP_DSTAR)
+		if (m_fpOut != nullptr) {
+			::fwrite(buffer + 9U, 1U, DSTAR_VOICE_FRAME_LENGTH_BYTES, m_fpOut);
+			::fflush(m_fpOut);
+		}
+#endif
+	} else {
+		buffer[7] |= 0x40U;			// End of data marker
+
+		::memcpy(buffer + 9U, DSTAR_END_PATTERN_BYTES, DSTAR_END_PATTERN_LENGTH_BYTES);
+		length += DSTAR_END_PATTERN_LENGTH_BYTES;
 	}
 
 	buffer[8] = 0U;
@@ -319,6 +339,12 @@ bool CDStarNetwork::read(CData& data)
 		data.setDStar(buffer + 27U, buffer + 19U);
 		return false;
 	case TAG_DATA:
+#if defined(DUMP_DSTAR)
+		if (m_fpIn != nullptr) {
+			::fwrite(buffer + 1U, 1U, DSTAR_VOICE_FRAME_LENGTH_BYTES, m_fpIn);
+			::fflush(m_fpIn);
+		}
+#endif
 		data.setData(buffer + 1U);
 		return true;
 	case TAG_EOT:
@@ -343,6 +369,18 @@ void CDStarNetwork::reset()
 void CDStarNetwork::close()
 {
 	m_socket.close();
+
+#if defined(DUMP_DSTAR)
+	if (m_fpIn != nullptr) {
+		::fclose(m_fpIn);
+		m_fpIn = nullptr;
+	}
+
+	if (m_fpOut != nullptr) {
+		::fclose(m_fpOut);
+		m_fpOut = nullptr;
+	}
+#endif
 
 	LogMessage("Closing D-Star network connection");
 }

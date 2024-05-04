@@ -35,6 +35,9 @@ public:
 	uint16_t read(uint8_t* data);
 	bool     write(const uint8_t* data);
 
+	uint16_t getInLength() const;
+	uint16_t getOutLength() const;
+
 	void close();
 
 private:
@@ -42,6 +45,8 @@ private:
 	bool            m_debug;
 	uint8_t         m_inMode;
 	uint8_t         m_outMode;
+	uint16_t        m_inLength;
+	uint16_t        m_outLength;
 	uint8_t         m_hasAMBE;
 
 	bool           validateOptions() const;
