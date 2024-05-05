@@ -16,7 +16,7 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#ifndef Transcoder_H
+#if !defined(Transcoder_H)
 #define Transcoder_H
 
 #include "UARTController.h"

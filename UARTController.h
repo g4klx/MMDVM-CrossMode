@@ -17,7 +17,7 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#ifndef UARTController_H
+#if !defined(UARTController_H)
 #define UARTController_H
 
 #include <string>

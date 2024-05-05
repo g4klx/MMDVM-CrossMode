@@ -11,7 +11,7 @@
  *	GNU General Public License for more details.
  */
 
-#ifndef	Utils_H
+#if !defined(Utils_H)
 #define	Utils_H
 
 #include <cstdint>

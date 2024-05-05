@@ -114,7 +114,7 @@ void CFMNetwork::clock(unsigned int ms)
 	uint8_t buffer[BUFFER_LENGTH];
 
 	sockaddr_storage addr;
-	unsigned int addrlen;
+	size_t addrlen;
 	int length = m_socket.read(buffer, BUFFER_LENGTH, addr, addrlen);
 	if (length <= 0)
 		return;
@@ -143,22 +143,22 @@ void CFMNetwork::clock(unsigned int ms)
 
 	if (type == 0U) {
 		uint8_t ptt = (buffer[15U] == 0x01U) ? TAG_DATA : TAG_EOT;
-		m_buffer.addData(&ptt, 1U);
-		m_buffer.addData(buffer + 32U, PCM_DATA_LENGTH);
+		m_buffer.add(&ptt, 1U);
+		m_buffer.add(buffer + 32U, PCM_DATA_LENGTH);
 	}
 }
 
 bool CFMNetwork::read(CData& data)
 {
-	unsigned int bytes = m_buffer.dataSize();
+	unsigned int bytes = m_buffer.size();
 	if (bytes == 0U)
 		return false;
 
 	uint8_t ptt = 0U;
-	m_buffer.getData(&ptt, 1U);
+	m_buffer.get(&ptt, 1U);
 
 	uint8_t buffer[400U];
-	m_buffer.getData(buffer, PCM_DATA_LENGTH);
+	m_buffer.get(buffer, PCM_DATA_LENGTH);
 
 	if (ptt)
 		data.setData(buffer);
@@ -170,7 +170,7 @@ bool CFMNetwork::read(CData& data)
 
 bool CFMNetwork::hasData()
 {
-	return !m_buffer.isEmpty();
+	return m_buffer.hasData();
 }
 
 void CFMNetwork::reset()

@@ -16,7 +16,7 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#ifndef	M17Network_H
+#if !defined(M17Network_H)
 #define	M17Network_H
 
 #include "M17Defines.h"
@@ -28,11 +28,11 @@
 #include <random>
 #include <cstdint>
 
-#define	DUMP_M17
+// #define	DUMP_M17
 
 class CM17Network : public INetwork {
 public:
-	CM17Network(const std::string& localAddress, unsigned short localPort, const std::string& remoteAddress, unsigned short remotePort, bool debug);
+	CM17Network(const std::string& localAddress, uint16_t localPort, const std::string& remoteAddress, uint16_t remotePort, bool debug);
 	virtual ~CM17Network();
 
 	virtual bool open();
@@ -52,7 +52,7 @@ public:
 private:
 	CUDPSocket       m_socket;
 	sockaddr_storage m_addr;
-	unsigned int     m_addrLen;
+	size_t           m_addrLen;
 	bool             m_debug;
 	uint16_t         m_outId;
 	uint16_t         m_outSeq;
@@ -62,6 +62,8 @@ private:
 	CTimer           m_timer;
 	uint8_t*         m_lich;
 	bool             m_hasMeta;
+	uint8_t*         m_audio;
+	uint8_t          m_audioCount;
 #if defined(DUMP_M17)
 	FILE*            m_fpIn;
 	FILE*            m_fpOut;

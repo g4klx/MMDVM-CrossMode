@@ -41,16 +41,20 @@ m_srcId16(0U),
 m_dstId16(0U),
 m_group(false),
 m_end(false),
-m_inData(1000U, "CData::m_inData"),
-m_outData(1000U, "CData::m_outData")
+m_data(nullptr),
+m_length(0U)
 {
 	assert(!callsign.empty());
 	assert(dmrId > 0U);
 	assert(nxdnId > 0U);
+
+	// The longest data possible
+	m_data = new uint8_t[PCM_DATA_LENGTH];
 }
 
 CData::~CData()
 {
+	delete[] m_data;
 }
 
 bool CData::open()
@@ -64,7 +68,7 @@ bool CData::setModes(DATA_MODE fromMode, DATA_MODE toMode)
 		return true;
 
 	m_fromMode = fromMode;
-	m_toMode   = toMode;
+	m_toMode = toMode;
 
 	uint8_t transFromMode;
 	uint8_t transToMode;
@@ -142,7 +146,7 @@ void CData::setDMR(uint32_t source, uint32_t destination, bool group)
 
 	m_srcId32 = source;
 	m_dstId32 = destination;
-	m_group   = group;
+	m_group = group;
 }
 
 void CData::setYSF(const uint8_t* source, uint8_t dgId)
@@ -150,7 +154,7 @@ void CData::setYSF(const uint8_t* source, uint8_t dgId)
 	assert(source != nullptr);
 
 	m_srcCallsign = bytesToString(source, YSF_CALLSIGN_LENGTH);
-	m_dgId        = dgId;
+	m_dgId = dgId;
 }
 
 void CData::setNXDN(uint16_t source, uint16_t destination, bool group)
@@ -160,7 +164,7 @@ void CData::setNXDN(uint16_t source, uint16_t destination, bool group)
 
 	m_srcId16 = source;
 	m_dstId16 = destination;
-	m_group   = group;
+	m_group = group;
 }
 
 void CData::setP25(uint32_t source, uint32_t destination, bool group)
@@ -170,7 +174,7 @@ void CData::setP25(uint32_t source, uint32_t destination, bool group)
 
 	m_srcId32 = source;
 	m_dstId32 = destination;
-	m_group   = group;
+	m_group = group;
 }
 
 void CData::setM17(const std::string& source, const std::string& destination)
@@ -183,14 +187,7 @@ bool CData::setData(const uint8_t* data)
 {
 	assert(data != nullptr);
 
-	bool ret = m_transcoder.write(data);
-	if (!ret) {
-		uint16_t length = m_transcoder.getInLength();
-		m_inData.addData(data, length);
-		return true;
-	}
-
-	return true;
+	return m_transcoder.write(data);
 }
 
 void CData::setEnd()
@@ -204,45 +201,33 @@ void CData::getDStar(uint8_t* source, uint8_t* destination) const
 	assert(destination != nullptr);
 
 	// This is only true for M17
-	stringToBytes(source,      DSTAR_LONG_CALLSIGN_LENGTH, m_srcCallsign);
+	stringToBytes(source, DSTAR_LONG_CALLSIGN_LENGTH, m_srcCallsign);
 	stringToBytes(destination, DSTAR_LONG_CALLSIGN_LENGTH, m_dstCallsign);
 }
 
 void CData::getM17(std::string& source, std::string& destination) const
 {
 	// This is only true for D-Star
-	source      = m_srcCallsign;
+	source = m_srcCallsign;
 	destination = m_dstCallsign;
-}
-
-uint8_t CData::getDataCount() const
-{
-	uint16_t dataLength = m_outData.dataSize();
-	if (dataLength == 0U)
-		return 0U;
-
-	uint16_t blockLength = m_transcoder.getOutLength();
-
-	return dataLength / blockLength;
 }
 
 bool CData::hasData() const
 {
-	return m_outData.hasData();
+	return m_length > 0U;
 }
 
 bool CData::getData(uint8_t* data)
 {
 	assert(data != nullptr);
 
-	if (m_outData.isEmpty())
-		return false;
+	if (m_length > 0U) {
+		::memcpy(data, m_data, m_length);
+		m_length = 0U;
+		return true;
+	}
 
-	uint16_t length = m_transcoder.getOutLength();
-
-	m_outData.getData(data, length);
-
-	return true;
+	return false;
 }
 
 bool CData::isEnd() const
@@ -253,24 +238,12 @@ bool CData::isEnd() const
 void CData::reset()
 {
 	m_end = false;
-
-	m_inData.clear();
-	m_outData.clear();
+	m_length = 0U;
 }
 
 void CData::clock(unsigned int ms)
 {
-	uint8_t buffer[300U];
-	uint16_t length = m_transcoder.read(buffer);
-	if (length > 0U) {
-		m_outData.addData(buffer, length);
-
-		if (m_inData.hasData()) {
-			length = m_transcoder.getInLength();
-			m_inData.getData(buffer, length);
-			m_transcoder.write(buffer);
-		}
-	}
+	m_length = m_transcoder.read(m_data);
 }
 
 void CData::close()
@@ -278,13 +251,13 @@ void CData::close()
 	m_transcoder.close();
 }
 
-std::string CData::bytesToString(const uint8_t* str, unsigned int length) const
+std::string CData::bytesToString(const uint8_t* str, size_t length) const
 {
 	assert(str != nullptr);
 
 	std::string callsign;
 
-	for (unsigned int i = 0U; i < length; i++) {
+	for (size_t i = 0U; i < length; i++) {
 		if ((str[i] != ' ') && (str[i] != '/') && (str[i] != '-'))
 			callsign += char(str[i]);
 		else
@@ -294,16 +267,16 @@ std::string CData::bytesToString(const uint8_t* str, unsigned int length) const
 	return callsign;
 }
 
-void CData::stringToBytes(uint8_t* str, unsigned int length, const std::string& callsign) const
+void CData::stringToBytes(uint8_t* str, size_t length, const std::string& callsign) const
 {
 	assert(str != nullptr);
 
 	::memset(str, ' ', length);
 
-	unsigned int len = callsign.length();
+	size_t len = callsign.length();
 	if (len > length)
 		len = length;
 
-	for (unsigned int i = 0U; i < len; i++)
+	for (size_t i = 0U; i < len; i++)
 		str[i] = callsign[i];
 }

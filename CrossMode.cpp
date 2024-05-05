@@ -159,8 +159,8 @@ CCrossMode::CCrossMode(const std::string& fileName, DATA_MODE fromMode, DATA_MOD
 m_conf(fileName),
 m_fromMode(fromMode),
 m_toMode(toMode),
-m_fromNetwork(NULL),
-m_toNetwork(NULL)
+m_fromNetwork(nullptr),
+m_toNetwork(nullptr)
 {
 	assert(!fileName.empty());
 }
@@ -205,7 +205,7 @@ int CCrossMode::run()
 		// If we are currently root...
 		if (getuid() == 0) {
 			struct passwd* user = ::getpwnam("mmdvm");
-			if (user == NULL) {
+			if (user == nullptr) {
 				::fprintf(stderr, "Could not get the mmdvm user, exiting\n");
 				return -1;
 			}
@@ -337,7 +337,7 @@ int CCrossMode::run()
 			watchdog.stop();
 		}
 
-		CThread::sleep(10U);
+		CThread::sleep(5U);
 
 		unsigned int elapsed = stopwatch.elapsed();
 

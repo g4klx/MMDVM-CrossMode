@@ -64,7 +64,7 @@ const uint16_t CCITT16_TABLE[] = {
 
 const unsigned int BUFFER_LENGTH = 100U;
 
-CDStarNetwork::CDStarNetwork(const std::string& callsign, const std::string& localAddress, unsigned short localPort, const std::string& remoteAddress, unsigned short remotePort, bool debug) :
+CDStarNetwork::CDStarNetwork(const std::string& callsign, const std::string& localAddress, uint16_t localPort, const std::string& remoteAddress, uint16_t remotePort, bool debug) :
 m_callsign(callsign),
 m_socket(localAddress, localPort),
 m_addr(),
@@ -186,7 +186,12 @@ bool CDStarNetwork::writeData(CData& data)
 
 	buffer[7] = m_outSeq;
 
-	if (data.hasData()) {
+	if (data.isEnd()) {
+		buffer[7] |= 0x40U;			// End of data marker
+
+		::memcpy(buffer + 9U, DSTAR_END_PATTERN_BYTES, DSTAR_END_PATTERN_LENGTH_BYTES);
+		length += DSTAR_END_PATTERN_LENGTH_BYTES;
+	} else {
 		data.getData(buffer + 9U);
 		addSlowData(buffer + 18U);
 		length += DSTAR_VOICE_FRAME_LENGTH_BYTES + DSTAR_DATA_FRAME_LENGTH_BYTES;
@@ -196,11 +201,6 @@ bool CDStarNetwork::writeData(CData& data)
 			::fflush(m_fpOut);
 		}
 #endif
-	} else {
-		buffer[7] |= 0x40U;			// End of data marker
-
-		::memcpy(buffer + 9U, DSTAR_END_PATTERN_BYTES, DSTAR_END_PATTERN_LENGTH_BYTES);
-		length += DSTAR_END_PATTERN_LENGTH_BYTES;
 	}
 
 	buffer[8] = 0U;
@@ -213,7 +213,7 @@ bool CDStarNetwork::writeData(CData& data)
 
 bool CDStarNetwork::writePoll(const char* text)
 {
-	assert(text != NULL);
+	assert(text != nullptr);
 
 	uint8_t buffer[40U];
 
@@ -224,7 +224,7 @@ bool CDStarNetwork::writePoll(const char* text)
 
 	buffer[4] = 0x0A;				// Poll with text
 
-	unsigned int length = ::strlen(text);
+	size_t length = ::strlen(text);
 
 	// Include the nul at the end also
 	::memcpy(buffer + 5U, text, length + 1U);
@@ -246,7 +246,7 @@ void CDStarNetwork::clock(unsigned int ms)
 	uint8_t buffer[BUFFER_LENGTH];
 
 	sockaddr_storage address;
-	unsigned int addrLen;
+	size_t addrLen;
 	int length = m_socket.read(buffer, BUFFER_LENGTH, address, addrLen);
 	if (length <= 0)
 		return;
@@ -276,12 +276,12 @@ void CDStarNetwork::clock(unsigned int ms)
 			m_inId = buffer[5] * 256U + buffer[6];
 
 			uint8_t c = length - 7U;
-			m_buffer.addData(&c, 1U);
+			m_buffer.add(&c, 1U);
 
 			c = TAG_HEADER;
-			m_buffer.addData(&c, 1U);
+			m_buffer.add(&c, 1U);
 
-			m_buffer.addData(buffer + 8U, length - 8U);
+			m_buffer.add(buffer + 8U, length - 8U);
 		}
 		break;
 
@@ -307,9 +307,9 @@ void CDStarNetwork::clock(unsigned int ms)
 
 			ctrl[2U] = buffer[7] & 0x3FU;
 
-			m_buffer.addData(ctrl, 3U);
+			m_buffer.add(ctrl, 3U);
 
-			m_buffer.addData(buffer + 9U, length - 9U);
+			m_buffer.add(buffer + 9U, length - 9U);
 		}
 		}
 		break;
@@ -322,17 +322,17 @@ void CDStarNetwork::clock(unsigned int ms)
 
 bool CDStarNetwork::read(CData& data)
 {
-	if (m_buffer.isEmpty())
+	if (m_buffer.empty())
 		return false;
 
 	uint8_t length = 0U;
-	m_buffer.getData(&length, 1U);
+	m_buffer.get(&length, 1U);
 
 	uint8_t type = 0U;
-	m_buffer.getData(&type, 1U);
+	m_buffer.get(&type, 1U);
 
 	uint8_t buffer[100U];
-	m_buffer.getData(buffer, length - 1U);
+	m_buffer.get(buffer, length - 1U);
 
 	switch (type) {
 	case TAG_HEADER:
@@ -357,13 +357,14 @@ bool CDStarNetwork::read(CData& data)
 
 bool CDStarNetwork::hasData()
 {
-	return !m_buffer.isEmpty();
+	return m_buffer.hasData();
 }
 
 void CDStarNetwork::reset()
 {
 	m_inId  = 0U;
 	m_outId = 0U;
+	m_buffer.clear();
 }
 
 void CDStarNetwork::close()
@@ -548,11 +549,11 @@ void CDStarNetwork::stringToBytes(uint8_t* str, const std::string& callsign) con
 
 	::memset(str, ' ', DSTAR_LONG_CALLSIGN_LENGTH);
 
-	unsigned int len = callsign.length();
+	size_t len = callsign.length();
 	if (len > DSTAR_LONG_CALLSIGN_LENGTH)
 		len = DSTAR_LONG_CALLSIGN_LENGTH;
 
-	for (unsigned int i = 0U; i < len; i++)
+	for (size_t i = 0U; i < len; i++)
 		str[i] = callsign[i];
 }
 

@@ -33,7 +33,7 @@
 #define LogInfo(fmt, ...)		::fprintf(stderr, fmt "\n", ## __VA_ARGS__)
 #endif
 
-CUDPSocket::CUDPSocket(const std::string& address, unsigned short port) :
+CUDPSocket::CUDPSocket(const std::string& address, uint16_t port) :
 m_localAddress(address),
 m_localPort(port),
 m_fd(-1),
@@ -41,7 +41,7 @@ m_af(AF_UNSPEC)
 {
 }
 
-CUDPSocket::CUDPSocket(unsigned short port) :
+CUDPSocket::CUDPSocket(uint16_t port) :
 m_localAddress(),
 m_localPort(port),
 m_fd(-1),
@@ -70,15 +70,15 @@ void CUDPSocket::shutdown()
 #endif
 }
 
-int CUDPSocket::lookup(const std::string& hostname, unsigned short port, sockaddr_storage& addr, unsigned int& address_length)
+int CUDPSocket::lookup(const std::string& hostname, uint16_t port, sockaddr_storage& addr, size_t& addressLength)
 {
 	struct addrinfo hints;
 	::memset(&hints, 0, sizeof(hints));
 
-	return lookup(hostname, port, addr, address_length, hints);
+	return lookup(hostname, port, addr, addressLength, hints);
 }
 
-int CUDPSocket::lookup(const std::string& hostname, unsigned short port, sockaddr_storage& addr, unsigned int& address_length, struct addrinfo& hints)
+int CUDPSocket::lookup(const std::string& hostname, uint16_t port, sockaddr_storage& addr, size_t& addressLength, struct addrinfo& hints)
 {
 	std::string portstr = std::to_string(port);
 	struct addrinfo *res;
@@ -86,10 +86,10 @@ int CUDPSocket::lookup(const std::string& hostname, unsigned short port, sockadd
 	/* Port is always digits, no needs to lookup service */
 	hints.ai_flags |= AI_NUMERICSERV;
 
-	int err = ::getaddrinfo(hostname.empty() ? NULL : hostname.c_str(), portstr.c_str(), &hints, &res);
+	int err = ::getaddrinfo(hostname.empty() ? nullptr : hostname.c_str(), portstr.c_str(), &hints, &res);
 	if (err != 0) {
 		sockaddr_in* paddr = (sockaddr_in*)&addr;
-		::memset(paddr, 0x00U, address_length = sizeof(sockaddr_in));
+		::memset(paddr, 0x00U, addressLength = sizeof(sockaddr_in));
 		paddr->sin_family = AF_INET;
 		paddr->sin_port = htons(port);
 		paddr->sin_addr.s_addr = htonl(INADDR_NONE);
@@ -97,7 +97,7 @@ int CUDPSocket::lookup(const std::string& hostname, unsigned short port, sockadd
 		return err;
 	}
 
-	::memcpy(&addr, res->ai_addr, address_length = res->ai_addrlen);
+	::memcpy(&addr, res->ai_addr, addressLength = res->ai_addrlen);
 
 	::freeaddrinfo(res);
 
@@ -163,7 +163,7 @@ bool CUDPSocket::open()
 	assert(m_fd == -1);
 
 	sockaddr_storage addr;
-	unsigned int addrlen;
+	size_t addrlen;
 	struct addrinfo hints;
 
 	::memset(&hints, 0, sizeof(hints));
@@ -217,9 +217,9 @@ bool CUDPSocket::open()
 	return true;
 }
 
-int CUDPSocket::read(uint8_t* buffer, unsigned int length, sockaddr_storage& address, unsigned int &addressLength)
+int CUDPSocket::read(uint8_t* buffer, size_t length, sockaddr_storage& address, size_t& addressLength)
 {
-	assert(buffer != NULL);
+	assert(buffer != nullptr);
 	assert(length > 0U);
 	assert(m_fd >= 0);
 
@@ -278,9 +278,9 @@ int CUDPSocket::read(uint8_t* buffer, unsigned int length, sockaddr_storage& add
 	return len;
 }
 
-bool CUDPSocket::write(const uint8_t* buffer, unsigned int length, const sockaddr_storage& address, unsigned int addressLength)
+bool CUDPSocket::write(const uint8_t* buffer, size_t length, const sockaddr_storage& address, size_t addressLength)
 {
-	assert(buffer != NULL);
+	assert(buffer != nullptr);
 	assert(length > 0U);
 	assert(m_fd >= 0);
 

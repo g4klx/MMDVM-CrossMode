@@ -16,7 +16,7 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#ifndef	Timer_H
+#if !defined(Timer_H)
 #define	Timer_H
 
 class CTimer {

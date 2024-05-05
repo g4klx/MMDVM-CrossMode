@@ -20,7 +20,6 @@
 #define	Data_H
 
 #include "TranscoderDefines.h"
-#include "RingBuffer.h"
 #include "Transcoder.h"
 #include "Defines.h"
 
@@ -48,7 +47,6 @@ public:
 	void getDStar(uint8_t* source, uint8_t* destination) const;
 	void getM17(std::string& source, std::string& destination) const;
 
-	uint8_t getDataCount() const;
 	bool setData(const uint8_t* data);
 	bool hasData() const;
 	bool getData(uint8_t* data);
@@ -77,11 +75,11 @@ private:
 	uint16_t    m_dstId16;		// NXDN
 	bool        m_group;		// DMR, NXDN, P25
 	bool        m_end;
-	CRingBuffer<uint8_t> m_inData;
-	CRingBuffer<uint8_t> m_outData;
+	uint8_t*    m_data;
+	uint16_t    m_length;
 
-	std::string bytesToString(const uint8_t* str, unsigned int length) const;
-	void stringToBytes(uint8_t* str, unsigned int length, const std::string& callsign) const;
+	std::string bytesToString(const uint8_t* str, size_t length) const;
+	void stringToBytes(uint8_t* str, size_t length, const std::string& callsign) const;
 };
 
 #endif

@@ -191,7 +191,7 @@ void CTranscoder::close()
 
 uint16_t CTranscoder::read(uint8_t* buffer, uint16_t timeout)
 {
-	assert(buffer != NULL);
+	assert(buffer != nullptr);
 
 	uint16_t len = 0U;
 	uint16_t ptr = 0U;

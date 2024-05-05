@@ -16,9 +16,10 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#ifndef UDPSocket_H
+#if !defined(UDPSocket_H)
 #define UDPSocket_H
 
+#include <cstdint>
 #include <string>
 
 #if !defined(_WIN32) && !defined(_WIN64)
@@ -42,23 +43,23 @@ enum IPMATCHTYPE {
 
 class CUDPSocket {
 public:
-	CUDPSocket(const std::string& address, unsigned short port = 0U);
-	CUDPSocket(unsigned short port = 0U);
+	CUDPSocket(const std::string& address, uint16_t port = 0U);
+	CUDPSocket(uint16_t port = 0U);
 	~CUDPSocket();
 
 	bool open();
 	bool open(const sockaddr_storage& address);
 
-	int  read(uint8_t* buffer, unsigned int length, sockaddr_storage& address, unsigned int &addressLength);
-	bool write(const uint8_t* buffer, unsigned int length, const sockaddr_storage& address, unsigned int addressLength);
+	int  read(uint8_t* buffer, size_t length, sockaddr_storage& address, size_t& addressLength);
+	bool write(const uint8_t* buffer, size_t length, const sockaddr_storage& address, size_t addressLength);
 
 	void close();
 
 	static void startup();
 	static void shutdown();
 
-	static int lookup(const std::string& hostName, unsigned short port, sockaddr_storage& address, unsigned int& addressLength);
-	static int lookup(const std::string& hostName, unsigned short port, sockaddr_storage& address, unsigned int& addressLength, struct addrinfo& hints);
+	static int lookup(const std::string& hostName, uint16_t port, sockaddr_storage& address, size_t& addressLength);
+	static int lookup(const std::string& hostName, uint16_t port, sockaddr_storage& address, size_t& addressLength, struct addrinfo& hints);
 
 	static bool match(const sockaddr_storage& addr1, const sockaddr_storage& addr2, IPMATCHTYPE type = IMT_ADDRESS_AND_PORT);
 
@@ -66,7 +67,7 @@ public:
 
 private:
 	std::string    m_localAddress;
-	unsigned short m_localPort;
+	uint16_t       m_localPort;
 #if defined(_WIN32) || defined(_WIN64)
 	SOCKET         m_fd;
 	int            m_af;

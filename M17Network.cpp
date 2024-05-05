@@ -41,7 +41,9 @@ m_buffer(1000U, "M17 Network"),
 m_random(),
 m_timer(1000U, 5U),
 m_lich(nullptr),
-m_hasMeta(false)
+m_hasMeta(false),
+m_audio(nullptr),
+m_audioCount(0U)
 #if defined(DUMP_M17)
 , m_fpIn(nullptr),
 m_fpOut(nullptr)
@@ -54,6 +56,8 @@ m_fpOut(nullptr)
 
 	m_lich = new uint8_t[M17_LICH_LENGTH_BYTES];
 
+	m_audio = new uint8_t[M17_PAYLOAD_LENGTH_BYTES];
+
 	std::random_device rd;
 	std::mt19937 mt(rd());
 	m_random = mt;
@@ -62,6 +66,7 @@ m_fpOut(nullptr)
 CM17Network::~CM17Network()
 {
 	delete[] m_lich;
+	delete[] m_audio;
 }
 
 bool CM17Network::open()
@@ -93,9 +98,16 @@ bool CM17Network::write(CData& data)
 	if (m_addrLen == 0U)
 		return false;
 
-	uint8_t count = data.getDataCount();
-	if ((count < 2U) && !data.isEnd())
-		return true;
+	if (m_audioCount == 0U) {
+		data.getData(m_audio + 0U);
+		m_audioCount = 1U;
+
+		if (!data.isEnd())
+			return true;
+	} else {
+		data.getData(m_audio + 8U);
+		m_audioCount = 0U;
+	}
 
 	uint8_t buffer[100U];
 
@@ -121,30 +133,19 @@ bool CM17Network::write(CData& data)
 	buffer[35U] = m_outSeq % 256U;
 	m_outSeq++;
 
-	::memcpy(buffer + 36U, M17_3200_SILENCE, M17_PAYLOAD_LENGTH_BYTES / 2U);
-	::memcpy(buffer + 44U, M17_3200_SILENCE, M17_PAYLOAD_LENGTH_BYTES / 2U);
-
-	if (count == 1U) {
-		data.getData(buffer + 36U);
+	if (data.isEnd()) {
+		buffer[34U] |= 0x80U;
+		::memcpy(buffer + 36U, M17_3200_SILENCE, M17_PAYLOAD_LENGTH_BYTES / 2U);
+		::memcpy(buffer + 44U, M17_3200_SILENCE, M17_PAYLOAD_LENGTH_BYTES / 2U);
+	} else {
+		::memcpy(buffer + 36U, m_audio, M17_PAYLOAD_LENGTH_BYTES);
 #if defined(DUMP_M17)
 		if (m_fpOut != nullptr) {
-			::fwrite(buffer + 36U, 1U, M17_PAYLOAD_LENGTH_BYTES / 2U, m_fpOut);
-			::fflush(m_fpOut);
-		}
-#endif
-	} else if (count == 2U) {
-		data.getData(buffer + 36U);
-		data.getData(buffer + 44U);
-#if defined(DUMP_M17)
-		if (m_fpOut != nullptr) {
-			::fwrite(buffer + 36U, 1U, M17_PAYLOAD_LENGTH_BYTES, m_fpOut);
+			::fwrite(m_audio, 1U, M17_PAYLOAD_LENGTH_BYTES, m_fpOut);
 			::fflush(m_fpOut);
 		}
 #endif
 	}
-
-	if (data.isEnd())
-		buffer[34U] |= 0x80U;
 
 	// Dummy CRC
 	buffer[52U] = 0x00U;
@@ -167,7 +168,7 @@ void CM17Network::clock(unsigned int ms)
 	uint8_t buffer[BUFFER_LENGTH];
 
 	sockaddr_storage address;
-	unsigned int addrLen;
+	size_t addrLen;
 	int length = m_socket.read(buffer, BUFFER_LENGTH, address, addrLen);
 	if (length <= 0)
 		return;
@@ -188,6 +189,9 @@ void CM17Network::clock(unsigned int ms)
 	if (m_debug)
 		CUtils::dump(1U, "M17 Network Data Received", buffer, length);
 
+	if ((m_inId == 0U) && ((buffer[34U] & 0x80U) == 0x80U))
+		return;
+
 	uint16_t id = (buffer[4U] << 8) + (buffer[5U] << 0);
 	if (m_inId == 0U) {
 		m_inId = id;
@@ -196,16 +200,22 @@ void CM17Network::clock(unsigned int ms)
 			return;
 	}
 
-	m_buffer.addData(buffer + 6U, 46U);
+	m_buffer.add(buffer + 6U, 46U);
 }
 
 bool CM17Network::read(CData& data)
 {
-	if (m_buffer.isEmpty())
+	if (m_audioCount == 1U) {
+		data.setData(m_audio + 8U);
+		m_audioCount = 0U;
+		return true;
+	}
+
+	if (m_buffer.empty())
 		return false;
 
 	uint8_t buffer[80U];
-	m_buffer.getData(buffer + 0U, 46U);
+	m_buffer.get(buffer + 0U, 46U);
 
 	if (!m_hasMeta) {
 		std::string src, dst;
@@ -216,11 +226,6 @@ bool CM17Network::read(CData& data)
 		m_hasMeta = true;
 	}
 
-	if ((buffer[28U] & 0x80U) == 0x80U) {
-		data.setEnd();
-		return true;
-	}
-
 #if defined(DUMP_M17)
 	if (m_fpIn != nullptr) {
 		::fwrite(buffer + 30U, 1U, M17_PAYLOAD_LENGTH_BYTES, m_fpIn);
@@ -228,15 +233,20 @@ bool CM17Network::read(CData& data)
 	}
 #endif
 
-	data.setData(buffer + 30U);
-	data.setData(buffer + 38U);
+	::memcpy(m_audio, buffer + 30U, M17_PAYLOAD_LENGTH_BYTES);
+	m_audioCount = 1U;
+
+	data.setData(m_audio + 0U);
+
+	if ((buffer[28U] & 0x80U) == 0x80U)
+		data.setEnd();
 
 	return true;
 }
 
 bool CM17Network::hasData()
 {
-	return !m_buffer.isEmpty();
+	return m_buffer.hasData();
 }
 
 void CM17Network::close()
@@ -264,6 +274,8 @@ void CM17Network::reset()
 	m_outSeq  = 0U;
 	m_inId    = 0U;
 	m_hasMeta = false;
+	m_buffer.clear();
+	m_audioCount = 0U;
 }
 
 void CM17Network::sendPing()
@@ -296,7 +308,7 @@ void CM17Network::createLICH(const CData& data)
 
 void CM17Network::encodeCallsign(const std::string& callsign, uint8_t* encoded) const
 {
-	assert(encoded != NULL);
+	assert(encoded != nullptr);
 
 	if ((callsign == "ALL") || (callsign == "CQCQCQ")) {
 		encoded[0U] = 0xFFU;
@@ -308,12 +320,12 @@ void CM17Network::encodeCallsign(const std::string& callsign, uint8_t* encoded) 
 		return;
 	}
 
-	unsigned int len = callsign.size();
+	size_t len = callsign.size();
 	if (len > 9U)
 		len = 9U;
 
 	uint64_t enc = 0ULL;
-	for (int i = len - 1; i >= 0; i--) {
+	for (long long i = len - 1LL; i >= 0LL; i--) {
 		size_t pos = M17_CHARS.find(callsign[i]);
 		if (pos == std::string::npos)
 			pos = 0ULL;
@@ -332,7 +344,7 @@ void CM17Network::encodeCallsign(const std::string& callsign, uint8_t* encoded) 
 
 void CM17Network::decodeCallsign(const uint8_t* encoded, std::string& callsign) const
 {
-	assert(encoded != NULL);
+	assert(encoded != nullptr);
 
 	callsign.clear();
 

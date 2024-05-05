@@ -29,11 +29,11 @@
 #include <string>
 #include <random>
 
-#define	DUMP_DSTAR
+// #define	DUMP_DSTAR
 
 class CDStarNetwork : public INetwork {
 public:
-	CDStarNetwork(const std::string& callsign, const std::string& localAddress, unsigned short localPort, const std::string& remoteAddress, unsigned short remotePort, bool debug);
+	CDStarNetwork(const std::string& callsign, const std::string& localAddress, uint16_t localPort, const std::string& remoteAddress, uint16_t remotePort, bool debug);
 	virtual ~CDStarNetwork();
 
 	virtual bool open();
@@ -54,7 +54,7 @@ private:
 	std::string      m_callsign;
 	CUDPSocket       m_socket;
 	sockaddr_storage m_addr;
-	unsigned int     m_addrLen;
+	size_t           m_addrLen;
 	bool             m_debug;
 	uint16_t         m_outId;
 	uint8_t          m_outSeq;
