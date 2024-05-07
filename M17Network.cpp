@@ -246,7 +246,7 @@ bool CM17Network::read(CData& data)
 
 bool CM17Network::hasData()
 {
-	return m_buffer.hasData();
+	return m_buffer.hasData() || (m_audioCount > 0U);
 }
 
 void CM17Network::close()

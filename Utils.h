@@ -31,6 +31,8 @@ public:
 	static void bitsToByteBE(const bool* bits, uint8_t& byte);
 	static void bitsToByteLE(const bool* bits, uint8_t& byte);
 
+	static unsigned int countBits(unsigned int v);
+
 private:
 };
 

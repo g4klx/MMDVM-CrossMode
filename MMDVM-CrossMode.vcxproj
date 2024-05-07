@@ -146,6 +146,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="CRC.h" />
     <ClInclude Include="CrossMode.h" />
     <ClInclude Include="Data.h" />
     <ClInclude Include="Conf.h" />
@@ -153,6 +154,7 @@
     <ClInclude Include="DStarDefines.h" />
     <ClInclude Include="DStarNetwork.h" />
     <ClInclude Include="FMNetwork.h" />
+    <ClInclude Include="Golay24128.h" />
     <ClInclude Include="Log.h" />
     <ClInclude Include="M17Defines.h" />
     <ClInclude Include="M17Network.h" />
@@ -167,13 +169,20 @@
     <ClInclude Include="UDPSocket.h" />
     <ClInclude Include="Utils.h" />
     <ClInclude Include="Version.h" />
+    <ClInclude Include="YSFConvolution.h" />
+    <ClInclude Include="YSFDefines.h" />
+    <ClInclude Include="YSFFICH.h" />
+    <ClInclude Include="YSFNetwork.h" />
+    <ClInclude Include="YSFPayload.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="CRC.cpp" />
     <ClCompile Include="CrossMode.cpp" />
     <ClCompile Include="Data.cpp" />
     <ClCompile Include="Conf.cpp" />
     <ClCompile Include="DStarNetwork.cpp" />
     <ClCompile Include="FMNetwork.cpp" />
+    <ClCompile Include="Golay24128.cpp" />
     <ClCompile Include="Log.cpp" />
     <ClCompile Include="M17Network.cpp" />
     <ClCompile Include="Network.cpp" />
@@ -184,6 +193,10 @@
     <ClCompile Include="UARTController.cpp" />
     <ClCompile Include="UDPSocket.cpp" />
     <ClCompile Include="Utils.cpp" />
+    <ClCompile Include="YSFConvolution.cpp" />
+    <ClCompile Include="YSFFICH.cpp" />
+    <ClCompile Include="YSFNetwork.cpp" />
+    <ClCompile Include="YSFPayload.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

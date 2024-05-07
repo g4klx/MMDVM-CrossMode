@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2024 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2015,2016.2021 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -16,9 +16,31 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#if !defined(VERSION_H)
-#define	VERSION_H
+#if !defined(YSFConvolution_H)
+#define  YSFConvolution_H
 
-const char* VERSION = "20240507";
+#include <cstdint>
+
+class CYSFConvolution {
+public:
+	CYSFConvolution();
+	~CYSFConvolution();
+
+	void start();
+	void decode(uint8_t s0, uint8_t s1);
+
+	unsigned int chainback(uint8_t* out, unsigned int nBits);
+
+	void encode(const uint8_t* in, uint8_t* out, unsigned int nBits) const;
+
+private:
+	uint16_t* m_metrics1;
+	uint16_t* m_metrics2;
+	uint16_t* m_oldMetrics;
+	uint16_t* m_newMetrics;
+	uint64_t* m_decisions;
+	uint64_t* m_dp;
+};
 
 #endif
+

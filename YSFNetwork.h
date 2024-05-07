@@ -28,9 +28,11 @@
 #include <cstdint>
 #include <string>
 
+// #define	DUMP_YSF
+
 class CYSFNetwork : public INetwork {
 public:
-	CYSFNetwork(const std::string& callsign, const std::string& localAddress, unsigned short localPort, const std::string& remoteAddress, unsigned short remotePort, bool debug);
+	CYSFNetwork(const std::string& callsign, const std::string& localAddress, uint16_t localPort, const std::string& remoteAddress, uint16_t remotePort, bool debug);
 	virtual ~CYSFNetwork();
 
 	virtual bool open();
@@ -38,6 +40,8 @@ public:
 	virtual bool write(CData& data);
 
 	virtual bool read(CData& data);
+
+	virtual bool hasData();
 
 	virtual void reset();
 
@@ -48,13 +52,25 @@ public:
 private:
 	CUDPSocket       m_socket;
 	sockaddr_storage m_addr;
-	unsigned int     m_addrLen;
+	size_t           m_addrLen;
 	std::string      m_callsign;
 	bool             m_debug;
 	CRingBuffer<uint8_t> m_buffer;
 	CTimer           m_pollTimer;
 	uint8_t*         m_tag;
+	uint16_t         m_seqNo;
+	uint8_t*         m_audio;
+	uint8_t          m_audioCount;
+	uint8_t          m_fn;
+#if defined(DUMP_YSF)
+	FILE*            m_fpIn;
+	FILE*            m_fpOut;
+#endif
 
+	bool writeHeader(CData& data);
+	bool writeCommunication(CData& data);
+	bool writeTerminator(CData& data);
+	void processHeader(const uint8_t* buffer, CData& data, uint8_t dgId);
 	bool writePoll();
 };
 

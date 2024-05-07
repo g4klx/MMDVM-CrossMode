@@ -19,6 +19,7 @@
 #include "CrossMode.h"
 
 #include "DStarNetwork.h"
+#include "YSFNetwork.h"
 #include "M17Network.h"
 #include "FMNetwork.h"
 #include "StopWatch.h"
@@ -72,10 +73,8 @@ DATA_MODE convertMode(const char* text)
 		return DATA_MODE_DSTAR;
 	else if (::strcmp(text, "dmr") == 0)
 		return DATA_MODE_DMR;
-	else if (::strcmp(text, "ysfdn") == 0)
+	else if (::strcmp(text, "ysf") == 0)
 		return DATA_MODE_YSFDN;
-	else if (::strcmp(text, "ysfvw") == 0)
-		return DATA_MODE_YSFVW;
 	else if (::strcmp(text, "p25") == 0)
 		return DATA_MODE_P25;
 	else if (::strcmp(text, "nxdn") == 0)
@@ -110,7 +109,7 @@ int main(int argc, char** argv)
 
 	if ((fromMode == DATA_MODE_NONE) || (toMode == DATA_MODE_NONE)) {
 		::fprintf(stderr, "CrossMode: <from> and <to> must be one of:\n");
-		::fprintf(stderr, "\tdstar, dmr, ysfdn, ysfvw, p25, nxdn, fm, m17\n");
+		::fprintf(stderr, "\tdstar, dmr, ysf, p25, nxdn, fm, m17\n");
 		return 1;
 	}
 
@@ -390,9 +389,7 @@ bool CCrossMode::createFromNetwork()
 		debug         = m_conf.getDStarFromDebug();
 		m_fromNetwork = new CDStarNetwork(callsign2, localAddress, localPort, remoteAddress, remotePort, debug);
 		break;
-/*
 	case DATA_MODE_YSFDN:
-	case DATA_MODE_YSFVW:
 		remoteAddress = m_conf.getYSFFromRemoteAddress();
 		localAddress  = m_conf.getYSFFromLocalAddress();
 		remotePort    = m_conf.getYSFFromRemotePort();
@@ -400,7 +397,6 @@ bool CCrossMode::createFromNetwork()
 		debug         = m_conf.getYSFFromDebug();
 		m_fromNetwork = new CYSFNetwork(callsign1, localAddress, localPort, remoteAddress, remotePort, debug);
 		break;
-*/
 	case DATA_MODE_FM:
 		remoteAddress = m_conf.getFMFromRemoteAddress();
 		localAddress  = m_conf.getFMFromLocalAddress();
@@ -451,9 +447,7 @@ bool CCrossMode::createToNetwork()
 		debug         = m_conf.getDStarToDebug();
 		m_toNetwork = new CDStarNetwork(callsign2, localAddress, localPort, remoteAddress, remotePort, debug);
 		break;
-/*
 	case DATA_MODE_YSFDN:
-	case DATA_MODE_YSFVW:
 		remoteAddress = m_conf.getYSFToRemoteAddress();
 		localAddress  = m_conf.getYSFToLocalAddress();
 		remotePort    = m_conf.getYSFToRemotePort();
@@ -461,7 +455,6 @@ bool CCrossMode::createToNetwork()
 		debug         = m_conf.getYSFToDebug();
 		m_toNetwork = new CYSFNetwork(callsign1, localAddress, localPort, remoteAddress, remotePort, debug);
 		break;
-*/
 	case DATA_MODE_FM:
 		remoteAddress = m_conf.getFMToRemoteAddress();
 		localAddress  = m_conf.getFMToLocalAddress();

@@ -148,3 +148,15 @@ void CUtils::bitsToByteLE(const bool* bits, uint8_t& byte)
 	byte |= bits[6U] ? 0x40U : 0x00U;
 	byte |= bits[7U] ? 0x80U : 0x00U;
 }
+
+unsigned int CUtils::countBits(unsigned int v)
+{
+	unsigned int count = 0U;
+
+	while (v != 0U) {
+		v &= v - 1U;
+		count++;
+	}
+
+	return count;
+}

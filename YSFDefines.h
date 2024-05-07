@@ -39,17 +39,26 @@ const uint8_t YSF_FI_COMMUNICATIONS = 0x01U;
 const uint8_t YSF_FI_TERMINATOR     = 0x02U;
 const uint8_t YSF_FI_TEST           = 0x03U;
 
+const uint8_t YSF_CS_RESERVE1 = 0x00U;
+const uint8_t YSF_CS_RESERVE2 = 0x01U;
+const uint8_t YSF_CS_ASSIGN   = 0x02U;
+const uint8_t YSF_CS_RESERVE3 = 0x03U;
+
+const uint8_t YSF_CM_GROUP_CQ   = 0x00U;
+const uint8_t YSF_CM_RADIO_ID   = 0x01U;
+const uint8_t YSF_CM_RESERVE    = 0x02U;
+const uint8_t YSF_CM_INDIVIDUAL = 0x03U;
+
 const uint8_t YSF_DT_VD_MODE1      = 0x00U;
 const uint8_t YSF_DT_DATA_FR_MODE  = 0x01U;
 const uint8_t YSF_DT_VD_MODE2      = 0x02U;
 const uint8_t YSF_DT_VOICE_FR_MODE = 0x03U;
 
-const uint8_t YSF_CM_GROUP1     = 0x00U;
-const uint8_t YSF_CM_GROUP2     = 0x01U;
-const uint8_t YSF_CM_INDIVIDUAL = 0x03U;
-
 const uint8_t YSF_MR_DIRECT   = 0x00U;
 const uint8_t YSF_MR_NOT_BUSY = 0x01U;
 const uint8_t YSF_MR_BUSY     = 0x02U;
+
+const uint8_t YSF_NULL_CALLSIGN[] = {0x20U, 0x20U, 0x20U, 0x20U, 0x20U, 0x20U, 0x20U, 0x20U, 0x20U, 0x20U};
+const uint8_t YSF_NULL_DT[]       = {0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U};
 
 #endif

@@ -45,6 +45,7 @@ public:
 	void setEnd();
 
 	void getDStar(uint8_t* source, uint8_t* destination) const;
+	void getYSF(uint8_t* source, uint8_t& dgId) const;
 	void getM17(std::string& source, std::string& destination) const;
 
 	bool setData(const uint8_t* data);

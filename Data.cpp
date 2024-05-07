@@ -146,7 +146,7 @@ void CData::setDMR(uint32_t source, uint32_t destination, bool group)
 
 	m_srcId32 = source;
 	m_dstId32 = destination;
-	m_group = group;
+	m_group   = group;
 }
 
 void CData::setYSF(const uint8_t* source, uint8_t dgId)
@@ -154,7 +154,7 @@ void CData::setYSF(const uint8_t* source, uint8_t dgId)
 	assert(source != nullptr);
 
 	m_srcCallsign = bytesToString(source, YSF_CALLSIGN_LENGTH);
-	m_dgId = dgId;
+	m_dgId        = dgId;
 }
 
 void CData::setNXDN(uint16_t source, uint16_t destination, bool group)
@@ -164,7 +164,7 @@ void CData::setNXDN(uint16_t source, uint16_t destination, bool group)
 
 	m_srcId16 = source;
 	m_dstId16 = destination;
-	m_group = group;
+	m_group   = group;
 }
 
 void CData::setP25(uint32_t source, uint32_t destination, bool group)
@@ -200,15 +200,23 @@ void CData::getDStar(uint8_t* source, uint8_t* destination) const
 	assert(source != nullptr);
 	assert(destination != nullptr);
 
-	// This is only true for M17
-	stringToBytes(source, DSTAR_LONG_CALLSIGN_LENGTH, m_srcCallsign);
+	stringToBytes(source,      DSTAR_LONG_CALLSIGN_LENGTH, m_srcCallsign);
 	stringToBytes(destination, DSTAR_LONG_CALLSIGN_LENGTH, m_dstCallsign);
+}
+
+void CData::getYSF(uint8_t* source, uint8_t& dgId) const
+{
+	assert(source != nullptr);
+
+	stringToBytes(source, YSF_CALLSIGN_LENGTH, m_srcCallsign);
+
+	dgId = m_dgId;
 }
 
 void CData::getM17(std::string& source, std::string& destination) const
 {
 	// This is only true for D-Star
-	source = m_srcCallsign;
+	source      = m_srcCallsign;
 	destination = m_dstCallsign;
 }
 
