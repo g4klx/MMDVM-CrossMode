@@ -299,10 +299,6 @@ void CYSFPayload::createVDMode2Data(uint8_t* data, const uint8_t* dt) const
 
 	data += YSF_SYNC_LENGTH_BYTES + YSF_FICH_LENGTH_BYTES;
 
-	uint8_t dch[25U];
-
-	CYSFConvolution conv;
-
 	uint8_t output[13U];
 	for (unsigned int i = 0U; i < YSF_CALLSIGN_LENGTH; i++)
 		output[i] = dt[i] ^ WHITENING_DATA[i];
@@ -311,6 +307,8 @@ void CYSFPayload::createVDMode2Data(uint8_t* data, const uint8_t* dt) const
 	output[12U] = 0x00U;
 
 	uint8_t convolved[25U];
+
+	CYSFConvolution conv;
 	conv.encode(output, convolved, 100U);
 
 	uint8_t bytes[25U];
