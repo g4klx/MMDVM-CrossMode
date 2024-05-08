@@ -17,12 +17,12 @@
  */
 
 #include "Conf.h"
-#include "Log.h"
 
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <cctype>
+#include <utility>
 
 const int BUFFER_SIZE = 500;
 
@@ -31,6 +31,7 @@ enum SECTION {
 	SECTION_GENERAL,
 	SECTION_TRANSCODER,
 	SECTION_DSTAR,
+	SECTION_YSF_M17,
 	SECTION_DSTAR_NETWORK_FROM,
 	SECTION_DSTAR_NETWORK_TO,
 	SECTION_YSF_NETWORK_FROM,
@@ -52,6 +53,8 @@ m_transcoderPort(),
 m_transcoderSpeed(460800U),
 m_transcoderDebug(false),
 m_dStarCallsign("G9BF   B"),
+m_ysfM17Mapping(),
+m_m17YSFMapping(),
 m_dStarFromRemoteAddress("127.0.0.1"),
 m_dStarFromRemotePort(20011U),
 m_dStarFromLocalAddress(),
@@ -126,6 +129,8 @@ bool CConf::read()
 				section = SECTION_TRANSCODER;
 			else if (::strncmp(buffer, "[D-Star]", 8U) == 0)
 				section = SECTION_DSTAR;
+			else if (::strncmp(buffer, "[System Fusion to M17]", 22U) == 0)
+				section = SECTION_YSF_M17;
 			else if (::strncmp(buffer, "[D-Star Network From]", 21U) == 0)
 				section = SECTION_DSTAR_NETWORK_FROM;
 			else if (::strncmp(buffer, "[D-Star Network To]", 19U) == 0)
@@ -177,6 +182,25 @@ bool CConf::read()
 		} else if (section == SECTION_DSTAR) {
 			if (::strcmp(key, "RepeaterCallsign") == 0)
 				m_dStarCallsign = value;
+		} else if (section == SECTION_YSF_M17) {
+			if (::strcmp(key, "DGId") == 0) {
+				char* p = ::strchr(value, '=');
+				if (p == nullptr)
+					break;
+				*p = '\0';
+				uint8_t dgId = uint8_t(::atoi(value));
+
+				p++;
+				size_t len = ::strlen(p);
+				if (len > 1U && *p == '"' && p[len - 1U] == '"') {
+					p[len - 1U] = '\0';
+					p++;
+				}
+				std::string text = std::string(p);
+
+				m_ysfM17Mapping.insert(std::pair<uint8_t, std::string>(dgId, text));
+				m_m17YSFMapping.insert(std::pair<std::string, uint8_t>(text, dgId));
+			}
 		} else if (section == SECTION_TRANSCODER) {
 			if (::strcmp(key, "Port") == 0)
 				m_transcoderPort = value;
@@ -329,6 +353,16 @@ bool CConf::getTranscoderDebug() const
 std::string CConf::getDStarCallsign() const
 {
 	return m_dStarCallsign;
+}
+
+std::map<uint8_t, std::string> CConf::getYSFM17Mapping() const
+{
+	return m_ysfM17Mapping;
+}
+
+std::map<std::string, uint8_t> CConf::getM17YSFMapping() const
+{
+	return m_m17YSFMapping;
 }
 
 std::string CConf::getDStarFromRemoteAddress() const

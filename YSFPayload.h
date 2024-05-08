@@ -28,8 +28,8 @@ public:
 	CYSFPayload();
 	~CYSFPayload();
 
-	bool processHeaderData(const uint8_t* bytes, uint8_t* source, uint8_t* destination) const;
-	void createHeaderData(uint8_t* bytes, const uint8_t* source, const uint8_t* destination) const;
+	bool processHeaderData(const uint8_t* bytes, uint8_t* source, uint8_t* destination, uint8_t* downlink, uint8_t* uplink) const;
+	void createHeaderData(uint8_t* bytes, const uint8_t* source, const uint8_t* destination, const uint8_t* downlink, const uint8_t* uplink) const;
 
 	bool processVDMode2Data(const uint8_t* bytes, uint8_t* data) const;
 	void processVDMode2Audio(const uint8_t* bytes, uint8_t* audio) const;

@@ -92,18 +92,20 @@ CYSFPayload::~CYSFPayload()
 {
 }
 
-bool CYSFPayload::processHeaderData(const uint8_t* data, uint8_t* source, uint8_t* destination) const
+bool CYSFPayload::processHeaderData(const uint8_t* data, uint8_t* source, uint8_t* destination, uint8_t* downlink, uint8_t* uplink) const
 {
 	assert(data != nullptr);
 	assert(source != nullptr);
 	assert(destination != nullptr);
+	assert(downlink != nullptr);
+	assert(uplink != nullptr);
 
 	data += YSF_SYNC_LENGTH_BYTES + YSF_FICH_LENGTH_BYTES;
 
 	uint8_t dch[45U];
 
 	const uint8_t* p1 = data;
-	uint8_t* p2 = dch;
+	uint8_t*       p2 = dch;
 	for (unsigned int i = 0U; i < 5U; i++) {
 		::memcpy(p2, p1, 9U);
 		p1 += 18U; p2 += 9U;
@@ -132,26 +134,56 @@ bool CYSFPayload::processHeaderData(const uint8_t* data, uint8_t* source, uint8_
 	for (unsigned int i = 0U; i < 20U; i++)
 		output[i] ^= WHITENING_DATA[i];
 
-	::memcpy(destination, output + 0U, YSF_CALLSIGN_LENGTH);
+	::memcpy(destination, output + 0U,                  YSF_CALLSIGN_LENGTH);
+	::memcpy(source,      output + YSF_CALLSIGN_LENGTH, YSF_CALLSIGN_LENGTH);
 
-	::memcpy(source, output + YSF_CALLSIGN_LENGTH, YSF_CALLSIGN_LENGTH);
+	p1 = data + 9U;
+	p2 = dch;
+	for (unsigned int i = 0U; i < 5U; i++) {
+		::memcpy(p2, p1, 9U);
+		p1 += 18U; p2 += 9U;
+	}
+
+	conv.start();
+
+	for (unsigned int i = 0U; i < 180U; i++) {
+		unsigned int n = INTERLEAVE_TABLE_9_20[i];
+		uint8_t s0 = READ_BIT1(dch, n) ? 1U : 0U;
+
+		n++;
+		uint8_t s1 = READ_BIT1(dch, n) ? 1U : 0U;
+
+		conv.decode(s0, s1);
+	}
+
+	conv.chainback(output, 176U);
+
+	valid = CCRC::checkCCITT162(output, 22U);
+	if (!valid)
+		return false;
+
+	for (unsigned int i = 0U; i < 20U; i++)
+		output[i] ^= WHITENING_DATA[i];
+
+	::memcpy(downlink, output + 0U,                  YSF_CALLSIGN_LENGTH);
+	::memcpy(uplink,   output + YSF_CALLSIGN_LENGTH, YSF_CALLSIGN_LENGTH);
 
 	return true;
 }
 
-void CYSFPayload::createHeaderData(uint8_t* data, const uint8_t* source, const uint8_t* destination) const
+void CYSFPayload::createHeaderData(uint8_t* data, const uint8_t* source, const uint8_t* destination, const uint8_t* downlink, const uint8_t* uplink) const
 {
 	assert(data != nullptr);
 	assert(source != nullptr);
 	assert(destination != nullptr);
+	assert(downlink != nullptr);
+	assert(uplink != nullptr);
 
 	data += YSF_SYNC_LENGTH_BYTES + YSF_FICH_LENGTH_BYTES;
 
-	uint8_t dch[45U];
-
 	uint8_t output[23U];
-	::memcpy(output + 0U, destination, YSF_CALLSIGN_LENGTH);
-	::memcpy(output + YSF_CALLSIGN_LENGTH, source, YSF_CALLSIGN_LENGTH);
+	::memcpy(output + 0U,                  destination, YSF_CALLSIGN_LENGTH);
+	::memcpy(output + YSF_CALLSIGN_LENGTH, source,      YSF_CALLSIGN_LENGTH);
 
 	for (unsigned int i = 0U; i < 20U; i++)
 		output[i] ^= WHITENING_DATA[i];
@@ -188,10 +220,37 @@ void CYSFPayload::createHeaderData(uint8_t* data, const uint8_t* source, const u
 		p1 += 18U; p2 += 9U;
 	}
 
+	::memcpy(output + 0U,                  downlink, YSF_CALLSIGN_LENGTH);
+	::memcpy(output + YSF_CALLSIGN_LENGTH, uplink,   YSF_CALLSIGN_LENGTH);
+
+	for (unsigned int i = 0U; i < 20U; i++)
+		output[i] ^= WHITENING_DATA[i];
+
+	CCRC::addCCITT162(output, 22U);
+	output[22U] = 0x00U;
+
+	conv.encode(output, convolved, 180U);
+
+	j = 0U;
+	for (unsigned int i = 0U; i < 180U; i++) {
+		unsigned int n = INTERLEAVE_TABLE_9_20[i];
+
+		bool s0 = READ_BIT1(convolved, j) != 0U;
+		j++;
+
+		bool s1 = READ_BIT1(convolved, j) != 0U;
+		j++;
+
+		WRITE_BIT1(bytes, n, s0);
+
+		n++;
+		WRITE_BIT1(bytes, n, s1);
+	}
+
 	p1 = data + 9U;
-	p2 = dch;
+	p2 = bytes;
 	for (unsigned int i = 0U; i < 5U; i++) {
-		::memcpy(p2, p1, 9U);
+		::memcpy(p1, p2, 9U);
 		p1 += 18U; p2 += 9U;
 	}
 }

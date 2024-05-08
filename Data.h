@@ -25,11 +25,15 @@
 
 #include <string>
 #include <cstdint>
+#include <map>
 
 class CData {
 public:
 	CData(const std::string& port, uint32_t speed, bool debug, const std::string& callsign, uint32_t dmrId, uint16_t nxdnId);
 	~CData();
+
+	void setYSFM17Mapping(const std::map<uint8_t, std::string>& mapping);
+	void setM17YSFMapping(const std::map<std::string, uint8_t>& mapping);
 
 	bool open();
 
@@ -45,7 +49,7 @@ public:
 	void setEnd();
 
 	void getDStar(uint8_t* source, uint8_t* destination) const;
-	void getYSF(uint8_t* source, uint8_t& dgId) const;
+	void getYSF(uint8_t* source, uint8_t* destination, uint8_t& dgId) const;
 	void getM17(std::string& source, std::string& destination) const;
 
 	bool setData(const uint8_t* data);
@@ -65,6 +69,8 @@ private:
 	std::string m_defaultCallsign;
 	uint32_t    m_defaultDMRId;
 	uint16_t    m_defaultNXDNId;
+	std::map<uint8_t, std::string> m_ysfM17Mapping;
+	std::map<std::string, uint8_t> m_m17YSFMapping;
 	DATA_MODE   m_fromMode;
 	DATA_MODE   m_toMode;
 	std::string m_srcCallsign;	// D-Star, YSF, M17

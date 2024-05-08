@@ -121,12 +121,16 @@ bool CYSFNetwork::write(CData& data)
 		break;
 	}
 
-	if (m_seqNo == 0U)
-		return writeHeader(data);
-	else if (data.isEnd())
+	if (m_seqNo == 0U) {
+		bool ret = writeHeader(data);
+		if (!ret)
+			return false;
 		return writeCommunication(data);
-	else
+	} else if (data.isEnd()) {
 		return writeTerminator(data);
+	} else {
+		return writeCommunication(data);
+	}
 }
 
 bool CYSFNetwork::writeHeader(CData& data)
@@ -142,12 +146,12 @@ bool CYSFNetwork::writeHeader(CData& data)
 		buffer[i + 4U] = m_callsign.at(i);
 
 	uint8_t source[YSF_CALLSIGN_LENGTH];
+	uint8_t destination[YSF_CALLSIGN_LENGTH];
 	uint8_t dgId = 0U;
-	data.getYSF(source, dgId);
+	data.getYSF(source, destination, dgId);
 
-	::memcpy(buffer + 14U, source, YSF_CALLSIGN_LENGTH);
-
-	::memcpy(buffer + 24U, YSF_NULL_CALLSIGN, YSF_CALLSIGN_LENGTH);
+	::memcpy(buffer + 14U, source,      YSF_CALLSIGN_LENGTH);
+	::memcpy(buffer + 24U, destination, YSF_CALLSIGN_LENGTH);
 
 	buffer[34U] = 0x00U;
 
@@ -169,7 +173,7 @@ bool CYSFNetwork::writeHeader(CData& data)
 	fich.encode(buffer + 35U);
 
 	CYSFPayload payload;
-	payload.createHeaderData(buffer + 35U, source, YSF_NULL_CALLSIGN);
+	payload.createHeaderData(buffer + 35U, source, destination, YSF_NULL_CALLSIGN1, YSF_NULL_CALLSIGN1);
 
 	m_seqNo++;
 	m_fn = 0U;
@@ -193,12 +197,12 @@ bool CYSFNetwork::writeCommunication(CData& data)
 		buffer[i + 4U] = m_callsign.at(i);
 
 	uint8_t source[YSF_CALLSIGN_LENGTH];
+	uint8_t destination[YSF_CALLSIGN_LENGTH];
 	uint8_t dgId = 0U;
-	data.getYSF(source, dgId);
+	data.getYSF(source, destination, dgId);
 
-	::memcpy(buffer + 14U, source, YSF_CALLSIGN_LENGTH);
-
-	::memcpy(buffer + 24U, YSF_NULL_CALLSIGN, YSF_CALLSIGN_LENGTH);
+	::memcpy(buffer + 14U, source,      YSF_CALLSIGN_LENGTH);
+	::memcpy(buffer + 24U, destination, YSF_CALLSIGN_LENGTH);
 
 	buffer[34U] = (m_seqNo & 0x7FU) << 1;
 
@@ -223,12 +227,14 @@ bool CYSFNetwork::writeCommunication(CData& data)
 	payload.createVDMode2Audio(buffer + 35U, m_audio);
 
 	switch (m_fn) {
-	case 0U:	// Destination
 	case 2U:	// Downlink
 	case 3U:	// Uplink
 	case 4U:	// Rem1+2
 	case 5U:	// Rem3+4
-		payload.createVDMode2Data(buffer + 35U, YSF_NULL_CALLSIGN);
+		payload.createVDMode2Data(buffer + 35U, YSF_NULL_CALLSIGN1);
+		break;
+	case 0U:	// Destination
+		payload.createVDMode2Data(buffer + 35U, destination);
 		break;
 	case 1U:	// Source
 		payload.createVDMode2Data(buffer + 35U, source);
@@ -263,12 +269,12 @@ bool CYSFNetwork::writeTerminator(CData& data)
 		buffer[i + 4U] = m_callsign.at(i);
 
 	uint8_t source[YSF_CALLSIGN_LENGTH];
+	uint8_t destination[YSF_CALLSIGN_LENGTH];
 	uint8_t dgId = 0U;
-	data.getYSF(source, dgId);
+	data.getYSF(source, destination, dgId);
 
-	::memcpy(buffer + 14U, source, YSF_CALLSIGN_LENGTH);
-
-	::memcpy(buffer + 24U, YSF_NULL_CALLSIGN, YSF_CALLSIGN_LENGTH);
+	::memcpy(buffer + 14U, source,      YSF_CALLSIGN_LENGTH);
+	::memcpy(buffer + 24U, destination, YSF_CALLSIGN_LENGTH);
 
 	buffer[34U]  = (m_seqNo & 0x7FU) << 1;
 	buffer[34U] |= 0x01U;
@@ -291,7 +297,7 @@ bool CYSFNetwork::writeTerminator(CData& data)
 	fich.encode(buffer + 35U);
 
 	CYSFPayload payload;
-	payload.createHeaderData(buffer + 35U, source, YSF_NULL_CALLSIGN);
+	payload.createHeaderData(buffer + 35U, source, destination, YSF_NULL_CALLSIGN1, YSF_NULL_CALLSIGN1);
 
 	if (m_debug)
 		CUtils::dump(1U, "YSF Network Data Sent", buffer, 155U);
@@ -338,12 +344,12 @@ void CYSFNetwork::clock(unsigned int ms)
 		return;
 	}
 
-	if (m_debug)
-		CUtils::dump(1U, "YSF Network Data Received", buffer, length);
-
 	// Invalid packet type?
 	if (::memcmp(buffer, "YSFD", 4U) != 0)
 		return;
+
+	if (m_debug)
+		CUtils::dump(1U, "YSF Network Data Received", buffer, length);
 
 	if (::memcmp(m_tag, "          ", YSF_CALLSIGN_LENGTH) == 0) {
 		::memcpy(m_tag, buffer + 4U, YSF_CALLSIGN_LENGTH);
@@ -426,9 +432,11 @@ void CYSFNetwork::processHeader(const uint8_t* buffer, CData& data, uint8_t dgId
 
 	uint8_t source[YSF_CALLSIGN_LENGTH];
 	uint8_t destination[YSF_CALLSIGN_LENGTH];
+	uint8_t uplink[YSF_CALLSIGN_LENGTH];
+	uint8_t downlink[YSF_CALLSIGN_LENGTH];
 
 	CYSFPayload payload;
-	payload.processHeaderData(buffer + 35U, source, destination);
+	payload.processHeaderData(buffer + 35U, source, destination, uplink, downlink);
 
 	data.setYSF(source, dgId);
 }

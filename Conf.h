@@ -21,6 +21,7 @@
 
 #include <string>
 #include <vector>
+#include <map>
 
 class CConf
 {
@@ -43,6 +44,12 @@ public:
 
 	// The D-Star section
 	std::string  getDStarCallsign() const;
+
+	// The YSF to M17 mapping section
+	std::map<uint8_t, std::string> getYSFM17Mapping() const;
+
+	// The M17 to YSF mapping section
+	std::map<std::string, uint8_t> getM17YSFMapping() const;
 
 	// The From D-Star Network section
 	std::string  getDStarFromRemoteAddress() const;
@@ -120,6 +127,9 @@ private:
 	bool         m_transcoderDebug;
 
 	std::string  m_dStarCallsign;
+
+	std::map<uint8_t, std::string> m_ysfM17Mapping;
+	std::map<std::string, uint8_t> m_m17YSFMapping;
 
 	std::string  m_dStarFromRemoteAddress;
 	uint16_t     m_dStarFromRemotePort;

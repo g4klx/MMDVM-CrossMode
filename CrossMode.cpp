@@ -98,6 +98,8 @@ int main(int argc, char** argv)
 		return 0;
 	}
 
+	printf("%s %s %s\n", argv[1], argv[2], argv[3]);
+
 	if (argc == 4) {
 		iniFile  = std::string(argv[1U]);
 		fromMode = convertMode(argv[2U]);
@@ -184,8 +186,7 @@ int CCrossMode::run()
 		if (pid == -1) {
 			::fprintf(stderr, "Couldn't fork() , exiting\n");
 			return -1;
-		}
-		else if (pid != 0) {
+		} else if (pid != 0) {
 			exit(EXIT_SUCCESS);
 		}
 
@@ -271,6 +272,9 @@ int CCrossMode::run()
 		delete m_toNetwork;
 		return 1;
 	}
+
+	data.setYSFM17Mapping(m_conf.getYSFM17Mapping());
+	data.setM17YSFMapping(m_conf.getM17YSFMapping());
 
 	CStopWatch stopwatch;
 	CTimer watchdog(1000U, 0U, 500U);

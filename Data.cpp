@@ -21,6 +21,7 @@
 #include "DStarDefines.h"
 #include "YSFDefines.h"
 #include "M17Defines.h"
+#include "Log.h"
 
 #include <cstring>
 #include <cassert>
@@ -30,6 +31,7 @@ m_transcoder(port, speed, debug),
 m_defaultCallsign(callsign),
 m_defaultDMRId(dmrId),
 m_defaultNXDNId(nxdnId),
+m_ysfM17Mapping(),
 m_fromMode(DATA_MODE_NONE),
 m_toMode(DATA_MODE_NONE),
 m_srcCallsign(),
@@ -55,6 +57,16 @@ m_length(0U)
 CData::~CData()
 {
 	delete[] m_data;
+}
+
+void CData::setYSFM17Mapping(const std::map<uint8_t, std::string>& mapping)
+{
+	m_ysfM17Mapping = mapping;
+}
+
+void CData::setM17YSFMapping(const std::map<std::string, uint8_t>& mapping)
+{
+	m_m17YSFMapping = mapping;
 }
 
 bool CData::open()
@@ -154,7 +166,13 @@ void CData::setYSF(const uint8_t* source, uint8_t dgId)
 	assert(source != nullptr);
 
 	m_srcCallsign = bytesToString(source, YSF_CALLSIGN_LENGTH);
-	m_dgId        = dgId;
+	m_dgId = dgId;
+
+	auto it = m_ysfM17Mapping.find(dgId);
+	if (it == m_ysfM17Mapping.end())
+		m_dstCallsign.clear();
+	else
+		m_dstCallsign = it->second;
 }
 
 void CData::setNXDN(uint16_t source, uint16_t destination, bool group)
@@ -181,6 +199,12 @@ void CData::setM17(const std::string& source, const std::string& destination)
 {
 	m_srcCallsign = source;
 	m_dstCallsign = destination;
+
+	auto it = m_m17YSFMapping.find(destination);
+	if (it == m_m17YSFMapping.end())
+		m_dgId = 0U;
+	else
+		m_dgId = it->second;
 }
 
 bool CData::setData(const uint8_t* data)
@@ -204,11 +228,12 @@ void CData::getDStar(uint8_t* source, uint8_t* destination) const
 	stringToBytes(destination, DSTAR_LONG_CALLSIGN_LENGTH, m_dstCallsign);
 }
 
-void CData::getYSF(uint8_t* source, uint8_t& dgId) const
+void CData::getYSF(uint8_t* source, uint8_t* destination, uint8_t& dgId) const
 {
 	assert(source != nullptr);
 
-	stringToBytes(source, YSF_CALLSIGN_LENGTH, m_srcCallsign);
+	stringToBytes(source,      YSF_CALLSIGN_LENGTH, m_srcCallsign);
+	stringToBytes(destination, YSF_CALLSIGN_LENGTH, m_dstCallsign);
 
 	dgId = m_dgId;
 }
