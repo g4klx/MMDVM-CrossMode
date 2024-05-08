@@ -44,7 +44,8 @@ m_dstId16(0U),
 m_group(false),
 m_end(false),
 m_data(nullptr),
-m_length(0U)
+m_length(0U),
+m_count(0U)
 {
 	assert(!callsign.empty());
 	assert(dmrId > 0U);
@@ -211,7 +212,13 @@ bool CData::setData(const uint8_t* data)
 {
 	assert(data != nullptr);
 
-	return m_transcoder.write(data);
+	bool ret = m_transcoder.write(data);
+	if (!ret)
+		return false;
+
+	m_count++;
+
+	return true;
 }
 
 void CData::setEnd()
@@ -257,6 +264,8 @@ bool CData::getData(uint8_t* data)
 	if (m_length > 0U) {
 		::memcpy(data, m_data, m_length);
 		m_length = 0U;
+		if (m_count > 0U)
+			m_count--;
 		return true;
 	}
 
@@ -265,6 +274,9 @@ bool CData::getData(uint8_t* data)
 
 bool CData::isEnd() const
 {
+	if (m_count > 0U)
+		return false;
+
 	return m_end;
 }
 
@@ -272,6 +284,7 @@ void CData::reset()
 {
 	m_end = false;
 	m_length = 0U;
+	m_count  = 0U;
 }
 
 void CData::clock(unsigned int ms)

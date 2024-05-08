@@ -84,6 +84,7 @@ private:
 	bool        m_end;
 	uint8_t*    m_data;
 	uint16_t    m_length;
+	uint16_t    m_count;
 
 	std::string bytesToString(const uint8_t* str, size_t length) const;
 	void stringToBytes(uint8_t* str, size_t length, const std::string& callsign) const;

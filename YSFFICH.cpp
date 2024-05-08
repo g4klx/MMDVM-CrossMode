@@ -116,8 +116,6 @@ bool CYSFFICH::decode(const uint8_t* bytes)
 	m_fich[4U] = ((b2 << 4) & 0xF0U) | ((b3 >> 8) & 0x0FU);
 	m_fich[5U] = (b3 >> 0) & 0xFFU;
 
-	CUtils::dump("FICH", m_fich, 6U);
-
 	return CCRC::checkCCITT162(m_fich, 6U);
 }
 
