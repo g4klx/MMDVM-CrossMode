@@ -92,33 +92,58 @@ bool CYSFNetwork::write(CData& data)
 
 	switch (m_audioCount) {
 	case 0U:
-		data.getData(m_audio + 0U);
-		m_audioCount = 1U;
+		for (uint16_t i = 0U; i < 5U; i++)
+			::memcpy(m_audio + (i * YSFDN_DATA_LENGTH), YSFDN_SILENCE, YSFDN_DATA_LENGTH);
+
+		if (data.hasData()) {
+			data.getData(m_audio + 0U);
+			m_audioCount = 1U;
+		}
+
 		if (!data.isEnd())
 			return true;
 		break;
+
 	case 1U:
-		data.getData(m_audio + YSFDN_DATA_LENGTH);
-		m_audioCount = 2U;
+		if (data.hasData()) {
+			data.getData(m_audio + YSFDN_DATA_LENGTH);
+			m_audioCount = 2U;
+		}
+
 		if (!data.isEnd())
 			return true;
 		break;
+
 	case 2U:
-		data.getData(m_audio + YSFDN_DATA_LENGTH + YSFDN_DATA_LENGTH);
-		m_audioCount = 3U;
+		if (data.hasData()) {
+			data.getData(m_audio + YSFDN_DATA_LENGTH + YSFDN_DATA_LENGTH);
+			m_audioCount = 3U;
+		}
+
 		if (!data.isEnd())
 			return true;
 		break;
+
 	case 3U:
-		data.getData(m_audio + YSFDN_DATA_LENGTH + YSFDN_DATA_LENGTH + YSFDN_DATA_LENGTH);
-		m_audioCount = 4U;
+		if (data.hasData()) {
+			data.getData(m_audio + YSFDN_DATA_LENGTH + YSFDN_DATA_LENGTH + YSFDN_DATA_LENGTH);
+			m_audioCount = 4U;
+		}
+
 		if (!data.isEnd())
 			return true;
 		break;
-	default:
-		data.getData(m_audio + YSFDN_DATA_LENGTH + YSFDN_DATA_LENGTH + YSFDN_DATA_LENGTH + YSFDN_DATA_LENGTH);
-		m_audioCount = 0U;
+
+	case 4U:
+		if (data.hasData()) {
+			data.getData(m_audio + YSFDN_DATA_LENGTH + YSFDN_DATA_LENGTH + YSFDN_DATA_LENGTH + YSFDN_DATA_LENGTH);
+			m_audioCount = 5U;
+		}
 		break;
+
+	default:
+		// This shouldn't happen
+		assert(false);
 	}
 
 	if (m_seqNo == 0U) {
@@ -127,6 +152,11 @@ bool CYSFNetwork::write(CData& data)
 			return false;
 		return writeCommunication(data);
 	} else if (data.isEnd()) {
+		if (m_audioCount > 0U) {
+			bool ret = writeCommunication(data);
+			if (!ret)
+				return false;
+		}
 		return writeTerminator(data);
 	} else {
 		return writeCommunication(data);
@@ -243,6 +273,8 @@ bool CYSFNetwork::writeCommunication(CData& data)
 		payload.createVDMode2Data(buffer + 35U, YSF_NULL_DT);
 		break;
 	}
+
+	m_audioCount = 0U;
 
 	m_seqNo++;
 

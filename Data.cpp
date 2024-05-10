@@ -150,6 +150,8 @@ void CData::setDStar(const uint8_t* source, const uint8_t* destination)
 
 	m_srcCallsign = bytesToString(source, DSTAR_LONG_CALLSIGN_LENGTH);
 	m_dstCallsign = bytesToString(destination, DSTAR_LONG_CALLSIGN_LENGTH);
+
+	LogMessage("From D-Star: src=%s dest=%s", m_srcCallsign.c_str(), m_dstCallsign.c_str());
 }
 
 void CData::setDMR(uint32_t source, uint32_t destination, bool group)
@@ -174,6 +176,8 @@ void CData::setYSF(const uint8_t* source, uint8_t dgId)
 		m_dstCallsign.clear();
 	else
 		m_dstCallsign = it->second;
+
+	LogMessage("From YSF: src=%s dg-id=%u", m_srcCallsign.c_str(), dgId);
 }
 
 void CData::setNXDN(uint16_t source, uint16_t destination, bool group)
@@ -206,6 +210,8 @@ void CData::setM17(const std::string& source, const std::string& destination)
 		m_dgId = 0U;
 	else
 		m_dgId = it->second;
+
+	LogMessage("From M17: src=%s dest=%s", m_srcCallsign.c_str(), m_dstCallsign.c_str());
 }
 
 bool CData::setData(const uint8_t* data)
@@ -223,6 +229,8 @@ bool CData::setData(const uint8_t* data)
 
 void CData::setEnd()
 {
+	LogMessage("END");
+
 	m_end = true;
 }
 
@@ -233,6 +241,8 @@ void CData::getDStar(uint8_t* source, uint8_t* destination) const
 
 	stringToBytes(source,      DSTAR_LONG_CALLSIGN_LENGTH, m_srcCallsign);
 	stringToBytes(destination, DSTAR_LONG_CALLSIGN_LENGTH, m_dstCallsign);
+
+	LogMessage("To D-Star: src=%s dest=%s", m_srcCallsign.c_str(), m_dstCallsign.c_str());
 }
 
 void CData::getYSF(uint8_t* source, uint8_t* destination, uint8_t& dgId) const
@@ -243,13 +253,16 @@ void CData::getYSF(uint8_t* source, uint8_t* destination, uint8_t& dgId) const
 	stringToBytes(destination, YSF_CALLSIGN_LENGTH, m_dstCallsign);
 
 	dgId = m_dgId;
+
+	LogMessage("To YSF: src=%s dg-id=%u", m_srcCallsign.c_str(), dgId);
 }
 
 void CData::getM17(std::string& source, std::string& destination) const
 {
-	// This is only true for D-Star
 	source      = m_srcCallsign;
 	destination = m_dstCallsign;
+
+	LogMessage("To M17: src=%s dest=%s", source.c_str(), destination.c_str());
 }
 
 bool CData::hasData() const

@@ -99,14 +99,21 @@ bool CM17Network::write(CData& data)
 		return false;
 
 	if (m_audioCount == 0U) {
-		data.getData(m_audio + 0U);
-		m_audioCount = 1U;
+		::memcpy(m_audio + 0U, M17_3200_AUDIO_SILENCE, M17_3200_AUDIO_LENGTH_BYTES);
+		::memcpy(m_audio + 8U, M17_3200_AUDIO_SILENCE, M17_3200_AUDIO_LENGTH_BYTES);
+
+		if (data.hasData()) {
+			data.getData(m_audio + 0U);
+			m_audioCount = 1U;
+		}
 
 		if (!data.isEnd())
 			return true;
 	} else {
-		data.getData(m_audio + 8U);
-		m_audioCount = 0U;
+		if (data.hasData()) {
+			data.getData(m_audio + 8U);
+			m_audioCount = 0U;
+		}
 	}
 
 	uint8_t buffer[100U];
@@ -135,8 +142,6 @@ bool CM17Network::write(CData& data)
 
 	if (data.isEnd()) {
 		buffer[34U] |= 0x80U;
-		::memcpy(buffer + 36U, M17_3200_SILENCE, M17_PAYLOAD_LENGTH_BYTES / 2U);
-		::memcpy(buffer + 44U, M17_3200_SILENCE, M17_PAYLOAD_LENGTH_BYTES / 2U);
 	} else {
 		::memcpy(buffer + 36U, m_audio, M17_PAYLOAD_LENGTH_BYTES);
 #if defined(DUMP_M17)

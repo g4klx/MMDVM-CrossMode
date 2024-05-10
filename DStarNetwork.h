@@ -70,6 +70,7 @@ private:
 
 	bool writeHeader(const CData& data);
 	bool writeData(CData& data);
+	bool writeTrailer(CData& data);
 	bool writePoll(const char* text);
 
 	void createHeader(const CData& data);

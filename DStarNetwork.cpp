@@ -133,7 +133,19 @@ bool CDStarNetwork::write(CData& data)
 			return false;
 	}
 
-	return writeData(data);
+	if (data.hasData()) {
+		bool ret = writeData(data);
+		if (!ret)
+			return false;
+	}
+
+	if (data.isEnd()) {
+		bool ret = writeTrailer(data);
+		if (!ret)
+			return false;
+	}
+
+	return true;
 }
 
 bool CDStarNetwork::writeHeader(const CData& data)
@@ -182,28 +194,48 @@ bool CDStarNetwork::writeData(CData& data)
 	buffer[5] = m_outId / 256U;	// Unique session id
 	buffer[6] = m_outId % 256U;
 
-	unsigned int length = 9U;
-
 	buffer[7] = m_outSeq;
-
-	if (data.isEnd()) {
-		buffer[7] |= 0x40U;			// End of data marker
-
-		::memcpy(buffer + 9U, DSTAR_END_PATTERN_BYTES, DSTAR_END_PATTERN_LENGTH_BYTES);
-		length += DSTAR_END_PATTERN_LENGTH_BYTES;
-	} else {
-		data.getData(buffer + 9U);
-		addSlowData(buffer + 18U);
-		length += DSTAR_VOICE_FRAME_LENGTH_BYTES + DSTAR_DATA_FRAME_LENGTH_BYTES;
-#if defined(DUMP_DSTAR)
-		if (m_fpOut != nullptr) {
-			::fwrite(buffer + 9U, 1U, DSTAR_VOICE_FRAME_LENGTH_BYTES, m_fpOut);
-			::fflush(m_fpOut);
-		}
-#endif
-	}
-
 	buffer[8] = 0U;
+
+	data.getData(buffer + 9U);
+
+	addSlowData(buffer + 18U);
+
+#if defined(DUMP_DSTAR)
+	if (m_fpOut != nullptr) {
+		::fwrite(buffer + 9U, 1U, DSTAR_VOICE_FRAME_LENGTH_BYTES, m_fpOut);
+		::fflush(m_fpOut);
+	}
+#endif
+
+	const unsigned int length = 9U + DSTAR_VOICE_FRAME_LENGTH_BYTES + DSTAR_DATA_FRAME_LENGTH_BYTES;
+
+	if (m_debug)
+		CUtils::dump(1U, "D-Star Network Data Sent", buffer, length);
+
+	return m_socket.write(buffer, length, m_addr, m_addrLen);
+}
+
+bool CDStarNetwork::writeTrailer(CData& data)
+{
+	uint8_t buffer[30U];
+
+	buffer[0] = 'D';
+	buffer[1] = 'S';
+	buffer[2] = 'R';
+	buffer[3] = 'P';
+
+	buffer[4] = 0x21U;
+
+	buffer[5] = m_outId / 256U;	// Unique session id
+	buffer[6] = m_outId % 256U;
+
+	buffer[7] = m_outSeq | 0x40U;
+	buffer[8] = 0U;
+
+	::memcpy(buffer + 9U, DSTAR_END_PATTERN_BYTES, DSTAR_END_PATTERN_LENGTH_BYTES);
+
+	const unsigned int length = 9U + DSTAR_END_PATTERN_LENGTH_BYTES;
 
 	if (m_debug)
 		CUtils::dump(1U, "D-Star Network Data Sent", buffer, length);
