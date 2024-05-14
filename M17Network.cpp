@@ -141,6 +141,7 @@ bool CM17Network::write(CData& data)
 	m_outSeq++;
 
 	if (data.isEnd()) {
+		LogMessage("END");
 		buffer[34U] |= 0x80U;
 	} else {
 		::memcpy(buffer + 36U, m_audio, M17_PAYLOAD_LENGTH_BYTES);

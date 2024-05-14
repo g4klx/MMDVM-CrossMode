@@ -208,6 +208,8 @@ bool CYSFNetwork::writeHeader(CData& data)
 	m_seqNo++;
 	m_fn = 0U;
 
+	LogMessage("To YSF: src=%10.10s dgId=%u", source, dgId);
+
 	if (m_debug)
 		CUtils::dump(1U, "YSF Network Data Sent", buffer, 155U);
 
@@ -330,6 +332,8 @@ bool CYSFNetwork::writeTerminator(CData& data)
 
 	CYSFPayload payload;
 	payload.createHeaderData(buffer + 35U, source, destination, YSF_NULL_CALLSIGN1, YSF_NULL_CALLSIGN1);
+
+	LogMessage("END");
 
 	if (m_debug)
 		CUtils::dump(1U, "YSF Network Data Sent", buffer, 155U);

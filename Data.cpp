@@ -177,7 +177,7 @@ void CData::setYSF(const uint8_t* source, uint8_t dgId)
 	else
 		m_dstCallsign = it->second;
 
-	LogMessage("From YSF: src=%s dg-id=%u", m_srcCallsign.c_str(), dgId);
+	LogMessage("From YSF: src=%s dgId=%u", m_srcCallsign.c_str(), dgId);
 }
 
 void CData::setNXDN(uint16_t source, uint16_t destination, bool group)
@@ -229,8 +229,6 @@ bool CData::setData(const uint8_t* data)
 
 void CData::setEnd()
 {
-	LogMessage("END");
-
 	m_end = true;
 }
 
@@ -253,8 +251,6 @@ void CData::getYSF(uint8_t* source, uint8_t* destination, uint8_t& dgId) const
 	stringToBytes(destination, YSF_CALLSIGN_LENGTH, m_dstCallsign);
 
 	dgId = m_dgId;
-
-	LogMessage("To YSF: src=%s dg-id=%u", m_srcCallsign.c_str(), dgId);
 }
 
 void CData::getM17(std::string& source, std::string& destination) const
