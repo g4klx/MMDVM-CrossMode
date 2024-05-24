@@ -18,6 +18,7 @@
 
 #include "CrossMode.h"
 
+#include "MQTTConnection.h"
 #include "DStarNetwork.h"
 #include "YSFNetwork.h"
 #include "M17Network.h"
@@ -53,6 +54,9 @@ const char* DEFAULT_INI_FILE = "/etc/CrossMode.ini";
 static bool m_killed = false;
 static int  m_signal = 0;
 static bool m_reload = false;
+
+// In Log.cpp
+extern CMQTTConnection* m_mqtt;
 
 #if !defined(_WIN32) && !defined(_WIN64)
 static void sigHandler1(int signum)
@@ -233,15 +237,14 @@ int CCrossMode::run()
 	}
 #endif
 
-#if !defined(_WIN32) && !defined(_WIN64)
-	ret = ::LogInitialise(m_daemon, m_conf.getLogFilePath(), m_conf.getLogFileRoot(), m_conf.getLogFileLevel(), m_conf.getLogDisplayLevel(), m_conf.getLogFileRotate());
-#else
-	ret = ::LogInitialise(false, m_conf.getLogFilePath(), m_conf.getLogFileRoot(), m_conf.getLogFileLevel(), m_conf.getLogDisplayLevel(), m_conf.getLogFileRotate());
-#endif
-	if (!ret) {
-		::fprintf(stderr, "CrossMode: unable to open the log file\n");
-		return 1;
-	}
+	::LogInitialise(m_conf.getLogDisplayLevel(), m_conf.getLogMQTTLevel());
+
+	std::vector<std::pair<std::string, void (*)(const unsigned char*, unsigned int)>> subscriptions;
+
+	m_mqtt = new CMQTTConnection(m_conf.getMQTTAddress(), m_conf.getMQTTPort(), m_conf.getMQTTName(), subscriptions, m_conf.getMQTTKeepalive());
+	ret = m_mqtt->open();
+	if (!ret)
+		return 1; 
 
 #if !defined(_WIN32) && !defined(_WIN64)
 	if (m_daemon) {
@@ -280,6 +283,9 @@ int CCrossMode::run()
 	CTimer watchdog(1000U, 0U, 500U);
 
 	DIRECTION direction = DIR_NONE;
+
+	LogMessage("CrossMode-%s is starting", VERSION);
+	LogMessage("Built %s %s (GitID #%.7s)", __TIME__, __DATE__, gitversion);
 
 	while (!m_killed) {
 		stopwatch.start();
@@ -360,6 +366,8 @@ int CCrossMode::run()
 			watchdog.stop();
 		}
 	}
+
+	LogInfo("CrossMode is stopping");
 
 	data.close();
 

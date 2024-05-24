@@ -29,6 +29,8 @@ const int BUFFER_SIZE = 500;
 enum SECTION {
 	SECTION_NONE,
 	SECTION_GENERAL,
+	SECTION_LOG,
+	SECTION_MQTT,
 	SECTION_TRANSCODER,
 	SECTION_DSTAR,
 	SECTION_YSF_M17,
@@ -39,8 +41,7 @@ enum SECTION {
 	SECTION_FM_NETWORK_FROM,
 	SECTION_FM_NETWORK_TO,
 	SECTION_M17_NETWORK_FROM,
-	SECTION_M17_NETWORK_TO,
-	SECTION_LOG
+	SECTION_M17_NETWORK_TO
 };
 
 CConf::CConf(const std::string& file) :
@@ -49,6 +50,12 @@ m_defaultCallsign("G9BF"),
 m_defaultDMRId(12345U),
 m_defaultNXDNId(1234U),
 m_daemon(false),
+m_logDisplayLevel(0U),
+m_logMQTTLevel(0U),
+m_mqttAddress("127.0.0.1"),
+m_mqttPort(1883U),
+m_mqttKeepalive(60U),
+m_mqttName("mmdvm-crossmode"),
 m_transcoderPort(),
 m_transcoderSpeed(460800U),
 m_transcoderDebug(false),
@@ -94,12 +101,7 @@ m_m17ToRemoteAddress("127.0.0.1"),
 m_m17ToRemotePort(17011U),
 m_m17ToLocalAddress(),
 m_m17ToLocalPort(17010U),
-m_m17ToDebug(false),
-m_logDisplayLevel(0U),
-m_logFileLevel(0U),
-m_logFilePath(),
-m_logFileRoot(),
-m_logFileRotate(true)
+m_m17ToDebug(false)
 {
 }
 
@@ -125,6 +127,10 @@ bool CConf::read()
 		if (buffer[0U] == '[') {
 			if (::strncmp(buffer, "[General]", 9U) == 0)
 				section = SECTION_GENERAL;
+			else if (::strncmp(buffer, "[Log]", 5U) == 0)
+				section = SECTION_LOG;
+			else if (::strncmp(buffer, "[MQTT]", 6U) == 0)
+				section = SECTION_MQTT;
 			else if (::strncmp(buffer, "[Transcoder]", 12U) == 0)
 				section = SECTION_TRANSCODER;
 			else if (::strncmp(buffer, "[D-Star]", 8U) == 0)
@@ -147,8 +153,6 @@ bool CConf::read()
 				section = SECTION_M17_NETWORK_FROM;
 			else if (::strncmp(buffer, "[M17 Network To]", 16U) == 0)
 				section = SECTION_M17_NETWORK_TO;
-			else if (::strncmp(buffer, "[Log]", 5U) == 0)
-				section = SECTION_LOG;
 			else
 				section = SECTION_NONE;
 
@@ -179,6 +183,20 @@ bool CConf::read()
 				m_defaultNXDNId = uint16_t(::atoi(value));
 			else if (::strcmp(key, "Daemon") == 0)
 				m_daemon = ::atoi(value) == 1;
+		} else if (section == SECTION_LOG) {
+			if (::strcmp(key, "DisplayLevel") == 0)
+				m_logDisplayLevel = (unsigned int)::atoi(value);
+			else if (::strcmp(key, "MQTTLevel") == 0)
+				m_logMQTTLevel = (unsigned int)::atoi(value);
+		} else if (section == SECTION_MQTT) {
+			if (::strcmp(key, "Address") == 0)
+				m_mqttAddress = value;
+			else if (::strcmp(key, "Port") == 0)
+				m_mqttPort = uint16_t(::atoi(value));
+			else if (::strcmp(key, "Keepalive") == 0)
+				m_mqttKeepalive = (unsigned int)::atoi(value);
+			else if (::strcmp(key, "Name") == 0)
+				m_mqttName = value;
 		} else if (section == SECTION_DSTAR) {
 			if (::strcmp(key, "RepeaterCallsign") == 0)
 				m_dStarCallsign = value;
@@ -296,17 +314,6 @@ bool CConf::read()
 				m_m17ToLocalPort = uint16_t(::atoi(value));
 			else if (::strcmp(key, "Debug") == 0)
 				m_m17ToDebug = ::atoi(value) == 1;
-		} else if (section == SECTION_LOG) {
-			if (::strcmp(key, "FilePath") == 0)
-				m_logFilePath = value;
-			else if (::strcmp(key, "FileRoot") == 0)
-				m_logFileRoot = value;
-			else if (::strcmp(key, "FileLevel") == 0)
-				m_logFileLevel = (uint32_t)::atoi(value);
-			else if (::strcmp(key, "DisplayLevel") == 0)
-				m_logDisplayLevel = (uint32_t)::atoi(value);
-			else if (::strcmp(key, "FileRotate") == 0)
-				m_logFileRotate = ::atoi(value) == 1;
 		}
 	}
 
@@ -333,6 +340,36 @@ uint32_t CConf::getDefaultDMRId() const
 uint16_t CConf::getDefaultNXDNId() const
 {
 	return m_defaultNXDNId;
+}
+
+unsigned int CConf::getLogDisplayLevel() const
+{
+	return m_logDisplayLevel;
+}
+
+unsigned int CConf::getLogMQTTLevel() const
+{
+	return m_logMQTTLevel;
+}
+
+std::string CConf::getMQTTAddress() const
+{
+	return m_mqttAddress;
+}
+
+uint16_t CConf::getMQTTPort() const
+{
+	return m_mqttPort;
+}
+
+unsigned int CConf::getMQTTKeepalive() const
+{
+	return m_mqttKeepalive;
+}
+
+std::string CConf::getMQTTName() const
+{
+	return m_mqttName;
 }
 
 std::string CConf::getTranscoderPort() const
@@ -565,27 +602,3 @@ bool CConf::getM17ToDebug() const
 	return m_m17ToDebug;
 }
 
-uint32_t CConf::getLogDisplayLevel() const
-{
-	return m_logDisplayLevel;
-}
-
-uint32_t CConf::getLogFileLevel() const
-{
-	return m_logFileLevel;
-}
-
-std::string CConf::getLogFilePath() const
-{
-	return m_logFilePath;
-}
-
-std::string CConf::getLogFileRoot() const
-{
-	return m_logFileRoot;
-}
-
-bool CConf::getLogFileRotate() const
-{
-	return m_logFileRotate;
-}

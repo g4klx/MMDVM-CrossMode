@@ -1,11 +1,12 @@
 CC      = cc
 CXX     = c++
-CFLAGS  = -g -O3 -Wall -DHAVE_LOG_H
-LIBS    =
+CFLAGS  = -g -O3 -Wall
+LIBS    = -lmosquitto
 LDFLAGS = -g
 
-OBJECTS =	CRC.o Conf.o CrossMode.o Data.o DStarNetwork.o FMNetwork.o Golay24128.o Log.o M17Network.o Network.o StopWatch.o Thread.o \
-		Timer.o Transcoder.o UARTController.o UDPSocket.o Utils.o YSFConvolution.o YSFFICH.o YSFNetwork.o YSFPayload.o
+OBJECTS =	CRC.o Conf.o CrossMode.o Data.o DStarNetwork.o FMNetwork.o Golay24128.o Log.o M17Network.o MQTTConnection.o Network.o \
+		StopWatch.o Thread.o Timer.o Transcoder.o UARTController.o UDPSocket.o Utils.o YSFConvolution.o YSFFICH.o YSFNetwork.o \
+		YSFPayload.o
 
 all:		CrossMode
 

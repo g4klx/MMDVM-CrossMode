@@ -37,6 +37,16 @@ public:
 	uint16_t     getDefaultNXDNId() const;
 	bool         getDaemon() const;
 
+	// The Log section
+	unsigned int getLogDisplayLevel() const;
+	unsigned int getLogMQTTLevel() const;
+
+	// The MQTT section
+	std::string  getMQTTAddress() const;
+	uint16_t     getMQTTPort() const;
+	unsigned int getMQTTKeepalive() const;
+	std::string  getMQTTName() const;
+
 	// The Transcoder section
 	std::string  getTranscoderPort() const;
 	uint32_t     getTranscoderSpeed() const;
@@ -107,13 +117,6 @@ public:
 	uint16_t     getM17ToLocalPort() const;
 	bool         getM17ToDebug() const;
 
-	// The Log section
-	uint32_t     getLogDisplayLevel() const;
-	uint32_t     getLogFileLevel() const;
-	std::string  getLogFilePath() const;
-	std::string  getLogFileRoot() const;
-	bool         getLogFileRotate() const;
-
 private:
 	std::string  m_file;
 
@@ -121,6 +124,14 @@ private:
 	uint32_t     m_defaultDMRId;
 	uint16_t     m_defaultNXDNId;
 	bool         m_daemon;
+
+	unsigned int m_logDisplayLevel;
+	unsigned int m_logMQTTLevel;
+
+	std::string  m_mqttAddress;
+	uint16_t     m_mqttPort;
+	unsigned int m_mqttKeepalive;
+	std::string  m_mqttName;
 
 	std::string  m_transcoderPort;
 	uint32_t     m_transcoderSpeed;
@@ -178,12 +189,6 @@ private:
 	std::string  m_m17ToLocalAddress;
 	uint16_t     m_m17ToLocalPort;
 	bool         m_m17ToDebug;
-
-	uint32_t     m_logDisplayLevel;
-	uint32_t     m_logFileLevel;
-	std::string  m_logFilePath;
-	std::string  m_logFileRoot;
-	bool         m_logFileRotate;
 };
 
 #endif
