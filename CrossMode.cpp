@@ -165,7 +165,8 @@ m_conf(fileName),
 m_fromMode(fromMode),
 m_toMode(toMode),
 m_fromNetwork(nullptr),
-m_toNetwork(nullptr)
+m_toNetwork(nullptr),
+m_throughNetwork(nullptr)
 {
 	assert(!fileName.empty());
 }
@@ -266,13 +267,24 @@ int CCrossMode::run()
 		return 1;
 	}
 
-	CData data(m_conf.getTranscoderPort(), m_conf.getTranscoderSpeed(), m_conf.getTranscoderDebug(), m_conf.getDefaultCallsign(), m_conf.getDefaultDMRId(), m_conf.getDefaultNXDNId());
-	ret = data.open();
+	ret = createThroughNetwork();
 	if (!ret) {
 		m_fromNetwork->close();
 		m_toNetwork->close();
 		delete m_fromNetwork;
 		delete m_toNetwork;
+		return 1;
+	}
+
+	CData data(m_conf.getTranscoderPort(), m_conf.getTranscoderSpeed(), m_conf.getTranscoderDebug(), m_conf.getDefaultCallsign(), m_conf.getDefaultDMRId(), m_conf.getDefaultNXDNId());
+	ret = data.open();
+	if (!ret) {
+		m_fromNetwork->close();
+		m_toNetwork->close();
+		m_throughNetwork->close();
+		delete m_fromNetwork;
+		delete m_toNetwork;
+		delete m_throughNetwork;
 		return 1;
 	}
 
@@ -296,9 +308,13 @@ int CCrossMode::run()
 			if (ret)
 				watchdog.start();
 
-			if (data.hasData() || data.isEnd())
-				m_toNetwork->write(data);
-
+			if (data.isTranscode()) {
+				if (data.hasData() || data.isEnd())
+					m_toNetwork->writeData(data);
+			} else {
+				if (data.hasRaw())
+					m_throughNetwork->writeRaw(data);
+			}
 			break;
 
 		case DIR_TO_FROM:
@@ -306,9 +322,19 @@ int CCrossMode::run()
 			if (ret)
 				watchdog.start();
 
-			if (data.hasData() || data.isEnd())
-				m_fromNetwork->write(data);
+			if (data.isTranscode()) {
+				if (data.hasData() || data.isEnd())
+					m_fromNetwork->writeData(data);
+			}
 
+			ret = m_throughNetwork->read(data);
+			if (ret)
+				watchdog.start();
+
+			if (!data.isTranscode()) {
+				if (data.hasRaw())
+					m_fromNetwork->writeRaw(data);
+			}
 			break;
 
 		default:
@@ -341,6 +367,7 @@ int CCrossMode::run()
 		if (data.isEnd()) {
 			m_fromNetwork->reset();
 			m_toNetwork->reset();
+			m_throughNetwork->reset();
 			data.reset();
 			direction = DIR_NONE;
 			watchdog.stop();
@@ -352,6 +379,7 @@ int CCrossMode::run()
 
 		m_fromNetwork->clock(elapsed);
 		m_toNetwork->clock(elapsed);
+		m_throughNetwork->clock(elapsed);
 		data.clock(elapsed);
 
 		watchdog.clock(elapsed);
@@ -360,6 +388,7 @@ int CCrossMode::run()
 
 			m_fromNetwork->reset();
 			m_toNetwork->reset();
+			m_throughNetwork->reset();
 			data.reset();
 			direction = DIR_NONE;
 
@@ -373,9 +402,11 @@ int CCrossMode::run()
 
 	m_fromNetwork->close();
 	m_toNetwork->close();
+	m_throughNetwork->close();
 
 	delete m_fromNetwork;
 	delete m_toNetwork;
+	delete m_throughNetwork;
 
 	CUDPSocket::shutdown();
 
@@ -492,6 +523,64 @@ bool CCrossMode::createToNetwork()
 	if (!ret) {
 		::LogError("Unable to open the to network interface");
 		delete m_toNetwork;
+		return false;
+	}
+
+	return true;
+}
+
+bool CCrossMode::createThroughNetwork()
+{
+	const std::string callsign1 = m_conf.getDefaultCallsign();
+	const std::string callsign2 = m_conf.getDStarCallsign();
+	std::string localAddress;
+	uint16_t    localPort;
+	std::string remoteAddress;
+	uint16_t    remotePort;
+	bool        debug;
+
+	switch (m_fromMode) {
+	case DATA_MODE_DSTAR:
+		remoteAddress = m_conf.getDStarToRemoteAddress();
+		localAddress  = m_conf.getDStarToLocalAddress();
+		remotePort    = m_conf.getDStarToRemotePort();
+		localPort     = m_conf.getDStarToLocalPort();
+		debug         = m_conf.getDStarToDebug();
+		m_throughNetwork = new CDStarNetwork(callsign2, localAddress, localPort, remoteAddress, remotePort, debug);
+		break;
+	case DATA_MODE_YSFDN:
+		remoteAddress = m_conf.getYSFToRemoteAddress();
+		localAddress  = m_conf.getYSFToLocalAddress();
+		remotePort    = m_conf.getYSFToRemotePort();
+		localPort     = m_conf.getYSFToLocalPort();
+		debug         = m_conf.getYSFToDebug();
+		m_throughNetwork = new CYSFNetwork(callsign1, localAddress, localPort, remoteAddress, remotePort, debug);
+		break;
+	case DATA_MODE_FM:
+		remoteAddress = m_conf.getFMToRemoteAddress();
+		localAddress  = m_conf.getFMToLocalAddress();
+		remotePort    = m_conf.getFMToRemotePort();
+		localPort     = m_conf.getFMToLocalPort();
+		debug         = m_conf.getFMToDebug();
+		m_throughNetwork = new CFMNetwork(callsign1, localAddress, localPort, remoteAddress, remotePort, debug);
+		break;
+	case DATA_MODE_M17:
+		remoteAddress = m_conf.getM17ToRemoteAddress();
+		localAddress  = m_conf.getM17ToLocalAddress();
+		remotePort    = m_conf.getM17ToRemotePort();
+		localPort     = m_conf.getM17ToLocalPort();
+		debug         = m_conf.getM17ToDebug();
+		m_throughNetwork = new CM17Network(localAddress, localPort, remoteAddress, remotePort, debug);
+		break;
+	default:
+		::LogError("Unknown through mode specified");
+		return false;
+	}
+
+	bool ret = m_throughNetwork->open();
+	if (!ret) {
+		::LogError("Unable to open the through network interface");
+		delete m_throughNetwork;
 		return false;
 	}
 

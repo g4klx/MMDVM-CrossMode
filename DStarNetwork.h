@@ -38,7 +38,8 @@ public:
 
 	virtual bool open();
 
-	virtual bool write(CData& data);
+	virtual bool writeRaw(CData& data);
+	virtual bool writeData(CData& data);
 
 	virtual bool read(CData& data);
 
@@ -69,7 +70,7 @@ private:
 #endif
 
 	bool writeHeader(const CData& data);
-	bool writeData(CData& data);
+	bool writeBody(CData& data);
 	bool writeTrailer(CData& data);
 	bool writePoll(const char* text);
 

@@ -122,7 +122,24 @@ bool CDStarNetwork::open()
 	return m_socket.open(m_addr);
 }
 
-bool CDStarNetwork::write(CData& data)
+bool CDStarNetwork::writeRaw(CData& data)
+{
+	if (m_addrLen == 0U)
+		return false;
+
+	uint8_t buffer[100U];
+	uint16_t length = data.getRaw(buffer);
+
+	if (length == 0U)
+		return true;
+
+	if (m_debug)
+		CUtils::dump(1U, "D-Star Network Raw Sent", buffer, length);
+
+	return m_socket.write(buffer, length, m_addr, m_addrLen);
+}
+
+bool CDStarNetwork::writeData(CData& data)
 {
 	if (m_addrLen == 0U)
 		return false;
@@ -134,7 +151,7 @@ bool CDStarNetwork::write(CData& data)
 	}
 
 	if (data.hasData()) {
-		bool ret = writeData(data);
+		bool ret = writeBody(data);
 		if (!ret)
 			return false;
 	}
@@ -180,7 +197,7 @@ bool CDStarNetwork::writeHeader(const CData& data)
 	return m_socket.write(buffer, 49U, m_addr, m_addrLen);
 }
 
-bool CDStarNetwork::writeData(CData& data)
+bool CDStarNetwork::writeBody(CData& data)
 {
 	uint8_t buffer[30U];
 
@@ -294,13 +311,32 @@ void CDStarNetwork::clock(unsigned int ms)
 	if (::memcmp(buffer, "DSRP", 4U) != 0)
 		return;
 
+	uint16_t len = length;
+	m_buffer.add((uint8_t*)&len, sizeof(uint16_t));
+
+	m_buffer.add(buffer, len);
+}
+
+bool CDStarNetwork::read(CData& data)
+{
+	if (m_buffer.empty())
+		return false;
+
+	uint16_t length = 0U;
+	m_buffer.add((uint8_t*)&length, sizeof(uint16_t));
+
+	uint8_t buffer[100U];
+	m_buffer.get(buffer, length);
+
+	data.setRaw(buffer, length);
+
 	switch (buffer[4]) {
 	case 0x00U:			// NETWORK_TEXT;
 	case 0x01U:			// NETWORK_TEMPTEXT;
 	case 0x04U:			// NETWORK_STATUS1..5
 	case 0x0AU:			// PING
 	case 0x24U:			// NETWORK_DD_DATA
-		return;
+		break;
 
 	case 0x20U:			// NETWORK_HEADER
 		if (m_inId == 0U) {
@@ -309,13 +345,7 @@ void CDStarNetwork::clock(unsigned int ms)
 
 			m_inId = buffer[5] * 256U + buffer[6];
 
-			uint8_t c = length - 7U;
-			m_buffer.add(&c, 1U);
-
-			c = TAG_HEADER;
-			m_buffer.add(&c, 1U);
-
-			m_buffer.add(buffer + 8U, length - 8U);
+			data.setDStar(buffer + 35U, buffer + 27U);
 		}
 		break;
 
@@ -327,66 +357,28 @@ void CDStarNetwork::clock(unsigned int ms)
 
 		// Check that the stream id matches the valid header, reject otherwise
 		if (id == m_inId) {
-			uint8_t ctrl[3U];
-
-			ctrl[0U] = length - 7U;
-
 			// Is this the last packet in the stream?
 			if ((buffer[7] & 0x40U) == 0x40U) {
 				m_inId = 0U;
-				ctrl[1U] = TAG_EOT;
+				data.setEnd();
 			} else {
-				ctrl[1U] = TAG_DATA;
-			}
-
-			ctrl[2U] = buffer[7] & 0x3FU;
-
-			m_buffer.add(ctrl, 3U);
-
-			m_buffer.add(buffer + 9U, length - 9U);
-		}
-		}
-		break;
-
-	default:
-		CUtils::dump("Unknown D-Star packet from the remote", buffer, length);
-		break;
-	}
-}
-
-bool CDStarNetwork::read(CData& data)
-{
-	if (m_buffer.empty())
-		return false;
-
-	uint8_t length = 0U;
-	m_buffer.get(&length, 1U);
-
-	uint8_t type = 0U;
-	m_buffer.get(&type, 1U);
-
-	uint8_t buffer[100U];
-	m_buffer.get(buffer, length - 1U);
-
-	switch (type) {
-	case TAG_HEADER:
-		data.setDStar(buffer + 27U, buffer + 19U);
-		return false;
-	case TAG_DATA:
 #if defined(DUMP_DSTAR)
-		if (m_fpIn != nullptr) {
-			::fwrite(buffer + 1U, 1U, DSTAR_VOICE_FRAME_LENGTH_BYTES, m_fpIn);
-			::fflush(m_fpIn);
-		}
+				if (m_fpIn != nullptr) {
+					::fwrite(buffer + 10U, 1U, DSTAR_VOICE_FRAME_LENGTH_BYTES, m_fpIn);
+					::fflush(m_fpIn);
+				}
 #endif
-		data.setData(buffer + 1U);
-		return true;
-	case TAG_EOT:
-		data.setEnd();
-		return true;
+				data.setData(buffer + 10U);
+			}
+		}
+		}
+		break;
+
 	default:
-		return false;
+		break;
 	}
+
+	return true;
 }
 
 bool CDStarNetwork::hasData()

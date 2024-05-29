@@ -45,19 +45,24 @@ m_group(false),
 m_end(false),
 m_data(nullptr),
 m_length(0U),
-m_count(0U)
+m_rawData(nullptr),
+m_rawLength(0U),
+m_count(0U),
+m_transcode(false)
 {
 	assert(!callsign.empty());
 	assert(dmrId > 0U);
 	assert(nxdnId > 0U);
 
 	// The longest data possible
-	m_data = new uint8_t[PCM_DATA_LENGTH];
+	m_data    = new uint8_t[PCM_DATA_LENGTH];
+	m_rawData = new uint8_t[1000U];
 }
 
 CData::~CData()
 {
 	delete[] m_data;
+	delete[] m_rawData;
 }
 
 void CData::setYSFM17Mapping(const std::map<uint8_t, std::string>& mapping)
@@ -81,7 +86,7 @@ bool CData::setModes(DATA_MODE fromMode, DATA_MODE toMode)
 		return true;
 
 	m_fromMode = fromMode;
-	m_toMode = toMode;
+	m_toMode   = toMode;
 
 	uint8_t transFromMode;
 	uint8_t transToMode;
@@ -152,6 +157,8 @@ void CData::setDStar(const uint8_t* source, const uint8_t* destination)
 	m_dstCallsign = bytesToString(destination, DSTAR_LONG_CALLSIGN_LENGTH);
 
 	LogMessage("From D-Star: src=%s dest=%s", m_srcCallsign.c_str(), m_dstCallsign.c_str());
+
+	m_transcode = true;
 }
 
 void CData::setDMR(uint32_t source, uint32_t destination, bool group)
@@ -162,6 +169,8 @@ void CData::setDMR(uint32_t source, uint32_t destination, bool group)
 	m_srcId32 = source;
 	m_dstId32 = destination;
 	m_group   = group;
+
+	m_transcode = true;
 }
 
 void CData::setYSF(const uint8_t* source, uint8_t dgId)
@@ -172,12 +181,14 @@ void CData::setYSF(const uint8_t* source, uint8_t dgId)
 	m_dgId = dgId;
 
 	auto it = m_ysfM17Mapping.find(dgId);
-	if (it == m_ysfM17Mapping.end())
+	if (it == m_ysfM17Mapping.end()) {
 		m_dstCallsign.clear();
-	else
+		m_transcode = false;
+	} else {
 		m_dstCallsign = it->second;
-
-	LogMessage("From YSF: src=%s dgId=%u", m_srcCallsign.c_str(), dgId);
+		LogMessage("From YSF: src=%s dgId=%u", m_srcCallsign.c_str(), dgId);
+		m_transcode = true;
+	}
 }
 
 void CData::setNXDN(uint16_t source, uint16_t destination, bool group)
@@ -188,6 +199,8 @@ void CData::setNXDN(uint16_t source, uint16_t destination, bool group)
 	m_srcId16 = source;
 	m_dstId16 = destination;
 	m_group   = group;
+
+	m_transcode = true;
 }
 
 void CData::setP25(uint32_t source, uint32_t destination, bool group)
@@ -198,6 +211,8 @@ void CData::setP25(uint32_t source, uint32_t destination, bool group)
 	m_srcId32 = source;
 	m_dstId32 = destination;
 	m_group = group;
+
+	m_transcode = true;
 }
 
 void CData::setM17(const std::string& source, const std::string& destination)
@@ -206,12 +221,23 @@ void CData::setM17(const std::string& source, const std::string& destination)
 	m_dstCallsign = destination;
 
 	auto it = m_m17YSFMapping.find(destination);
-	if (it == m_m17YSFMapping.end())
+	if (it == m_m17YSFMapping.end()) {
 		m_dgId = 0U;
-	else
+		m_transcode = false;
+	} else {
 		m_dgId = it->second;
+		LogMessage("From M17: src=%s dest=%s", m_srcCallsign.c_str(), m_dstCallsign.c_str());
+		m_transcode = true;
+	}
+}
 
-	LogMessage("From M17: src=%s dest=%s", m_srcCallsign.c_str(), m_dstCallsign.c_str());
+void CData::setRaw(const uint8_t* data, uint16_t length)
+{
+	assert(data != nullptr);
+	assert(length > 0U);
+
+	::memcpy(m_rawData, data, length);
+	m_rawLength = length;
 }
 
 bool CData::setData(const uint8_t* data)
@@ -261,9 +287,28 @@ void CData::getM17(std::string& source, std::string& destination) const
 	LogMessage("To M17: src=%s dest=%s", source.c_str(), destination.c_str());
 }
 
+bool CData::hasRaw() const
+{
+	return m_rawLength > 0U;
+}
+
 bool CData::hasData() const
 {
 	return m_length > 0U;
+}
+
+uint16_t CData::getRaw(uint8_t* data)
+{
+	assert(data != nullptr);
+
+	if (m_rawLength > 0U) {
+		::memcpy(data, m_rawData, m_rawLength);
+		uint16_t length = m_rawLength;
+		m_rawLength     = 0U;
+		return length;
+	}
+
+	return 0U;
 }
 
 bool CData::getData(uint8_t* data)
@@ -289,11 +334,18 @@ bool CData::isEnd() const
 	return m_end;
 }
 
+bool CData::isTranscode() const
+{
+	return m_transcode;
+}
+
 void CData::reset()
 {
-	m_end = false;
-	m_length = 0U;
-	m_count  = 0U;
+	m_transcode = false;
+	m_end       = false;
+	m_length    = 0U;
+	m_count     = 0U;
+	m_rawLength = 0U;
 }
 
 void CData::clock(unsigned int ms)

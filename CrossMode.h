@@ -38,8 +38,10 @@ private:
 	DATA_MODE m_toMode;
 	INetwork* m_fromNetwork;
 	INetwork* m_toNetwork;
+	INetwork* m_throughNetwork;
 
 	bool createFromNetwork();
+	bool createThroughNetwork();
 	bool createToNetwork();
 };
 
