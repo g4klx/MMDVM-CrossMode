@@ -45,12 +45,14 @@ public:
 	void setNXDN(uint16_t source, uint16_t destination, bool group);
 	void setP25(uint32_t source, uint32_t destination, bool group);
 	void setM17(const std::string& source, const std::string& destination);
+	void setFM(const uint8_t* source);
 
 	void setEnd();
 
 	void getDStar(uint8_t* source, uint8_t* destination) const;
 	void getYSF(uint8_t* source, uint8_t* destination, uint8_t& dgId) const;
 	void getM17(std::string& source, std::string& destination) const;
+	void getFM(uint8_t* source) const;
 
 	void     setRaw(const uint8_t* data, uint16_t length);
 	bool     setData(const uint8_t* data);

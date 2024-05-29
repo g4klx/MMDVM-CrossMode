@@ -28,7 +28,7 @@
 
 class CFMNetwork : public INetwork {
 public:
-	CFMNetwork(const std::string& callsign, const std::string& localAddress, uint16_t localPort, const std::string& remoteAddress, uint16_t remotePort, bool debug);
+	CFMNetwork(const std::string& localAddress, uint16_t localPort, const std::string& remoteAddress, uint16_t remotePort, bool debug);
 	virtual ~CFMNetwork();
 
 	virtual bool open();
@@ -47,7 +47,6 @@ public:
 	virtual void clock(unsigned int ms);
 
 private:
-	std::string      m_callsign;
 	CUDPSocket       m_socket;
 	sockaddr_storage m_addr;
 	size_t           m_addrLen;
@@ -55,7 +54,7 @@ private:
 	CRingBuffer<uint8_t> m_buffer;
 	unsigned int     m_seqNo;
 
-	bool writeStart();
+	bool writeStart(CData& data);
 	bool writeEnd();
 };
 

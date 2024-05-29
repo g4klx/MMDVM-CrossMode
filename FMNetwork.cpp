@@ -30,8 +30,7 @@
 
 const unsigned int BUFFER_LENGTH = 1500U;
 
-CFMNetwork::CFMNetwork(const std::string& callsign, const std::string& localAddress, unsigned short localPort, const std::string& gatewayAddress, unsigned short gatewayPort, bool debug) :
-m_callsign(callsign),
+CFMNetwork::CFMNetwork(const std::string& localAddress, unsigned short localPort, const std::string& gatewayAddress, unsigned short gatewayPort, bool debug) :
 m_socket(localAddress, localPort),
 m_addr(),
 m_addrLen(0U),
@@ -39,17 +38,11 @@ m_debug(debug),
 m_buffer(3000U, "FM Network"),
 m_seqNo(0U)
 {
-	assert(!callsign.empty());
 	assert(gatewayPort > 0U);
 	assert(!gatewayAddress.empty());
 
 	if (CUDPSocket::lookup(gatewayAddress, gatewayPort, m_addr, m_addrLen) != 0)
 		m_addrLen = 0U;
-
-	// Remove any trailing letters in the callsign
-	size_t pos = callsign.find_first_of(' ');
-	if (pos != std::string::npos)
-		m_callsign = callsign.substr(0U, pos);
 }
 
 CFMNetwork::~CFMNetwork()
@@ -94,7 +87,7 @@ bool CFMNetwork::writeData(CData& data)
 		return writeEnd();
 
 	if (m_seqNo == 0U) {
-		bool ret = writeStart();
+		bool ret = writeStart(data);
 		if (!ret)
 			return false;
 	}
@@ -102,28 +95,18 @@ bool CFMNetwork::writeData(CData& data)
 	uint8_t buffer[500U];
 	::memset(buffer, 0x00U, 500U);
 
-	buffer[0U] = 'U';
-	buffer[1U] = 'S';
-	buffer[2U] = 'R';
-	buffer[3U] = 'P';
+	buffer[0U] = 'F';
+	buffer[1U] = 'M';
+	buffer[2U] = 'D';
 
-	// Sequence number
-	buffer[4U] = (m_seqNo >> 24) & 0xFFU;
-	buffer[5U] = (m_seqNo >> 16) & 0xFFU;
-	buffer[6U] = (m_seqNo >> 8)  & 0xFFU;
-	buffer[7U] = (m_seqNo >> 0)  & 0xFFU;
-
-	// PTT on
-	buffer[15U] = 0x01U;
-
-	data.getData(buffer + 32U);
+	data.getData(buffer + 3U);
 
 	if (m_debug)
-		CUtils::dump(1U, "FM Network Data Sent", buffer, 32U + PCM_DATA_LENGTH);
+		CUtils::dump(1U, "FM Network Data Sent", buffer, 3U + PCM_DATA_LENGTH);
 
 	m_seqNo++;
 
-	return m_socket.write(buffer, 32U + PCM_DATA_LENGTH, m_addr, m_addrLen);
+	return m_socket.write(buffer, 3U + PCM_DATA_LENGTH, m_addr, m_addrLen);
 }
 
 void CFMNetwork::clock(unsigned int ms)
@@ -146,7 +129,7 @@ void CFMNetwork::clock(unsigned int ms)
 		CUtils::dump(1U, "FM Network Data Received", buffer, length);
 
 	// Invalid packet type?
-	if (::memcmp(buffer, "USRP", 4U) != 0)
+	if (::memcmp(buffer, "FM", 2U) != 0)
 		return;
 
 	uint16_t len = length;
@@ -167,24 +150,12 @@ bool CFMNetwork::read(CData& data)
 
 	data.setRaw(buffer, length);
 
-	if (length < 32U)
-		return true;
-
-	// The type is a big-endian 4-byte integer
-	unsigned int type = (buffer[20U] << 24) +
-		(buffer[21U] << 16) +
-		(buffer[22U] << 8) +
-		(buffer[23U] << 0);
-
-	if (type != 0U)
-		return true;
-
-	uint8_t ptt = (buffer[15U] == 0x01U) ? TAG_DATA : TAG_EOT;
-
-	if (ptt)
-		data.setData(buffer + 32U);
-	else
+	if (::memcmp(buffer + 0U, "FMD", 3U) == 0)
+		data.setData(buffer + 3U);
+	else if (::memcmp(buffer + 0U, "FME", 3U) == 0)
 		data.setEnd();
+	else if (::memcmp(buffer + 0U, "FMS", 3U) == 0)
+		data.setFM(buffer + 3U);
 
 	return true;
 }
@@ -207,59 +178,35 @@ void CFMNetwork::close()
 	LogMessage("Closing FM network connection");
 }
 
-bool CFMNetwork::writeStart()
+bool CFMNetwork::writeStart(CData& data)
 {
-	uint8_t buffer[70U];
-	::memset(buffer, 0x00U, 70U);
+	uint8_t buffer[20U];
+	::memset(buffer, 0x00U, 20U);
 
-	buffer[0U] = 'U';
-	buffer[1U] = 'S';
-	buffer[2U] = 'R';
-	buffer[3U] = 'P';
+	buffer[0U] = 'F';
+	buffer[1U] = 'M';
+	buffer[2U] = 'S';
 
-	// Sequence number
-	buffer[4U] = (m_seqNo >> 24) & 0xFFU;
-	buffer[5U] = (m_seqNo >> 16) & 0xFFU;
-	buffer[6U] = (m_seqNo >> 8) & 0xFFU;
-	buffer[7U] = (m_seqNo >> 0) & 0xFFU;
+	data.getFM(buffer + 3U);
 
-	buffer[23U] = 0x02U;
-
-	// TLV TAG for Metadata
-	buffer[32U] = 0x08U;
-
-	// TLV Length
-	buffer[33U] = 3U + 4U + 3U + 1U + 1U + uint8_t(m_callsign.size()) + 1U;
-
-	// Callsign
-	unsigned int pos = 46U;
-	for (std::string::const_iterator it = m_callsign.cbegin(); it != m_callsign.cend(); ++it)
-		buffer[pos++] = *it;
+	uint16_t length = ::strlen((char*)buffer);
 
 	if (m_debug)
-		CUtils::dump(1U, "FM Network Data Sent", buffer, 70U);
+		CUtils::dump(1U, "FM Network Data Sent", buffer, length + 1U);
 
-	return m_socket.write(buffer, 70U, m_addr, m_addrLen);
+	return m_socket.write(buffer, length + 1U, m_addr, m_addrLen);
 }
 
 bool CFMNetwork::writeEnd()
 {
-	uint8_t buffer[500U];
-	::memset(buffer, 0x00U, 500U);
+	uint8_t buffer[10U];
 
-	buffer[0U] = 'U';
-	buffer[1U] = 'S';
-	buffer[2U] = 'R';
-	buffer[3U] = 'P';
-
-	// Sequence number
-	buffer[4U] = (m_seqNo >> 24) & 0xFFU;
-	buffer[5U] = (m_seqNo >> 16) & 0xFFU;
-	buffer[6U] = (m_seqNo >> 8) & 0xFFU;
-	buffer[7U] = (m_seqNo >> 0) & 0xFFU;
+	buffer[0U] = 'F';
+	buffer[1U] = 'M';
+	buffer[2U] = 'E';
 
 	if (m_debug)
-		CUtils::dump(1U, "FM Network Data Sent", buffer, 32U + PCM_DATA_LENGTH);
+		CUtils::dump(1U, "FM Network Data Sent", buffer, 3U);
 
-	return m_socket.write(buffer, 32U + PCM_DATA_LENGTH, m_addr, m_addrLen);
+	return m_socket.write(buffer, 3U, m_addr, m_addrLen);
 }

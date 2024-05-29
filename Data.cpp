@@ -231,6 +231,13 @@ void CData::setM17(const std::string& source, const std::string& destination)
 	}
 }
 
+void CData::setFM(const uint8_t* source)
+{
+	assert(source != nullptr);
+
+	m_srcCallsign = bytesToString(source, ::strlen((char*)source));
+}
+
 void CData::setRaw(const uint8_t* data, uint16_t length)
 {
 	assert(data != nullptr);
@@ -285,6 +292,16 @@ void CData::getM17(std::string& source, std::string& destination) const
 	destination = m_dstCallsign;
 
 	LogMessage("To M17: src=%s dest=%s", source.c_str(), destination.c_str());
+}
+
+void CData::getFM(uint8_t* source) const
+{
+	assert(source != nullptr);
+
+	uint16_t length = m_srcCallsign.size();
+
+	stringToBytes(source, length, m_srcCallsign);
+	source[length] = 0x00U;
 }
 
 bool CData::hasRaw() const
