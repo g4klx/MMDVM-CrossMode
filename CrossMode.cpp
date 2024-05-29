@@ -446,7 +446,7 @@ bool CCrossMode::createFromNetwork()
 		remotePort    = m_conf.getFMFromRemotePort();
 		localPort     = m_conf.getFMFromLocalPort();
 		debug         = m_conf.getFMFromDebug();
-		m_fromNetwork = new CFMNetwork(callsign1, localAddress, localPort, remoteAddress, remotePort, debug);
+		m_fromNetwork = new CFMNetwork(localAddress, localPort, remoteAddress, remotePort, debug);
 		break;
 	case DATA_MODE_M17:
 		remoteAddress = m_conf.getM17FromRemoteAddress();
@@ -504,7 +504,7 @@ bool CCrossMode::createToNetwork()
 		remotePort    = m_conf.getFMToRemotePort();
 		localPort     = m_conf.getFMToLocalPort();
 		debug         = m_conf.getFMToDebug();
-		m_toNetwork = new CFMNetwork(callsign1, localAddress, localPort, remoteAddress, remotePort, debug);
+		m_toNetwork = new CFMNetwork(localAddress, localPort, remoteAddress, remotePort, debug);
 		break;
 	case DATA_MODE_M17:
 		remoteAddress = m_conf.getM17ToRemoteAddress();
@@ -562,7 +562,7 @@ bool CCrossMode::createThroughNetwork()
 		remotePort    = m_conf.getFMToRemotePort();
 		localPort     = m_conf.getFMToLocalPort();
 		debug         = m_conf.getFMToDebug();
-		m_throughNetwork = new CFMNetwork(callsign1, localAddress, localPort, remoteAddress, remotePort, debug);
+		m_throughNetwork = new CFMNetwork(localAddress, localPort, remoteAddress, remotePort, debug);
 		break;
 	case DATA_MODE_M17:
 		remoteAddress = m_conf.getM17ToRemoteAddress();
