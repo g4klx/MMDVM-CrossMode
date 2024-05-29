@@ -52,11 +52,18 @@ public:
 	void getYSF(uint8_t* source, uint8_t* destination, uint8_t& dgId) const;
 	void getM17(std::string& source, std::string& destination) const;
 
-	bool setData(const uint8_t* data);
-	bool hasData() const;
-	bool getData(uint8_t* data);
+	void     setRaw(const uint8_t* data, uint16_t length);
+	bool     setData(const uint8_t* data);
+
+	bool     hasRaw() const;
+	bool     hasData() const;
+
+	uint16_t getRaw(uint8_t* data);
+	bool     getData(uint8_t* data);
 
 	bool isEnd() const;
+
+	bool isTranscode() const;
 
 	void clock(unsigned int ms);
 
@@ -84,7 +91,10 @@ private:
 	bool        m_end;
 	uint8_t*    m_data;
 	uint16_t    m_length;
+	uint8_t*    m_rawData;
+	uint16_t    m_rawLength;
 	uint16_t    m_count;
+	bool        m_transcode;
 
 	std::string bytesToString(const uint8_t* str, size_t length) const;
 	void stringToBytes(uint8_t* str, size_t length, const std::string& callsign) const;

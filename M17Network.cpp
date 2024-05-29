@@ -93,7 +93,24 @@ bool CM17Network::open()
 	}
 }
 
-bool CM17Network::write(CData& data)
+bool CM17Network::writeRaw(CData& data)
+{
+	if (m_addrLen == 0U)
+		return false;
+
+	uint8_t buffer[100U];
+	uint16_t length = data.getRaw(buffer);
+
+	if (length == 0U)
+		return true;
+
+	if (m_debug)
+		CUtils::dump(1U, "M17 Network Raw Sent", buffer, length);
+
+	return m_socket.write(buffer, length, m_addr, m_addrLen);
+}
+
+bool CM17Network::writeData(CData& data)
 {
 	if (m_addrLen == 0U)
 		return false;
@@ -206,7 +223,7 @@ void CM17Network::clock(unsigned int ms)
 			return;
 	}
 
-	m_buffer.add(buffer + 6U, 46U);
+	m_buffer.add(buffer, 54U);
 }
 
 bool CM17Network::read(CData& data)
@@ -221,12 +238,14 @@ bool CM17Network::read(CData& data)
 		return false;
 
 	uint8_t buffer[80U];
-	m_buffer.get(buffer + 0U, 46U);
+	m_buffer.get(buffer, 54U);
+
+	data.setRaw(buffer, 54U);
 
 	if (!m_hasMeta) {
 		std::string src, dst;
-		decodeCallsign(buffer + 6U, src);
-		decodeCallsign(buffer + 0U, dst);
+		decodeCallsign(buffer + 12U, src);
+		decodeCallsign(buffer + 6U,  dst);
 		data.setM17(src, dst);
 
 		m_hasMeta = true;
@@ -234,17 +253,17 @@ bool CM17Network::read(CData& data)
 
 #if defined(DUMP_M17)
 	if (m_fpIn != nullptr) {
-		::fwrite(buffer + 30U, 1U, M17_PAYLOAD_LENGTH_BYTES, m_fpIn);
+		::fwrite(buffer + 36U, 1U, M17_PAYLOAD_LENGTH_BYTES, m_fpIn);
 		::fflush(m_fpIn);
 	}
 #endif
 
-	::memcpy(m_audio, buffer + 30U, M17_PAYLOAD_LENGTH_BYTES);
+	::memcpy(m_audio, buffer + 36U, M17_PAYLOAD_LENGTH_BYTES);
 	m_audioCount = 1U;
 
 	data.setData(m_audio + 0U);
 
-	if ((buffer[28U] & 0x80U) == 0x80U)
+	if ((buffer[34U] & 0x80U) == 0x80U)
 		data.setEnd();
 
 	return true;

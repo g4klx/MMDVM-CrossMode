@@ -36,7 +36,7 @@ m_socket(localAddress, localPort),
 m_addr(),
 m_addrLen(0U),
 m_debug(debug),
-m_buffer(2000U, "FM Network"),
+m_buffer(3000U, "FM Network"),
 m_seqNo(0U)
 {
 	assert(!callsign.empty());
@@ -68,7 +68,24 @@ bool CFMNetwork::open()
 	return m_socket.open(m_addr);
 }
 
-bool CFMNetwork::write(CData& data)
+bool CFMNetwork::writeRaw(CData& data)
+{
+	if (m_addrLen == 0U)
+		return false;
+
+	uint8_t buffer[500U];
+	uint16_t length = data.getRaw(buffer);
+
+	if (length == 0U)
+		return true;
+
+	if (m_debug)
+		CUtils::dump(1U, "FM Network Raw Sent", buffer, length);
+
+	return m_socket.write(buffer, length, m_addr, m_addrLen);
+}
+
+bool CFMNetwork::writeData(CData& data)
 {
 	if (m_addrLen == 0U)
 		return false;
@@ -132,36 +149,40 @@ void CFMNetwork::clock(unsigned int ms)
 	if (::memcmp(buffer, "USRP", 4U) != 0)
 		return;
 
-	if (length < 32)
-		return;
-
-	// The type is a big-endian 4-byte integer
-	unsigned int type = (buffer[20U] << 24) +
-						(buffer[21U] << 16) +
-						(buffer[22U] << 8)  +
-						(buffer[23U] << 0);
-
-	if (type == 0U) {
-		uint8_t ptt = (buffer[15U] == 0x01U) ? TAG_DATA : TAG_EOT;
-		m_buffer.add(&ptt, 1U);
-		m_buffer.add(buffer + 32U, PCM_DATA_LENGTH);
-	}
+	uint16_t len = length;
+	m_buffer.add((uint8_t*)&len, sizeof(uint16_t));
+	m_buffer.add(buffer, len);
 }
 
 bool CFMNetwork::read(CData& data)
 {
-	unsigned int bytes = m_buffer.size();
-	if (bytes == 0U)
+	if (m_buffer.empty())
 		return false;
 
-	uint8_t ptt = 0U;
-	m_buffer.get(&ptt, 1U);
+	uint16_t length = 0U;
+	m_buffer.get((uint8_t*)&length, sizeof(uint16_t));
 
-	uint8_t buffer[400U];
-	m_buffer.get(buffer, PCM_DATA_LENGTH);
+	uint8_t buffer[BUFFER_LENGTH];
+	m_buffer.get(buffer, length);
+
+	data.setRaw(buffer, length);
+
+	if (length < 32U)
+		return true;
+
+	// The type is a big-endian 4-byte integer
+	unsigned int type = (buffer[20U] << 24) +
+		(buffer[21U] << 16) +
+		(buffer[22U] << 8) +
+		(buffer[23U] << 0);
+
+	if (type != 0U)
+		return true;
+
+	uint8_t ptt = (buffer[15U] == 0x01U) ? TAG_DATA : TAG_EOT;
 
 	if (ptt)
-		data.setData(buffer);
+		data.setData(buffer + 32U);
 	else
 		data.setEnd();
 

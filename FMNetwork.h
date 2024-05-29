@@ -33,7 +33,8 @@ public:
 
 	virtual bool open();
 
-	virtual bool write(CData& data);
+	virtual bool writeRaw(CData& data);
+	virtual bool writeData(CData& data);
 
 	virtual bool read(CData& data);
 

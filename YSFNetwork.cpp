@@ -85,7 +85,24 @@ bool CYSFNetwork::open()
 	return m_socket.open(m_addr);
 }
 
-bool CYSFNetwork::write(CData& data)
+bool CYSFNetwork::writeRaw(CData& data)
+{
+	if (m_addrLen == 0U)
+		return false;
+
+	uint8_t buffer[200U];
+	uint16_t length = data.getRaw(buffer);
+
+	if (length == 0U)
+		return true;
+
+	if (m_debug)
+		CUtils::dump(1U, "YSF Network Raw Sent", buffer, length);
+
+	return m_socket.write(buffer, length, m_addr, m_addrLen);
+}
+
+bool CYSFNetwork::writeData(CData& data)
 {
 	if (m_addrLen == 0U)
 		return false;
@@ -426,8 +443,13 @@ bool CYSFNetwork::read(CData& data)
 	uint8_t buffer[155U];
 	m_buffer.get(buffer, 155U);
 
+	data.setRaw(buffer, 155U);
+
 	CYSFFICH fich;
 	fich.decode(buffer + 35U);
+
+	if (fich.getDT() != YSF_DT_VD_MODE2)
+		return true;
 
 	switch (fich.getFI()) {
 	case YSF_FI_HEADER:
@@ -441,9 +463,6 @@ bool CYSFNetwork::read(CData& data)
 	default:
 		return false;
 	}
-
-	if (fich.getDT() != YSF_DT_VD_MODE2)
-		return false;
 
 	CYSFPayload payload;
 	payload.processVDMode2Audio(buffer + 35U, m_audio);
