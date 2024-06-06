@@ -21,28 +21,36 @@
 
 #include "Network.h"
 #include "Defines.h"
+#include "Data.h"
 #include "Conf.h"
 
 #include <string>
+#include <map>
 
 class CCrossMode {
 public:
-	CCrossMode(const std::string& fileName, DATA_MODE fromMode, DATA_MODE toMode);
+	CCrossMode(const std::string& fileName);
 	~CCrossMode();
 
 	int run();
 
 private:
 	CConf     m_conf;
-	DATA_MODE m_fromMode;
-	DATA_MODE m_toMode;
 	INetwork* m_fromNetwork;
-	INetwork* m_toNetwork;
-	INetwork* m_throughNetwork;
+	std::map<DATA_MODE, INetwork*> m_toNetworks;
 
-	bool createFromNetwork();
-	bool createThroughNetwork();
-	bool createToNetwork();
+	DATA_MODE getFromMode() const;
+
+	bool createFromNetwork(DATA_MODE mode);
+
+	bool createToNetworks(DATA_MODE fromMode, CData& data);
+	DATA_MODE hasToNetworkGotData() const;
+	bool readToNetwork(DATA_MODE mode, CData& data);
+	bool writeToNetworkData(DATA_MODE mode, CData& data);
+	bool writeToNetworkRaw(DATA_MODE mode, CData& data);
+	void resetToNetworks();
+	void clockToNetworks(unsigned int ms);
+	void closeToNetworks();
 };
 
 #endif

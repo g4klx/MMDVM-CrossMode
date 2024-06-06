@@ -118,6 +118,7 @@ public:
 
 	// The YSF to FM section
 	bool         getYSFFMEnable() const;
+	uint8_t      getYSFFMDGId() const;
 
 	// The YSF to M17 section
 	bool         getYSFM17Enable() const;

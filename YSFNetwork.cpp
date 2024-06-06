@@ -30,7 +30,8 @@
 
 const unsigned int BUFFER_LENGTH = 200U;
 
-CYSFNetwork::CYSFNetwork(const std::string& callsign, const std::string& localAddress, unsigned short localPort, const std::string& gatewayAddress, unsigned short gatewayPort, bool debug) :
+CYSFNetwork::CYSFNetwork(NETWORK network, const std::string& callsign, const std::string& localAddress, unsigned short localPort, const std::string& gatewayAddress, unsigned short gatewayPort, bool debug) :
+m_network(network),
 m_socket(localAddress, localPort),
 m_addr(),
 m_addrLen(0U),
@@ -195,7 +196,7 @@ bool CYSFNetwork::writeHeader(CData& data)
 	uint8_t source[YSF_CALLSIGN_LENGTH];
 	uint8_t destination[YSF_CALLSIGN_LENGTH];
 	uint8_t dgId = 0U;
-	data.getYSF(source, destination, dgId);
+	data.getYSF(m_network, source, destination, dgId);
 
 	::memcpy(buffer + 14U, source,      YSF_CALLSIGN_LENGTH);
 	::memcpy(buffer + 24U, destination, YSF_CALLSIGN_LENGTH);
@@ -248,7 +249,7 @@ bool CYSFNetwork::writeCommunication(CData& data)
 	uint8_t source[YSF_CALLSIGN_LENGTH];
 	uint8_t destination[YSF_CALLSIGN_LENGTH];
 	uint8_t dgId = 0U;
-	data.getYSF(source, destination, dgId);
+	data.getYSF(m_network, source, destination, dgId);
 
 	::memcpy(buffer + 14U, source,      YSF_CALLSIGN_LENGTH);
 	::memcpy(buffer + 24U, destination, YSF_CALLSIGN_LENGTH);
@@ -322,7 +323,7 @@ bool CYSFNetwork::writeTerminator(CData& data)
 	uint8_t source[YSF_CALLSIGN_LENGTH];
 	uint8_t destination[YSF_CALLSIGN_LENGTH];
 	uint8_t dgId = 0U;
-	data.getYSF(source, destination, dgId);
+	data.getYSF(m_network, source, destination, dgId);
 
 	::memcpy(buffer + 14U, source,      YSF_CALLSIGN_LENGTH);
 	::memcpy(buffer + 24U, destination, YSF_CALLSIGN_LENGTH);
@@ -481,6 +482,17 @@ bool CYSFNetwork::read(CData& data)
 	return true;
 }
 
+bool CYSFNetwork::read()
+{
+	if (m_buffer.empty())
+		return false;
+
+	uint8_t buffer[155U];
+	m_buffer.get(buffer, 155U);
+
+	return true;
+}
+
 void CYSFNetwork::processHeader(const uint8_t* buffer, CData& data, uint8_t dgId)
 {
 	assert(buffer != nullptr);
@@ -493,7 +505,7 @@ void CYSFNetwork::processHeader(const uint8_t* buffer, CData& data, uint8_t dgId
 	CYSFPayload payload;
 	payload.processHeaderData(buffer + 35U, source, destination, uplink, downlink);
 
-	data.setYSF(source, dgId);
+	data.setYSF(m_network, source, dgId);
 }
 
 void CYSFNetwork::reset()

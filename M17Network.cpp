@@ -29,7 +29,8 @@ const std::string M17_CHARS = " ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-/.";
 
 const unsigned int BUFFER_LENGTH = 200U;
 
-CM17Network::CM17Network(const std::string& localAddress, unsigned short localPort, const std::string& remoteAddress, unsigned short remotePort, bool debug) :
+CM17Network::CM17Network(NETWORK network, const std::string& localAddress, unsigned short localPort, const std::string& remoteAddress, unsigned short remotePort, bool debug) :
+m_network(network),
 m_socket(localAddress, localPort),
 m_addr(),
 m_addrLen(0U),
@@ -246,7 +247,7 @@ bool CM17Network::read(CData& data)
 		std::string src, dst;
 		decodeCallsign(buffer + 12U, src);
 		decodeCallsign(buffer + 6U,  dst);
-		data.setM17(src, dst);
+		data.setM17(m_network, src, dst);
 
 		m_hasMeta = true;
 	}
@@ -265,6 +266,17 @@ bool CM17Network::read(CData& data)
 
 	if ((buffer[34U] & 0x80U) == 0x80U)
 		data.setEnd();
+
+	return true;
+}
+
+bool CM17Network::read()
+{
+	if (m_buffer.empty())
+		return false;
+
+	uint8_t buffer[80U];
+	m_buffer.get(buffer, 54U);
 
 	return true;
 }
@@ -323,7 +335,7 @@ void CM17Network::createLICH(const CData& data)
 	::memset(m_lich, 0x00U, M17_LICH_LENGTH_BYTES);
 
 	std::string src, dst;
-	data.getM17(src, dst);
+	data.getM17(m_network, src, dst);
 
 	encodeCallsign(src, m_lich + 6U);
 	encodeCallsign(dst, m_lich + 0U);

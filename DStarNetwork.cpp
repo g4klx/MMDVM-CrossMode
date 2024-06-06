@@ -64,7 +64,8 @@ const uint16_t CCITT16_TABLE[] = {
 
 const unsigned int BUFFER_LENGTH = 100U;
 
-CDStarNetwork::CDStarNetwork(const std::string& callsign, const std::string& localAddress, uint16_t localPort, const std::string& remoteAddress, uint16_t remotePort, bool debug) :
+CDStarNetwork::CDStarNetwork(NETWORK network, const std::string& callsign, const std::string& localAddress, uint16_t localPort, const std::string& remoteAddress, uint16_t remotePort, bool debug) :
+m_network(network),
 m_callsign(callsign),
 m_socket(localAddress, localPort),
 m_addr(),
@@ -345,7 +346,7 @@ bool CDStarNetwork::read(CData& data)
 
 			m_inId = buffer[5] * 256U + buffer[6];
 
-			data.setDStar(buffer + 35U, buffer + 27U);
+			data.setDStar(m_network, buffer + 35U, buffer + 27U);
 		}
 		break;
 
@@ -377,6 +378,20 @@ bool CDStarNetwork::read(CData& data)
 	default:
 		break;
 	}
+
+	return true;
+}
+
+bool CDStarNetwork::read()
+{
+	if (m_buffer.empty())
+		return false;
+
+	uint16_t length = 0U;
+	m_buffer.add((uint8_t*)&length, sizeof(uint16_t));
+
+	uint8_t buffer[100U];
+	m_buffer.get(buffer, length);
 
 	return true;
 }
@@ -421,7 +436,7 @@ void CDStarNetwork::createHeader(const CData& data)
 	m_header[2U] = 0x00U;
 
 	uint8_t src[DSTAR_LONG_CALLSIGN_LENGTH], dst[DSTAR_LONG_CALLSIGN_LENGTH];
-	data.getDStar(src, dst);
+	data.getDStar(m_network, src, dst);
 
 	if (::memcmp(dst, "ALL     ", DSTAR_LONG_CALLSIGN_LENGTH) == 0)
 		::memcpy(m_header + 19U, "CQCQCQ  ", DSTAR_LONG_CALLSIGN_LENGTH);

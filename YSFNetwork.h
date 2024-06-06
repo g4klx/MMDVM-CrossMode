@@ -32,7 +32,7 @@
 
 class CYSFNetwork : public INetwork {
 public:
-	CYSFNetwork(const std::string& callsign, const std::string& localAddress, uint16_t localPort, const std::string& remoteAddress, uint16_t remotePort, bool debug);
+	CYSFNetwork(NETWORK network, const std::string& callsign, const std::string& localAddress, uint16_t localPort, const std::string& remoteAddress, uint16_t remotePort, bool debug);
 	virtual ~CYSFNetwork();
 
 	virtual bool open();
@@ -41,6 +41,7 @@ public:
 	virtual bool writeData(CData& data);
 
 	virtual bool read(CData& data);
+	virtual bool read();
 
 	virtual bool hasData();
 
@@ -51,6 +52,7 @@ public:
 	virtual void clock(unsigned int ms);
 
 private:
+	NETWORK          m_network;
 	CUDPSocket       m_socket;
 	sockaddr_storage m_addr;
 	size_t           m_addrLen;

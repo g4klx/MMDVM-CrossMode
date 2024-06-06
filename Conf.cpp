@@ -880,6 +880,11 @@ bool CConf::getYSFFMEnable() const
 	return m_ysfFMEnable;
 }
 
+uint8_t CConf::getYSFFMDGId() const
+{
+	return m_ysfFMDGId;
+}
+
 bool CConf::getYSFM17Enable() const
 {
 	return m_ysfM17Enable;

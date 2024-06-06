@@ -30,7 +30,8 @@
 
 const unsigned int BUFFER_LENGTH = 1500U;
 
-CFMNetwork::CFMNetwork(const std::string& callsign, const std::string& localAddress, unsigned short localPort, const std::string& gatewayAddress, unsigned short gatewayPort, bool debug) :
+CFMNetwork::CFMNetwork(NETWORK network, const std::string& callsign, const std::string& localAddress, unsigned short localPort, const std::string& gatewayAddress, unsigned short gatewayPort, bool debug) :
+m_network(network),
 m_callsign(callsign),
 m_socket(localAddress, localPort),
 m_addr(),
@@ -185,6 +186,20 @@ bool CFMNetwork::read(CData& data)
 		data.setData(buffer + 32U);
 	else
 		data.setEnd();
+
+	return true;
+}
+
+bool CFMNetwork::read()
+{
+	if (m_buffer.empty())
+		return false;
+
+	uint16_t length = 0U;
+	m_buffer.get((uint8_t*)&length, sizeof(uint16_t));
+
+	uint8_t buffer[BUFFER_LENGTH];
+	m_buffer.get(buffer, length);
 
 	return true;
 }

@@ -31,6 +31,7 @@ public:
 	virtual bool writeData(CData& data) = 0;
 
 	virtual bool read(CData& data) = 0;
+	virtual bool read() = 0;
 
 	virtual bool hasData() = 0;
 
