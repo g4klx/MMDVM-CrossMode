@@ -27,6 +27,9 @@
 #include <cassert>
 #include <algorithm>
 
+const std::string NULL_CALLSIGN = "";
+const uint8_t NULL_DGID = 255U;
+
 CData::CData(const std::string& port, uint32_t speed, bool debug, const std::string& callsign, uint32_t dmrId, uint16_t nxdnId) :
 m_transcoder(port, speed, debug),
 m_callsign(callsign),
@@ -248,7 +251,31 @@ void CData::setDStar(NETWORK network, const uint8_t* source, const uint8_t* dest
 			m_toMode      = DATA_MODE_DSTAR;
 		}
 	} else {
-		// ??? FIXME
+		if (m_toMode == DATA_MODE_NONE) {
+			if (m_fromMode == DATA_MODE_YSF) {
+				uint8_t dgId = find(m_ysfDStarDGIds, dstCallsign);
+				if (dgId != NULL_DGID) {
+					m_srcCallsign = srcCallsign;
+					m_dgId        = dgId;
+					m_toMode      = DATA_MODE_DSTAR;
+				}
+			}
+
+			if (m_fromMode == DATA_MODE_M17) {
+				const auto it = std::find(m_m17DStarDests.cbegin(), m_m17DStarDests.cend(), dstCallsign);
+				if (it != m_m17DStarDests.cend()) {
+					m_srcCallsign = srcCallsign;
+					m_dstCallsign = dstCallsign;
+					m_toMode      = DATA_MODE_DSTAR;
+				}
+			}
+
+			if (m_toDStar && (m_toMode == DATA_MODE_NONE)) {
+				m_srcCallsign = srcCallsign;
+				m_dstCallsign = dstCallsign;
+				m_toMode      = DATA_MODE_DSTAR;
+			}
+		}
 	}
 }
 
@@ -298,7 +325,11 @@ void CData::setYSF(NETWORK network, const uint8_t* source, uint8_t dgId)
 			m_toMode      = DATA_MODE_YSF;
 		}
 	} else {
-		// ??? FIXME
+		if (m_toYSF && (m_toMode == DATA_MODE_NONE)) {
+			m_srcCallsign = srcCallsign;
+			m_dgId        = dgId;
+			m_toMode      = DATA_MODE_YSF;
+		}
 	}
 }
 
@@ -345,7 +376,31 @@ void CData::setM17(NETWORK network, const std::string& source, const std::string
 			m_toMode      = DATA_MODE_M17;
 		}
 	} else {
-		// ??? FIXME
+		if (m_toMode == DATA_MODE_NONE) {
+			if (m_fromMode == DATA_MODE_DSTAR) {
+				const auto it = std::find(m_dstarM17Dests.cbegin(), m_dstarM17Dests.cend(), destination);
+				if (it != m_dstarM17Dests.cend()) {
+					m_srcCallsign = source;
+					m_dstCallsign = destination;
+					m_toMode      = DATA_MODE_M17;
+				}
+			}
+
+			if (m_fromMode == DATA_MODE_YSF) {
+				uint8_t dgId = find(m_ysfM17DGIds, destination);
+				if (dgId != NULL_DGID) {
+					m_srcCallsign = source;
+					m_dgId        = dgId;
+					m_toMode      = DATA_MODE_M17;
+				}
+			}
+
+			if (m_toM17 && (m_toMode == DATA_MODE_NONE)) {
+				m_srcCallsign = source;
+				m_dstCallsign = destination;
+				m_toMode      = DATA_MODE_M17;
+			}
+		}
 	}
 }
 
@@ -510,7 +565,7 @@ uint8_t CData::find(const std::vector<std::pair<uint8_t, std::string>>& mapping,
 			return it.first;
 	}
 
-	return 255U;
+	return NULL_DGID;
 }
 
 std::string CData::find(const std::vector<std::pair<uint8_t, std::string>>& mapping, uint8_t dgId) const
@@ -520,5 +575,5 @@ std::string CData::find(const std::vector<std::pair<uint8_t, std::string>>& mapp
 			return it.second;
 	}
 
-	return "";
+	return NULL_CALLSIGN;
 }
