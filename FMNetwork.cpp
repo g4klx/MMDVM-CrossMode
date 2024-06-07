@@ -166,6 +166,8 @@ bool CFMNetwork::read(CData& data)
 	uint8_t buffer[BUFFER_LENGTH];
 	m_buffer.get(buffer, length);
 
+	data.setFM(m_network);
+
 	data.setRaw(buffer, length);
 
 	if (length < 32U)

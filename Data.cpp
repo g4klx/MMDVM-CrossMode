@@ -32,9 +32,9 @@ const uint8_t NULL_DGID = 255U;
 
 CData::CData(const std::string& port, uint32_t speed, bool debug, const std::string& callsign, uint32_t dmrId, uint16_t nxdnId) :
 m_transcoder(port, speed, debug),
-m_callsign(callsign),
-m_dmrId(dmrId),
-m_nxdnId(nxdnId),
+m_defaultCallsign(callsign),
+m_defaultDMRId(dmrId),
+m_defaultNXDNId(nxdnId),
 m_toDStar(false),
 m_toDMR(false),
 m_toYSF(false),
@@ -42,13 +42,13 @@ m_toP25(false),
 m_toNXDN(false),
 m_toFM(false),
 m_toM17(false),
-m_dstarFMDest(),
+m_dstarFMDest(NULL_CALLSIGN),
 m_dstarM17Dests(),
 m_ysfDStarDGIds(),
-m_ysfFMDGId(0U),
+m_ysfFMDGId(NULL_DGID),
 m_ysfM17DGIds(),
 m_m17DStarDests(),
-m_m17FMDest(),
+m_m17FMDest(NULL_CALLSIGN),
 m_fromMode(DATA_MODE_NONE),
 m_toMode(DATA_MODE_NONE),
 m_direction(DIR_NONE),
@@ -299,7 +299,7 @@ void CData::setYSF(NETWORK network, const uint8_t* source, uint8_t dgId)
 		m_toMode = DATA_MODE_NONE;
 
 		std::string dest = find(m_ysfDStarDGIds, dgId);
-		if (!dest.empty()) {
+		if (dest != NULL_CALLSIGN) {
 			m_srcCallsign = srcCallsign;
 			m_dstCallsign = dest;
 			m_toMode      = DATA_MODE_DSTAR;
@@ -312,7 +312,7 @@ void CData::setYSF(NETWORK network, const uint8_t* source, uint8_t dgId)
 
 		if (m_toMode == DATA_MODE_NONE) {
 			std::string dest = find(m_ysfM17DGIds, dgId);
-			if (!dest.empty()) {
+			if (dest != NULL_CALLSIGN) {
 				m_srcCallsign = srcCallsign;
 				m_dstCallsign = dest;
 				m_toMode      = DATA_MODE_M17;
@@ -333,16 +333,6 @@ void CData::setYSF(NETWORK network, const uint8_t* source, uint8_t dgId)
 	}
 }
 
-void CData::setNXDN(NETWORK network, uint16_t source, uint16_t destination, bool group)
-{
-	assert(source > 0U);
-	assert(destination > 0U);
-
-	m_srcId16 = source;
-	m_dstId16 = destination;
-	m_group   = group;
-}
-
 void CData::setP25(NETWORK network, uint32_t source, uint32_t destination, bool group)
 {
 	assert(source > 0U);
@@ -351,6 +341,36 @@ void CData::setP25(NETWORK network, uint32_t source, uint32_t destination, bool 
 	m_srcId32 = source;
 	m_dstId32 = destination;
 	m_group   = group;
+}
+
+void CData::setNXDN(NETWORK network, uint16_t source, uint16_t destination, bool group)
+{
+	assert(source > 0U);
+	assert(destination > 0U);
+
+	m_srcId16 = source;
+	m_dstId16 = destination;
+	m_group = group;
+}
+
+// XXX FIXME this'll need rework for the new FM network protocol
+void CData::setFM(NETWORK network)
+{
+	if (network == NET_FROM) {
+		if (m_toFM && (m_toMode == DATA_MODE_NONE))
+			m_toMode = DATA_MODE_FM;
+	} else {
+		if (m_dstarFMDest != NULL_CALLSIGN)
+			m_toMode = DATA_MODE_FM;
+		else if (m_ysfFMDGId != NULL_DGID)
+			m_toMode = DATA_MODE_FM;
+		else if (m_m17FMDest != NULL_CALLSIGN)
+			m_toMode = DATA_MODE_FM;
+		else if (m_toFM && (m_toMode == DATA_MODE_NONE))
+			m_toMode = DATA_MODE_FM;
+		else
+			m_toMode = DATA_MODE_NONE;
+	}
 }
 
 void CData::setM17(NETWORK network, const std::string& source, const std::string& destination)
@@ -440,6 +460,10 @@ void CData::getDStar(NETWORK network, uint8_t* source, uint8_t* destination) con
 	stringToBytes(destination, DSTAR_LONG_CALLSIGN_LENGTH, m_dstCallsign);
 }
 
+void CData::getDMR(NETWORK network, uint32_t& source, uint32_t& destination, bool& group)
+{
+}
+
 void CData::getYSF(NETWORK network, uint8_t* source, uint8_t* destination, uint8_t& dgId) const
 {
 	assert(source != nullptr);
@@ -448,6 +472,14 @@ void CData::getYSF(NETWORK network, uint8_t* source, uint8_t* destination, uint8
 	stringToBytes(destination, YSF_CALLSIGN_LENGTH, m_dstCallsign);
 
 	dgId = m_dgId;
+}
+
+void CData::getP25(NETWORK network, uint32_t& source, uint32_t& destination, bool& group)
+{
+}
+
+void CData::getNXDN(NETWORK network, uint16_t& source, uint16_t& destination, bool& group)
+{
 }
 
 void CData::getM17(NETWORK network, std::string& source, std::string& destination) const

@@ -57,12 +57,16 @@ public:
 	void setYSF(NETWORK network, const uint8_t* source, uint8_t dgId);
 	void setNXDN(NETWORK network, uint16_t source, uint16_t destination, bool group);
 	void setP25(NETWORK network, uint32_t source, uint32_t destination, bool group);
+	void setFM(NETWORK network);
 	void setM17(NETWORK network, const std::string& source, const std::string& destination);
 
 	void setEnd();
 
 	void getDStar(NETWORK network, uint8_t* source, uint8_t* destination) const;
+	void getDMR(NETWORK network, uint32_t& source, uint32_t& destination, bool& group);
 	void getYSF(NETWORK network, uint8_t* source, uint8_t* destination, uint8_t& dgId) const;
+	void getNXDN(NETWORK network, uint16_t& source, uint16_t& destination, bool& group);
+	void getP25(NETWORK network, uint32_t& source, uint32_t& destination, bool& group);
 	void getM17(NETWORK network, std::string& source, std::string& destination) const;
 
 	void     setRaw(const uint8_t* data, uint16_t length);
@@ -86,9 +90,9 @@ public:
 
 private:
 	CTranscoder m_transcoder;
-	std::string m_callsign;
-	uint32_t    m_dmrId;
-	uint16_t    m_nxdnId;
+	std::string m_defaultCallsign;
+	uint32_t    m_defaultDMRId;
+	uint16_t    m_defaultNXDNId;
 
 	bool        m_toDStar;
 	bool        m_toDMR;
