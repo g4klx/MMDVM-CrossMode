@@ -350,7 +350,7 @@ void CData::setNXDN(NETWORK network, uint16_t source, uint16_t destination, bool
 
 	m_srcId16 = source;
 	m_dstId16 = destination;
-	m_group = group;
+	m_group   = group;
 }
 
 // XXX FIXME this'll need rework for the new FM network protocol

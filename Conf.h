@@ -33,6 +33,8 @@ public:
 	// The General section
 	std::string  getCallsign() const;
 	std::string  getFromMode() const;
+	unsigned int getRFModeHang() const;
+	unsigned int getNetModeHang() const;
 	bool         getDaemon() const;
 
 	// The Log section
@@ -271,6 +273,8 @@ private:
 
 	std::string  m_callsign;
 	std::string  m_fromMode;
+	unsigned int m_rfModeHang;
+	unsigned int m_netModeHang;
 	bool         m_daemon;
 
 	uint32_t     m_logDisplayLevel;

@@ -96,6 +96,8 @@ enum SECTION {
 CConf::CConf(const std::string& file) :
 m_file(file),
 m_callsign("G9BF"),
+m_rfModeHang(10U),
+m_netModeHang(3U),
 m_fromMode(),
 m_daemon(false),
 m_logDisplayLevel(0U),
@@ -379,6 +381,10 @@ bool CConf::read()
 				m_callsign = value;
 			else if (::strcmp(key, "FromMode") == 0)
 				m_fromMode = value;
+			else if (::strcmp(key, "RFModeHang") == 0)
+				m_rfModeHang = (unsigned int)::atoi(value);
+			else if (::strcmp(key, "NetModeHang") == 0)
+				m_netModeHang = (unsigned int)::atoi(value);
 			else if (::strcmp(key, "Daemon") == 0)
 				m_daemon = ::atoi(value) == 1;
 		} else if (section == SECTION_LOG) {
@@ -703,6 +709,16 @@ bool CConf::getDaemon() const
 std::string CConf::getCallsign() const
 {
 	return m_callsign;
+}
+
+unsigned int CConf::getRFModeHang() const
+{
+	return m_rfModeHang;
+}
+
+unsigned int CConf::getNetModeHang() const
+{
+	return m_netModeHang;
 }
 
 std::string CConf::getFromMode() const

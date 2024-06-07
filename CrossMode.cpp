@@ -267,14 +267,19 @@ int CCrossMode::run()
 	DIRECTION direction = DIR_NONE;
 	DATA_MODE toMode = DATA_MODE_NONE;
 
+	CTimer rfTimer(1000U, m_conf.getRFModeHang());
+	CTimer netTimer(1000U, m_conf.getNetModeHang());
+
 	while (!m_killed) {
 		stopwatch.start();
 
 		switch (direction) {
 		case DIR_FROM_TO:
 			ret = m_fromNetwork->read(data);
-			if (ret)
+			if (ret) {
+				rfTimer.start();
 				watchdog.start();
+			}
 
 			if (data.isTranscode()) {
 				if (data.hasData() || data.isEnd())
@@ -288,8 +293,10 @@ int CCrossMode::run()
 
 		case DIR_TO_FROM:
 			ret = readToNetwork(toMode, data);
-			if (ret)
+			if (ret) {
+				netTimer.start();
 				watchdog.start();
+			}
 
 			if (data.isTranscode()) {
 				if (data.hasData() || data.isEnd())
@@ -304,6 +311,8 @@ int CCrossMode::run()
 		default:
 			ret = m_fromNetwork->hasData();
 			if (ret) {
+				::LogMessage("Swicthed by RF activity");
+				rfTimer.start();
 				watchdog.start();
 				toMode = data.getToMode();
 				direction = DIR_FROM_TO;
@@ -313,6 +322,8 @@ int CCrossMode::run()
 
 			toMode = hasToNetworkGotData();
 			if (toMode != DATA_MODE_NONE) {
+				::LogMessage("Swicthed by Net activity");
+				netTimer.start();
 				watchdog.start();
 				direction = DIR_TO_FROM;
 				data.setToMode(toMode);
@@ -330,6 +341,8 @@ int CCrossMode::run()
 			direction = DIR_NONE;
 			data.setDirection(DIR_NONE);
 			watchdog.stop();
+			netTimer.stop();
+			rfTimer.stop();
 		}
 
 		CThread::sleep(5U);
@@ -340,10 +353,31 @@ int CCrossMode::run()
 		clockToNetworks(elapsed);
 		data.clock(elapsed);
 
+		rfTimer.clock(elapsed);
+		if (rfTimer.isRunning() && rfTimer.hasExpired()) {
+			::LogMessage("Swictched back to Idle");
+			m_fromNetwork->reset();
+			resetToNetworks();
+			data.reset();
+			direction = DIR_NONE;
+			data.setDirection(DIR_NONE);
+			rfTimer.stop();
+		}
+
+		netTimer.clock(elapsed);
+		if (netTimer.isRunning() && netTimer.hasExpired()) {
+			::LogMessage("Swictched back to Idle");
+			m_fromNetwork->reset();
+			resetToNetworks();
+			data.reset();
+			direction = DIR_NONE;
+			data.setDirection(DIR_NONE);
+			netTimer.stop();
+		}
+
 		watchdog.clock(elapsed);
 		if (watchdog.isRunning() && watchdog.hasExpired()) {
 			::LogMessage("The watchdog timer has exprired");
-
 			m_fromNetwork->reset();
 			resetToNetworks();
 			data.reset();
