@@ -49,6 +49,11 @@ public:
 	uint32_t     getTranscoderSpeed() const;
 	bool         getTranscoderDebug() const;
 
+	// The Lookup section
+	std::string  getDMRLookupFile() const;
+	std::string  getNXDNLookupFile() const;
+	unsigned int getReloadTime() const;
+
 	// The D-Star section
 	std::string  getDStarModule() const;
 
@@ -63,15 +68,19 @@ public:
 
 	// The D-Star to DMR section
 	bool         getDStarDMREnable() const;
+	std::vector<std::pair<std::string, uint32_t>> getDStarDMRDests() const;
 
 	// The D-Star to System Fusion section
 	bool         getDStarYSFEnable() const;
+	std::vector<std::pair<std::string, uint8_t>> getDStarYSFDests() const;
 
 	// The D-Star to P25 section
 	bool         getDStarP25Enable() const;
+	std::vector<std::pair<std::string, uint16_t>> getDStarP25Dests() const;
 
 	// The D-Star to NXDN section
 	bool         getDStarNXDNEnable() const;
+	std::vector<std::pair<std::string, uint16_t>> getDStarNXDNDests() const;
 
 	// The D-Star to FM section
 	bool         getDStarFMEnable() const;
@@ -108,15 +117,18 @@ public:
 
 	// The YSF to DMR section
 	bool         getYSFDMREnable() const;
+	std::vector<std::pair<uint8_t, uint32_t>> getYSFDMRDGIds() const;
 
 	// The YSF to System Fusion section
 	bool         getYSFYSFEnable() const;
 
 	// The YSF to P25 section
 	bool         getYSFP25Enable() const;
+	std::vector<std::pair<uint8_t, uint16_t>> getYSFP25DGIds() const;
 
 	// The YSF to NXDN section
 	bool         getYSFNXDNEnable() const;
+	std::vector<std::pair<uint8_t, uint16_t>> getYSFNXDNDGIds() const;
 
 	// The YSF to FM section
 	bool         getYSFFMEnable() const;
@@ -287,6 +299,10 @@ private:
 	uint32_t     m_transcoderSpeed;
 	bool         m_transcoderDebug;
 
+	std::string  m_dmrLookupFile;
+	std::string  m_nxdnLookupFile;
+	unsigned int m_reloadTime;
+
 	std::string  m_dStarModule;
 
 	uint32_t     m_dmrId;
@@ -296,12 +312,16 @@ private:
 	bool         m_dstarDStarEnable;
 
 	bool         m_dstarDMREnable;
+	std::vector<std::pair<std::string, uint32_t>> m_dstarDMRDests;
 
 	bool         m_dstarYSFEnable;
+	std::vector<std::pair<std::string, uint8_t>> m_dstarYSFDests;
 
 	bool         m_dstarP25Enable;
+	std::vector<std::pair<std::string, uint16_t>> m_dstarP25Dests;
 
 	bool         m_dstarNXDNEnable;
+	std::vector<std::pair<std::string, uint16_t>> m_dstarNXDNDests;
 
 	bool         m_dstarFMEnable;
 	std::string  m_dstarFMDest;
@@ -327,12 +347,15 @@ private:
 	std::vector<std::pair<uint8_t, std::string>> m_ysfDStarDGIds;
 
 	bool         m_ysfDMREnable;
+	std::vector<std::pair<uint8_t, uint32_t>> m_ysfDMRDGIds;
 
 	bool         m_ysfYSFEnable;
 
 	bool         m_ysfP25Enable;
+	std::vector<std::pair<uint8_t, uint16_t>> m_ysfP25DGIds;
 
 	bool         m_ysfNXDNEnable;
+	std::vector<std::pair<uint8_t, uint16_t>> m_ysfNXDNDGIds;
 
 	bool         m_ysfFMEnable;
 	uint8_t      m_ysfFMDGId;

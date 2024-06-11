@@ -21,6 +21,8 @@
 
 #include "TranscoderDefines.h"
 #include "Transcoder.h"
+#include "NXDNLookup.h"
+#include "DMRLookup.h"
 #include "Defines.h"
 
 #include <string>
@@ -38,12 +40,22 @@ public:
 
 	void setToModes(bool toDStar, bool toDMR, bool toYSF, bool toP25, bool toNXDN, bool toFM, bool toM17);
 
+	bool setDMRLookup(const std::string& filename, unsigned int reloadTime);
+	bool setNXDNLookup(const std::string& filename, unsigned int reloadTime);
+
 	DATA_MODE getToMode() const;
 
+	void setDStarDMRDests(const std::vector<std::pair<std::string, uint32_t>>& dests);
+	void setDStarYSFDests(const std::vector<std::pair<std::string, uint8_t>>& dests);
+	void setDStarP25Dests(const std::vector<std::pair<std::string, uint16_t>>& dests);
+	void setDStarNXDNDests(const std::vector<std::pair<std::string, uint16_t>>& dests);
 	void setDStarFMDest(const std::string& dest);
 	void setDStarM17Dests(const std::vector<std::string>& dests);
 
 	void setYSFDStarDGIds(const std::vector<std::pair<uint8_t, std::string>>& dgIds);
+	void setYSFDMRDGIds(const std::vector<std::pair<uint8_t, uint32_t>>& dgIds);
+	void setYSFP25DGIds(const std::vector<std::pair<uint8_t, uint16_t>>& dgIds);
+	void setYSFNXDNDGIds(const std::vector<std::pair<uint8_t, uint16_t>>& dgIds);
 	void setYSFFMDGId(uint8_t dgId);
 	void setYSFM17DGIds(const std::vector<std::pair<uint8_t, std::string>>& dgIds);
 
@@ -93,6 +105,8 @@ private:
 	std::string m_defaultCallsign;
 	uint32_t    m_defaultDMRId;
 	uint16_t    m_defaultNXDNId;
+	CDMRLookup  m_dmrLookup;
+	CNXDNLookup m_nxdnLookup;
 
 	bool        m_toDStar;
 	bool        m_toDMR;
@@ -102,13 +116,20 @@ private:
 	bool        m_toFM;
 	bool        m_toM17;
 
-	std::string                                  m_dstarFMDest;
-	std::vector<std::string>                     m_dstarM17Dests;
-	std::vector<std::pair<uint8_t, std::string>> m_ysfDStarDGIds;
-	uint8_t                                      m_ysfFMDGId;
-	std::vector<std::pair<uint8_t, std::string>> m_ysfM17DGIds;
-	std::vector<std::string>                     m_m17DStarDests;
-	std::string                                  m_m17FMDest;
+	std::vector<std::pair<std::string, uint32_t>> m_dstarDMRDests;
+	std::vector<std::pair<std::string, uint8_t>>  m_dstarYSFDests;
+	std::vector<std::pair<std::string, uint16_t>> m_dstarP25Dests;
+	std::vector<std::pair<std::string, uint16_t>> m_dstarNXDNDests;
+	std::string                                   m_dstarFMDest;
+	std::vector<std::string>                      m_dstarM17Dests;
+	std::vector<std::pair<uint8_t, std::string>>  m_ysfDStarDGIds;
+	std::vector<std::pair<uint8_t, uint32_t>>     m_ysfDMRDGIds;
+	std::vector<std::pair<uint8_t, uint16_t>>     m_ysfP25DGIds;
+	std::vector<std::pair<uint8_t, uint16_t>>     m_ysfNXDNDGIds;
+	uint8_t                                       m_ysfFMDGId;
+	std::vector<std::pair<uint8_t, std::string>>  m_ysfM17DGIds;
+	std::vector<std::string>                      m_m17DStarDests;
+	std::string                                   m_m17FMDest;
 
 	DATA_MODE   m_fromMode;
 	DATA_MODE   m_toMode;
@@ -116,10 +137,8 @@ private:
 	std::string m_srcCallsign;	// D-Star, YSF, M17
 	std::string m_dstCallsign;	// D-Star, M17
 	uint8_t     m_dgId;			// YSF
-	uint32_t    m_srcId32;		// DMR, P25
-	uint32_t    m_dstId32;		// DMR, P25
-	uint16_t    m_srcId16;		// NXDN
-	uint16_t    m_dstId16;		// NXDN
+	uint32_t    m_srcId;		// DMR, NXDN, P25
+	uint32_t    m_dstId;		// DMR, NXDN, P25
 	bool        m_group;		// DMR, NXDN, P25
 	bool        m_end;
 	uint8_t*    m_data;
@@ -129,8 +148,25 @@ private:
 	uint16_t    m_count;
 
 	bool setTranscoder();
+
+	uint8_t find(const std::vector<std::pair<std::string, uint8_t>>& mapping, const std::string& dest) const;
+	std::string find(const std::vector<std::pair<std::string, uint8_t>>& mapping, uint8_t dgId) const;
+
+	uint16_t find(const std::vector<std::pair<std::string, uint16_t>>& mapping, const std::string& dest) const;
+	std::string find(const std::vector<std::pair<std::string, uint16_t>>& mapping, uint16_t tgId) const;
+
+	uint32_t find(const std::vector<std::pair<std::string, uint32_t>>& mapping, const std::string& dest) const;
+	std::string find(const std::vector<std::pair<std::string, uint32_t>>& mapping, uint32_t tgId) const;
+
 	uint8_t find(const std::vector<std::pair<uint8_t, std::string>>& mapping, const std::string& dest) const;
 	std::string find(const std::vector<std::pair<uint8_t, std::string>>& mapping, uint8_t dgId) const;
+
+	uint8_t find(const std::vector<std::pair<uint8_t, uint16_t>>& mapping, uint16_t tgId) const;
+	uint16_t find(const std::vector<std::pair<uint8_t, uint16_t>>& mapping, uint8_t dgId) const;
+
+	uint8_t find(const std::vector<std::pair<uint8_t, uint32_t>>& mapping, uint32_t tgId) const;
+	uint32_t find(const std::vector<std::pair<uint8_t, uint32_t>>& mapping, uint8_t dgId) const;
+
 	std::string bytesToString(const uint8_t* str, size_t length) const;
 	void stringToBytes(uint8_t* str, size_t length, const std::string& callsign) const;
 };

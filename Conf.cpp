@@ -31,6 +31,7 @@ enum SECTION {
 	SECTION_GENERAL,
 	SECTION_LOG,
 	SECTION_TRANSCODER,
+	SECTION_LOOKUP,
 	SECTION_DSTAR,
 	SECTION_DMR,
 	SECTION_NXDN,
@@ -108,13 +109,19 @@ m_logFileRotate(true),
 m_transcoderPort(),
 m_transcoderSpeed(460800U),
 m_transcoderDebug(false),
+m_dmrLookupFile(),
+m_nxdnLookupFile(),
+m_reloadTime(24U),
 m_dStarModule("C"),
 m_dmrId(123456U),
 m_nxdnId(1234U),
 m_dstarDStarEnable(false),
 m_dstarDMREnable(false),
+m_dstarDMRDests(),
 m_dstarYSFEnable(false),
+m_dstarYSFDests(),
 m_dstarP25Enable(false),
+m_dstarNXDNDests(),
 m_dstarNXDNEnable(false),
 m_dstarFMEnable(false),
 m_dstarM17Enable(false),
@@ -129,9 +136,12 @@ m_dmrM17Enable(false),
 m_ysfDStarEnable(false),
 m_ysfDStarDGIds(),
 m_ysfDMREnable(false),
+m_ysfDMRDGIds(),
 m_ysfYSFEnable(false),
 m_ysfP25Enable(false),
+m_ysfP25DGIds(),
 m_ysfNXDNEnable(false),
+m_ysfNXDNDGIds(),
 m_ysfFMEnable(false),
 m_ysfFMDGId(0U),
 m_ysfM17Enable(false),
@@ -235,6 +245,8 @@ bool CConf::read()
 				section = SECTION_LOG;
 			else if (::strncmp(buffer, "[Transcoder]", 12U) == 0)
 				section = SECTION_TRANSCODER;
+			else if (::strncmp(buffer, "[Lookup]", 8U) == 0)
+				section = SECTION_LOOKUP;
 			else if (::strncmp(buffer, "[D-Star]", 8U) == 0)
 				section = SECTION_DSTAR;
 			else if (::strncmp(buffer, "[DMR]", 5U) == 0)
@@ -398,13 +410,21 @@ bool CConf::read()
 				m_logDisplayLevel = (uint32_t)::atoi(value);
 			else if (::strcmp(key, "FileRotate") == 0)
 				m_logFileRotate = ::atoi(value) == 1;
-		} else if (section == SECTION_TRANSCODER) {
+		}
+		else if (section == SECTION_TRANSCODER) {
 			if (::strcmp(key, "Port") == 0)
 				m_transcoderPort = value;
 			else if (::strcmp(key, "Speed") == 0)
 				m_transcoderSpeed = uint32_t(::atoi(value));
 			else if (::strcmp(key, "Debug") == 0)
 				m_transcoderDebug = ::atoi(value) == 1;
+		} else if (section == SECTION_LOOKUP) {
+			if (::strcmp(key, "DMRLookup") == 0)
+				m_dmrLookupFile = value;
+			else if (::strcmp(key, "NXDNLookup") == 0)
+				m_nxdnLookupFile = value;
+			else if (::strcmp(key, "ReloadTime") == 0)
+				m_reloadTime = (unsigned int)::atoi(value);
 		} else if (section == SECTION_DSTAR) {
 			if (::strcmp(key, "Module") == 0)
 				m_dStarModule = value;
@@ -418,17 +438,85 @@ bool CConf::read()
 			if (::strcmp(key, "Enable") == 0)
 				m_dstarDStarEnable = ::atoi(value) == 1;
 		} else if (section == SECTION_DSTAR_DMR) {
-			if (::strcmp(key, "Enable") == 0)
+			if (::strcmp(key, "Enable") == 0) {
 				m_dstarDMREnable = ::atoi(value) == 1;
+			} else if (::strcmp(key, "Dest") == 0) {
+				char* p = ::strchr(value, '=');
+				if (p == nullptr)
+					break;
+				*p = '\0';
+				std::string dest = value;
+
+				p++;
+				size_t len = ::strlen(p);
+				if (len > 1U && *p == '"' && p[len - 1U] == '"') {
+					p[len - 1U] = '\0';
+					p++;
+				}
+				uint32_t tgid = uint32_t(::atoi(p));
+
+				m_dstarDMRDests.push_back(std::pair<std::string, uint32_t>(dest, tgid));
+			}
 		} else if (section == SECTION_DSTAR_YSF) {
-			if (::strcmp(key, "Enable") == 0)
+			if (::strcmp(key, "Enable") == 0) {
 				m_dstarYSFEnable = ::atoi(value) == 1;
+			} else if (::strcmp(key, "Dest") == 0) {
+				char* p = ::strchr(value, '=');
+				if (p == nullptr)
+					break;
+				*p = '\0';
+				std::string dest = value;
+
+				p++;
+				size_t len = ::strlen(p);
+				if (len > 1U && *p == '"' && p[len - 1U] == '"') {
+					p[len - 1U] = '\0';
+					p++;
+				}
+				uint8_t dgid = uint8_t(::atoi(p));
+
+				m_dstarYSFDests.push_back(std::pair<std::string, uint8_t>(dest, dgid));
+			}
 		} else if (section == SECTION_DSTAR_P25) {
-			if (::strcmp(key, "Enable") == 0)
+			if (::strcmp(key, "Enable") == 0) {
 				m_dstarP25Enable = ::atoi(value) == 1;
+			} else if (::strcmp(key, "Dest") == 0) {
+				char* p = ::strchr(value, '=');
+				if (p == nullptr)
+					break;
+				*p = '\0';
+				std::string dest = value;
+
+				p++;
+				size_t len = ::strlen(p);
+				if (len > 1U && *p == '"' && p[len - 1U] == '"') {
+					p[len - 1U] = '\0';
+					p++;
+				}
+				uint16_t tgid = uint16_t(::atoi(p));
+
+				m_dstarP25Dests.push_back(std::pair<std::string, uint16_t>(dest, tgid));
+			}
 		} else if (section == SECTION_DSTAR_NXDN) {
-			if (::strcmp(key, "Enable") == 0)
+			if (::strcmp(key, "Enable") == 0) {
 				m_dstarNXDNEnable = ::atoi(value) == 1;
+			} else if (::strcmp(key, "Dest") == 0) {
+				char* p = ::strchr(value, '=');
+				if (p == nullptr)
+					break;
+				*p = '\0';
+				std::string dest = value;
+
+				p++;
+				size_t len = ::strlen(p);
+				if (len > 1U && *p == '"' && p[len - 1U] == '"') {
+					p[len - 1U] = '\0';
+					p++;
+				}
+				uint16_t tgid = uint16_t(::atoi(p));
+
+				m_dstarNXDNDests.push_back(std::pair<std::string, uint16_t>(dest, tgid));
+			}
 		} else if (section == SECTION_DSTAR_FM) {
 			if (::strcmp(key, "Enable") == 0)
 				m_dstarFMEnable = ::atoi(value) == 1;
@@ -481,17 +569,68 @@ bool CConf::read()
 				m_ysfDStarDGIds.push_back(std::pair<uint8_t, std::string>(dgId, text));
 			}
 		} else if (section == SECTION_YSF_DMR) {
-			if (::strcmp(key, "Enable") == 0)
+			if (::strcmp(key, "Enable") == 0) {
 				m_ysfDMREnable = ::atoi(value) == 1;
+			} else if (::strcmp(key, "DGId") == 0) {
+				char* p = ::strchr(value, '=');
+				if (p == nullptr)
+					break;
+				*p = '\0';
+				uint8_t dgId = uint8_t(::atoi(value));
+
+				p++;
+				size_t len = ::strlen(p);
+				if (len > 1U && *p == '"' && p[len - 1U] == '"') {
+					p[len - 1U] = '\0';
+					p++;
+				}
+				uint32_t tgid = uint32_t(::atoi(p));
+
+				m_ysfDMRDGIds.push_back(std::pair<uint8_t, uint32_t>(dgId, tgid));
+			}
 		} else if (section == SECTION_YSF_YSF) {
 			if (::strcmp(key, "Enable") == 0)
 				m_ysfYSFEnable = ::atoi(value) == 1;
 		} else if (section == SECTION_YSF_P25) {
-			if (::strcmp(key, "Enable") == 0)
+			if (::strcmp(key, "Enable") == 0) {
 				m_ysfP25Enable = ::atoi(value) == 1;
+			} else if (::strcmp(key, "DGId") == 0) {
+				char* p = ::strchr(value, '=');
+				if (p == nullptr)
+					break;
+				*p = '\0';
+				uint8_t dgId = uint8_t(::atoi(value));
+
+				p++;
+				size_t len = ::strlen(p);
+				if (len > 1U && *p == '"' && p[len - 1U] == '"') {
+					p[len - 1U] = '\0';
+					p++;
+				}
+				uint16_t tgid = uint16_t(::atoi(p));
+
+				m_ysfP25DGIds.push_back(std::pair<uint8_t, uint16_t>(dgId, tgid));
+			}
 		} else if (section == SECTION_YSF_NXDN) {
-			if (::strcmp(key, "Enable") == 0)
+			if (::strcmp(key, "Enable") == 0) {
 				m_ysfNXDNEnable = ::atoi(value) == 1;
+			} else if (::strcmp(key, "DGId") == 0) {
+				char* p = ::strchr(value, '=');
+				if (p == nullptr)
+					break;
+				*p = '\0';
+				uint8_t dgId = uint8_t(::atoi(value));
+
+				p++;
+				size_t len = ::strlen(p);
+				if (len > 1U && *p == '"' && p[len - 1U] == '"') {
+					p[len - 1U] = '\0';
+					p++;
+				}
+				uint16_t tgid = uint16_t(::atoi(p));
+
+				m_ysfNXDNDGIds.push_back(std::pair<uint8_t, uint16_t>(dgId, tgid));
+			}
 		} else if (section == SECTION_YSF_FM) {
 			if (::strcmp(key, "Enable") == 0)
 				m_ysfFMEnable = ::atoi(value) == 1;
@@ -766,6 +905,21 @@ bool CConf::getTranscoderDebug() const
 	return m_transcoderDebug;
 }
 
+std::string CConf::getDMRLookupFile() const
+{
+	return m_dmrLookupFile;
+}
+
+std::string CConf::getNXDNLookupFile() const
+{
+	return m_nxdnLookupFile;
+}
+
+unsigned int CConf::getReloadTime() const
+{
+	return m_reloadTime;
+}
+
 std::string CConf::getDStarModule() const
 {
 	return m_dStarModule;
@@ -791,9 +945,19 @@ bool CConf::getDStarDMREnable() const
 	return m_dstarDMREnable;
 }
 
+std::vector<std::pair<std::string, uint32_t>> CConf::getDStarDMRDests() const
+{
+	return m_dstarDMRDests;
+}
+
 bool CConf::getDStarYSFEnable() const
 {
 	return m_dstarYSFEnable;
+}
+
+std::vector<std::pair<std::string, uint8_t>> CConf::getDStarYSFDests() const
+{
+	return m_dstarYSFDests;
 }
 
 bool CConf::getDStarP25Enable() const
@@ -801,9 +965,19 @@ bool CConf::getDStarP25Enable() const
 	return m_dstarP25Enable;
 }
 
+std::vector<std::pair<std::string, uint16_t>> CConf::getDStarP25Dests() const
+{
+	return m_dstarP25Dests;
+}
+
 bool CConf::getDStarNXDNEnable() const
 {
 	return m_dstarNXDNEnable;
+}
+
+std::vector<std::pair<std::string, uint16_t>> CConf::getDStarNXDNDests() const
+{
+	return m_dstarNXDNDests;
 }
 
 bool CConf::getDStarFMEnable() const
@@ -876,6 +1050,11 @@ bool CConf::getYSFDMREnable() const
 	return m_ysfDMREnable;
 }
 
+std::vector<std::pair<uint8_t, uint32_t>> CConf::getYSFDMRDGIds() const
+{
+	return m_ysfDMRDGIds;
+}
+
 bool CConf::getYSFYSFEnable() const
 {
 	return m_ysfYSFEnable;
@@ -886,9 +1065,19 @@ bool CConf::getYSFP25Enable() const
 	return m_ysfP25Enable;
 }
 
+std::vector<std::pair<uint8_t, uint16_t>> CConf::getYSFP25DGIds() const
+{
+	return m_ysfP25DGIds;
+}
+
 bool CConf::getYSFNXDNEnable() const
 {
 	return m_ysfNXDNEnable;
+}
+
+std::vector<std::pair<uint8_t, uint16_t>> CConf::getYSFNXDNDGIds() const
+{
+	return m_ysfNXDNDGIds;
 }
 
 bool CConf::getYSFFMEnable() const

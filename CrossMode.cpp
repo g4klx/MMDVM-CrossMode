@@ -244,22 +244,15 @@ int CCrossMode::run()
 		return 1;
 	}
 
-	if ((fromMode == DATA_MODE_DSTAR) && m_conf.getDStarFMEnable())
-		data.setDStarFMDest(m_conf.getDStarFMDest());
-	if ((fromMode == DATA_MODE_DSTAR) && m_conf.getDStarM17Enable())
-		data.setDStarM17Dests(m_conf.getDStarM17Dests());
+	loadModeTranslationTables(fromMode, data);
 
-	if ((fromMode == DATA_MODE_YSF) && m_conf.getYSFDStarEnable())
-		data.setYSFDStarDGIds(m_conf.getYSFDStarDGIds());
-	if ((fromMode == DATA_MODE_YSF) && m_conf.getYSFFMEnable())
-		data.setYSFFMDGId(m_conf.getYSFFMDGId());
-	if ((fromMode == DATA_MODE_YSF) && m_conf.getYSFM17Enable())
-		data.setYSFM17DGIds(m_conf.getYSFM17DGIds());
-
-	if ((fromMode == DATA_MODE_M17) && m_conf.getM17DStarEnable())
-		data.setM17DStarDests(m_conf.getM17DStarDests());
-	if ((fromMode == DATA_MODE_M17) && m_conf.getM17FMEnable())
-		data.setM17FMDest(m_conf.getM17FMDest());
+	ret = loadIdLookupTables(data);
+	if (!ret) {
+		closeToNetworks();
+		m_fromNetwork->close();
+		delete m_fromNetwork;
+		return 1;
+	}
 
 	CStopWatch stopwatch;
 	CTimer watchdog(1000U, 0U, 500U);
@@ -674,4 +667,57 @@ DATA_MODE CCrossMode::getFromMode() const
 		return DATA_MODE_M17;
 	else
 		return DATA_MODE_NONE;
+}
+
+void CCrossMode::loadModeTranslationTables(DATA_MODE fromMode, CData& data)
+{
+	if (fromMode == DATA_MODE_DSTAR) {
+		if (m_conf.getDStarDMREnable())
+			data.setDStarDMRDests(m_conf.getDStarDMRDests());
+		if (m_conf.getDStarYSFEnable())
+			data.setDStarYSFDests(m_conf.getDStarYSFDests());
+		if (m_conf.getDStarP25Enable())
+			data.setDStarP25Dests(m_conf.getDStarP25Dests());
+		if (m_conf.getDStarNXDNEnable())
+			data.setDStarNXDNDests(m_conf.getDStarNXDNDests());
+		if (m_conf.getDStarFMEnable())
+			data.setDStarFMDest(m_conf.getDStarFMDest());
+		if (m_conf.getDStarM17Enable())
+			data.setDStarM17Dests(m_conf.getDStarM17Dests());
+	}
+
+	if (fromMode == DATA_MODE_YSF) {
+		if (m_conf.getYSFDStarEnable())
+			data.setYSFDStarDGIds(m_conf.getYSFDStarDGIds());
+		if (m_conf.getYSFDMREnable())
+			data.setYSFDMRDGIds(m_conf.getYSFDMRDGIds());
+		if (m_conf.getYSFP25Enable())
+			data.setYSFP25DGIds(m_conf.getYSFP25DGIds());
+		if (m_conf.getYSFNXDNEnable())
+			data.setYSFNXDNDGIds(m_conf.getYSFNXDNDGIds());
+		if (m_conf.getYSFFMEnable())
+			data.setYSFFMDGId(m_conf.getYSFFMDGId());
+		if (m_conf.getYSFM17Enable())
+			data.setYSFM17DGIds(m_conf.getYSFM17DGIds());
+	}
+
+	if (fromMode == DATA_MODE_M17) {
+		if (m_conf.getM17DStarEnable())
+			data.setM17DStarDests(m_conf.getM17DStarDests());
+		if (m_conf.getM17FMEnable())
+			data.setM17FMDest(m_conf.getM17FMDest());
+	}
+}
+
+bool CCrossMode::loadIdLookupTables(CData& data)
+{
+	std::string dmrFileName  = m_conf.getDMRLookupFile();
+	std::string nxdnFileName = m_conf.getNXDNLookupFile();
+	unsigned int reloadTime  = m_conf.getReloadTime();
+
+	bool ret = data.setDMRLookup(dmrFileName, reloadTime);
+	if (!ret)
+		return false;
+
+	return data.setNXDNLookup(nxdnFileName, reloadTime);
 }

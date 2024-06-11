@@ -16,9 +16,34 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#if !defined(VERSION_H)
-#define	VERSION_H
+#if !defined(DMRLOOKUP_H)
+#define	DMRLOOKUP_H
 
-const char* VERSION = "20240611";
+#include "Timer.h"
+
+#include <string>
+#include <vector>
+
+#include <cstdint>
+
+class CDMRLookup {
+public:
+	CDMRLookup();
+	~CDMRLookup();
+
+	bool load(const std::string& filename, unsigned int reloadTime);
+
+	std::string lookup(uint32_t id) const;
+	uint32_t lookup(const std::string& callsign) const;
+
+	void clock(unsigned int ms);
+
+private:
+	std::string                                   m_filename;
+	std::vector<std::pair<uint32_t, std::string>> m_data;
+	CTimer                                        m_timer;
+
+	bool load();
+};
 
 #endif

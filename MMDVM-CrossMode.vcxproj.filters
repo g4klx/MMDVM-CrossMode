@@ -95,6 +95,12 @@
     <ClInclude Include="CRC.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="DMRLookup.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="NXDNLookup.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Conf.cpp">
@@ -158,6 +164,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CRC.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DMRLookup.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="NXDNLookup.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

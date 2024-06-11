@@ -51,6 +51,9 @@ private:
 	void resetToNetworks();
 	void clockToNetworks(unsigned int ms);
 	void closeToNetworks();
+
+	bool loadIdLookupTables(CData& data);
+	void loadModeTranslationTables(DATA_MODE fromMode, CData& data);
 };
 
 #endif

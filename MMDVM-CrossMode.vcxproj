@@ -156,9 +156,11 @@
     <ClInclude Include="FMNetwork.h" />
     <ClInclude Include="Golay24128.h" />
     <ClInclude Include="Log.h" />
+    <ClInclude Include="DMRLookup.h" />
     <ClInclude Include="M17Defines.h" />
     <ClInclude Include="M17Network.h" />
     <ClInclude Include="Network.h" />
+    <ClInclude Include="NXDNLookup.h" />
     <ClInclude Include="RingBuffer.h" />
     <ClInclude Include="StopWatch.h" />
     <ClInclude Include="Thread.h" />
@@ -184,8 +186,10 @@
     <ClCompile Include="FMNetwork.cpp" />
     <ClCompile Include="Golay24128.cpp" />
     <ClCompile Include="Log.cpp" />
+    <ClCompile Include="DMRLookup.cpp" />
     <ClCompile Include="M17Network.cpp" />
     <ClCompile Include="Network.cpp" />
+    <ClCompile Include="NXDNLookup.cpp" />
     <ClCompile Include="StopWatch.cpp" />
     <ClCompile Include="Thread.cpp" />
     <ClCompile Include="Timer.cpp" />
