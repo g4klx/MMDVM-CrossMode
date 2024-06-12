@@ -577,7 +577,14 @@ bool CCrossMode::createToNetworks(DATA_MODE fromMode, CData& data)
 		m_toNetworks.insert(std::pair<DATA_MODE, INetwork*>(DATA_MODE_M17, network));
 	}
 
-	data.setToModes(toDStar, toDMR, toYSF, toP25, toNXDN, toFM, toM17);
+	data.setToModes(m_conf.getDStarDStarEnable(),
+					m_conf.getDMRDMREnable1(),
+					m_conf.getDMRDMREnable2(),
+					m_conf.getYSFYSFEnable(),
+					m_conf.getP25P25Enable(),
+					m_conf.getNXDNNXDNEnable(),
+					m_conf.getFMFMEnable(),
+					m_conf.getM17M17Enable());
 
 	return true;
 }

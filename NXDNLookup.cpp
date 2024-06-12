@@ -81,6 +81,10 @@ bool CNXDNLookup::load()
 		m_data.push_back(std::pair<uint16_t, std::string>(uint16_t(id), callsign));
 	}
 
+	::fclose(fp);
+
+	::LogMessage("Loaded %u id/callsigns into the NXDN lookup table.", m_data.size());
+
 	m_timer.start();
 
 	return true;

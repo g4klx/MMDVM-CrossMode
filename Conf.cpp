@@ -127,7 +127,8 @@ m_dstarFMEnable(false),
 m_dstarM17Enable(false),
 m_dstarM17Dests(),
 m_dmrDStarEnable(false),
-m_dmrDMREnable(false),
+m_dmrDMREnable1(false),
+m_dmrDMREnable2(false),
 m_dmrYSFEnable(false),
 m_dmrP25Enable(false),
 m_dmrNXDNEnable(false),
@@ -441,21 +442,22 @@ bool CConf::read()
 			if (::strcmp(key, "Enable") == 0) {
 				m_dstarDMREnable = ::atoi(value) == 1;
 			} else if (::strcmp(key, "Dest") == 0) {
-				char* p = ::strchr(value, '=');
-				if (p == nullptr)
+				char* p1 = ::strchr(value, '=');
+				if (p1 == nullptr)
 					break;
-				*p = '\0';
+				*p1 = '\0';
 				std::string dest = value;
 
-				p++;
-				size_t len = ::strlen(p);
-				if (len > 1U && *p == '"' && p[len - 1U] == '"') {
-					p[len - 1U] = '\0';
-					p++;
-				}
-				uint32_t tgid = uint32_t(::atoi(p));
+				p1++;
+				char* p2 = ::strchr(p1, ',');
+				if (p2 == nullptr)
+					break;
+				*p2 = '\0';
 
-				m_dstarDMRDests.push_back(std::pair<std::string, uint32_t>(dest, tgid));
+				uint8_t slot = uint8_t(::atoi(p1));
+				uint32_t  id = uint32_t(::atoi(p2 + 1U));
+
+				m_dstarDMRDests.push_back(std::tuple<std::string, uint8_t, uint32_t>{dest, slot, id});
 			}
 		} else if (section == SECTION_DSTAR_YSF) {
 			if (::strcmp(key, "Enable") == 0) {
@@ -531,8 +533,10 @@ bool CConf::read()
 			if (::strcmp(key, "Enable") == 0)
 				m_dmrDStarEnable = ::atoi(value) == 1;
 		} else if (section == SECTION_DMR_DMR) {
-			if (::strcmp(key, "Enable") == 0)
-				m_dmrDMREnable = ::atoi(value) == 1;
+			if (::strcmp(key, "Enable1") == 0)
+				m_dmrDMREnable1 = ::atoi(value) == 1;
+			else if (::strcmp(key, "Enable2") == 0)
+				m_dmrDMREnable2 = ::atoi(value) == 1;
 		} else if (section == SECTION_DMR_YSF) {
 			if (::strcmp(key, "Enable") == 0)
 				m_dmrYSFEnable = ::atoi(value) == 1;
@@ -572,21 +576,21 @@ bool CConf::read()
 			if (::strcmp(key, "Enable") == 0) {
 				m_ysfDMREnable = ::atoi(value) == 1;
 			} else if (::strcmp(key, "DGId") == 0) {
-				char* p = ::strchr(value, '=');
-				if (p == nullptr)
+				char* p1 = ::strchr(value, '=');
+				if (p1 == nullptr)
 					break;
-				*p = '\0';
+				*p1 = '\0';
 				uint8_t dgId = uint8_t(::atoi(value));
 
-				p++;
-				size_t len = ::strlen(p);
-				if (len > 1U && *p == '"' && p[len - 1U] == '"') {
-					p[len - 1U] = '\0';
-					p++;
-				}
-				uint32_t tgid = uint32_t(::atoi(p));
+				p1++;
+				char* p2 = ::strchr(p1, ',');
+				if (p2 == nullptr)
+					break;
 
-				m_ysfDMRDGIds.push_back(std::pair<uint8_t, uint32_t>(dgId, tgid));
+				uint8_t slot = uint8_t(::atoi(p1));
+				uint32_t id  = uint32_t(::atoi(p2 + 1U));
+
+				m_ysfDMRDGIds.push_back(std::tuple<uint8_t, uint8_t, uint32_t>(dgId, slot, id));
 			}
 		} else if (section == SECTION_YSF_YSF) {
 			if (::strcmp(key, "Enable") == 0)
@@ -945,7 +949,7 @@ bool CConf::getDStarDMREnable() const
 	return m_dstarDMREnable;
 }
 
-std::vector<std::pair<std::string, uint32_t>> CConf::getDStarDMRDests() const
+std::vector<std::tuple<std::string, uint8_t, uint32_t>> CConf::getDStarDMRDests() const
 {
 	return m_dstarDMRDests;
 }
@@ -1005,9 +1009,14 @@ bool CConf::getDMRDStarEnable() const
 	return m_dmrDStarEnable;
 }
 
-bool CConf::getDMRDMREnable() const
+bool CConf::getDMRDMREnable1() const
 {
-	return m_dmrDMREnable;
+	return m_dmrDMREnable1;
+}
+
+bool CConf::getDMRDMREnable2() const
+{
+	return m_dmrDMREnable2;
 }
 
 bool CConf::getDMRYSFEnable() const
@@ -1050,7 +1059,7 @@ bool CConf::getYSFDMREnable() const
 	return m_ysfDMREnable;
 }
 
-std::vector<std::pair<uint8_t, uint32_t>> CConf::getYSFDMRDGIds() const
+std::vector<std::tuple<uint8_t, uint8_t, uint32_t>> CConf::getYSFDMRDGIds() const
 {
 	return m_ysfDMRDGIds;
 }

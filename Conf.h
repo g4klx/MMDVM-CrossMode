@@ -21,6 +21,7 @@
 
 #include <string>
 #include <vector>
+#include <tuple>
 
 class CConf
 {
@@ -68,7 +69,7 @@ public:
 
 	// The D-Star to DMR section
 	bool         getDStarDMREnable() const;
-	std::vector<std::pair<std::string, uint32_t>> getDStarDMRDests() const;
+	std::vector<std::tuple<std::string, uint8_t, uint32_t>> getDStarDMRDests() const;
 
 	// The D-Star to System Fusion section
 	bool         getDStarYSFEnable() const;
@@ -94,7 +95,8 @@ public:
 	bool         getDMRDStarEnable() const;
 
 	// The DMR to DMR section
-	bool         getDMRDMREnable() const;
+	bool         getDMRDMREnable1() const;
+	bool         getDMRDMREnable2() const;
 
 	// The DMR to System Fusion section
 	bool         getDMRYSFEnable() const;
@@ -117,7 +119,7 @@ public:
 
 	// The YSF to DMR section
 	bool         getYSFDMREnable() const;
-	std::vector<std::pair<uint8_t, uint32_t>> getYSFDMRDGIds() const;
+	std::vector<std::tuple<uint8_t, uint8_t, uint32_t>> getYSFDMRDGIds() const;
 
 	// The YSF to System Fusion section
 	bool         getYSFYSFEnable() const;
@@ -312,7 +314,7 @@ private:
 	bool         m_dstarDStarEnable;
 
 	bool         m_dstarDMREnable;
-	std::vector<std::pair<std::string, uint32_t>> m_dstarDMRDests;
+	std::vector<std::tuple<std::string, uint8_t, uint32_t>> m_dstarDMRDests;
 
 	bool         m_dstarYSFEnable;
 	std::vector<std::pair<std::string, uint8_t>> m_dstarYSFDests;
@@ -331,7 +333,8 @@ private:
 
 	bool         m_dmrDStarEnable;
 
-	bool         m_dmrDMREnable;
+	bool         m_dmrDMREnable1;
+	bool         m_dmrDMREnable2;
 
 	bool         m_dmrYSFEnable;
 
@@ -347,7 +350,7 @@ private:
 	std::vector<std::pair<uint8_t, std::string>> m_ysfDStarDGIds;
 
 	bool         m_ysfDMREnable;
-	std::vector<std::pair<uint8_t, uint32_t>> m_ysfDMRDGIds;
+	std::vector<std::tuple<uint8_t, uint8_t, uint32_t>> m_ysfDMRDGIds;
 
 	bool         m_ysfYSFEnable;
 

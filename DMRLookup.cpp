@@ -81,6 +81,10 @@ bool CDMRLookup::load()
 		m_data.push_back(std::pair<uint32_t, std::string>(uint32_t(id), callsign));
 	}
 
+	::fclose(fp);
+
+	::LogMessage("Loaded %u id/callsigns into the DMR/P25 lookup table.", m_data.size());
+
 	m_timer.start();
 
 	return true;

@@ -40,7 +40,8 @@ m_defaultNXDNId(nxdnId),
 m_dmrLookup(),
 m_nxdnLookup(),
 m_toDStar(false),
-m_toDMR(false),
+m_toDMR1(false),
+m_toDMR2(false),
 m_toYSF(false),
 m_toP25(false),
 m_toNXDN(false),
@@ -59,6 +60,7 @@ m_direction(DIR_NONE),
 m_srcCallsign(),
 m_dstCallsign(),
 m_dgId(0U),
+m_slot(0U),
 m_srcId(0U),
 m_dstId(0U),
 m_group(false),
@@ -168,10 +170,11 @@ bool CData::setTranscoder()
 	}
 }
 
-void CData::setToModes(bool toDStar, bool toDMR, bool toYSF, bool toP25, bool toNXDN, bool toFM, bool toM17)
+void CData::setToModes(bool toDStar, bool toDMR1, bool toDMR2, bool toYSF, bool toP25, bool toNXDN, bool toFM, bool toM17)
 {
 	m_toDStar = toDStar;
-	m_toDMR   = toDMR;
+	m_toDMR1  = toDMR1;
+	m_toDMR2  = toDMR2;
 	m_toYSF   = toYSF;
 	m_toP25   = toP25;
 	m_toNXDN  = toNXDN;
@@ -194,7 +197,7 @@ DATA_MODE CData::getToMode() const
 	return m_toMode;
 }
 
-void CData::setDStarDMRDests(const std::vector<std::pair<std::string, uint32_t>>& dests)
+void CData::setDStarDMRDests(const std::vector<std::tuple<std::string, uint8_t, uint32_t>>& dests)
 {
 	m_dstarDMRDests = dests;
 }
@@ -229,7 +232,7 @@ void CData::setYSFDStarDGIds(const std::vector<std::pair<uint8_t, std::string>>&
 	m_ysfDStarDGIds = dgIds;
 }
 
-void CData::setYSFDMRDGIds(const std::vector<std::pair<uint8_t, uint32_t>>& dgIds)
+void CData::setYSFDMRDGIds(const std::vector<std::tuple<uint8_t, uint8_t, uint32_t>>& dgIds)
 {
 	m_ysfDMRDGIds = dgIds;
 }
@@ -280,13 +283,14 @@ void CData::setDStar(NETWORK network, const uint8_t* source, const uint8_t* dest
 	if (network == NET_FROM) {
 		m_toMode = DATA_MODE_NONE;
 
-		uint32_t dstId = find(m_dstarDMRDests, dstCallsign);
-		if (dstId != NULL_ID32) {
+		std::pair<uint8_t, uint32_t> dst = find(m_dstarDMRDests, dstCallsign);
+		if (dst.second != NULL_ID32) {
 			uint32_t srcId = m_dmrLookup.lookup(srcCallsign);
 			if (srcId == NULL_ID32)
 				return;
 
-			m_dstId  = dstId;
+			m_slot   = dst.first;
+			m_dstId  = dst.second;
 			m_srcId  = srcId;
 			m_group  = true;
 			m_toMode = DATA_MODE_DMR;
@@ -382,8 +386,9 @@ void CData::setDStar(NETWORK network, const uint8_t* source, const uint8_t* dest
 	}
 }
 
-void CData::setDMR(NETWORK network, uint32_t source, uint32_t destination, bool group)
+void CData::setDMR(NETWORK network, uint8_t slot, uint32_t source, uint32_t destination, bool group)
 {
+	assert((slot == 1U) || (slot == 2U));
 	assert(source > 0U);
 	assert(destination > 0U);
 
@@ -391,7 +396,15 @@ void CData::setDMR(NETWORK network, uint32_t source, uint32_t destination, bool 
 		m_toMode = DATA_MODE_NONE;
 
 		if (m_toMode == DATA_MODE_NONE) {
-			if (m_toDMR) {
+			if ((slot == 1U) && m_toDMR1) {
+				m_slot   = slot;
+				m_srcId  = source;
+				m_dstId  = destination;
+				m_group  = group;
+				m_toMode = DATA_MODE_DMR;
+			}
+			if ((slot == 2U) && m_toDMR2) {
+				m_slot   = slot;
 				m_srcId  = source;
 				m_dstId  = destination;
 				m_group  = group;
@@ -400,7 +413,7 @@ void CData::setDMR(NETWORK network, uint32_t source, uint32_t destination, bool 
 		}
 	} else {
 		if (m_fromMode == DATA_MODE_DSTAR) {
-			std::string dest = find(m_dstarDMRDests, destination);
+			std::string dest = find(m_dstarDMRDests, slot, destination);
 			if (dest != NULL_CALLSIGN) {
 				std::string src = m_dmrLookup.lookup(source);
 				if (src == NULL_CALLSIGN)
@@ -413,7 +426,7 @@ void CData::setDMR(NETWORK network, uint32_t source, uint32_t destination, bool 
 		}
 
 		else if (m_fromMode == DATA_MODE_YSF) {
-			uint8_t dgId = find(m_ysfDMRDGIds, destination);
+			uint8_t dgId = find(m_ysfDMRDGIds, slot, destination);
 			if (dgId != NULL_DGID) {
 				std::string src = m_dmrLookup.lookup(source);
 				if (src == NULL_CALLSIGN)
@@ -426,7 +439,15 @@ void CData::setDMR(NETWORK network, uint32_t source, uint32_t destination, bool 
 		}
 
 		else if (m_fromMode == DATA_MODE_DMR) {
-			if (m_toDMR) {
+			if ((slot == 1U) && m_toDMR1) {
+				m_slot   = slot;
+				m_srcId  = source;
+				m_dstId  = destination;
+				m_group  = group;
+				m_toMode = DATA_MODE_DMR;
+			}
+			if ((slot == 2U) && m_toDMR2) {
+				m_slot   = slot;
 				m_srcId  = source;
 				m_dstId  = destination;
 				m_group  = group;
@@ -456,14 +477,15 @@ void CData::setYSF(NETWORK network, const uint8_t* source, uint8_t dgId)
 		}
 
 		if (m_toMode == DATA_MODE_NONE) {
-			uint32_t dstId = find(m_ysfDMRDGIds, dgId);
-			if (dstId != NULL_ID32) {
+			std::pair<uint8_t, uint32_t> dst = find(m_ysfDMRDGIds, dgId);
+			if (dst.second != NULL_ID32) {
 				uint32_t srcId = m_dmrLookup.lookup(srcCallsign);
 				if (srcId == NULL_ID32)
 					return;
 
+				m_slot   = dst.first;
 				m_srcId  = srcId;
-				m_dstId  = dstId;
+				m_dstId  = dst.second;
 				m_group  = true;
 				m_toMode = DATA_MODE_DMR;
 			}
@@ -673,8 +695,9 @@ void CData::getDStar(NETWORK network, uint8_t* source, uint8_t* destination) con
 	stringToBytes(destination, DSTAR_LONG_CALLSIGN_LENGTH, m_dstCallsign);
 }
 
-void CData::getDMR(NETWORK network, uint32_t& source, uint32_t& destination, bool& group)
+void CData::getDMR(NETWORK network, uint8_t& slot, uint32_t& source, uint32_t& destination, bool& group)
 {
+	slot        = m_slot;
 	source      = m_srcId;
 	destination = m_dstId;
 	group       = m_group;
@@ -855,21 +878,21 @@ std::string CData::find(const std::vector<std::pair<std::string, uint16_t>>& map
 	return NULL_CALLSIGN;
 }
 
-uint32_t CData::find(const std::vector<std::pair<std::string, uint32_t>>& mapping, const std::string& dest) const
+std::pair<uint8_t, uint32_t> CData::find(const std::vector<std::tuple<std::string, uint8_t, uint32_t>>& mapping, const std::string& dest) const
 {
 	for (const auto& it : mapping) {
-		if (it.first == dest)
-			return it.second;
+		if (std::get<0>(it) == dest)
+			return std::make_pair(std::get<1>(it), std::get<2>(it));
 	}
 
-	return NULL_ID32;
+	return std::make_pair(0U, NULL_ID32);
 }
 
-std::string CData::find(const std::vector<std::pair<std::string, uint32_t>>& mapping, uint32_t tgId) const
+std::string CData::find(const std::vector<std::tuple<std::string, uint8_t, uint32_t>>& mapping, uint8_t slot, uint32_t tgId) const
 {
 	for (const auto& it : mapping) {
-		if (it.second == tgId)
-			return it.first;
+		if ((std::get<1>(it) == slot) && (std::get<2>(it) == tgId))
+			return std::get<0>(it);
 	}
 
 	return NULL_CALLSIGN;
@@ -915,22 +938,22 @@ uint16_t CData::find(const std::vector<std::pair<uint8_t, uint16_t>>& mapping, u
 	return NULL_ID16;
 }
 
-uint8_t CData::find(const std::vector<std::pair<uint8_t, uint32_t>>& mapping, uint32_t tgId) const
+uint8_t CData::find(const std::vector<std::tuple<uint8_t, uint8_t, uint32_t>>& mapping, uint8_t slot, uint32_t tgId) const
 {
 	for (const auto& it : mapping) {
-		if (it.second == tgId)
-			return it.first;
+		if ((std::get<1>(it) == slot) && (std::get<2>(it) == tgId))
+			return std::get<0>(it);
 	}
 
 	return NULL_DGID;
 }
 
-uint32_t CData::find(const std::vector<std::pair<uint8_t, uint32_t>>& mapping, uint8_t dgId) const
+std::pair<uint8_t, uint32_t> CData::find(const std::vector<std::tuple<uint8_t, uint8_t, uint32_t>>& mapping, uint8_t dgId) const
 {
 	for (const auto& it : mapping) {
-		if (it.first == dgId)
-			return it.second;
+		if (std::get<0>(it) == dgId)
+			return std::make_pair(std::get<1>(it), std::get<2>(it));
 	}
 
-	return NULL_ID32;
+	return std::make_pair(0U, NULL_ID32);
 }
