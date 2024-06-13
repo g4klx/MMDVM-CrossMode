@@ -93,6 +93,7 @@ public:
 
 	// The DMR to D-Star section
 	bool         getDMRDStarEnable() const;
+	std::vector<std::tuple<uint8_t, uint32_t, std::string>> getDMRDStarDests() const;
 
 	// The DMR to DMR section
 	bool         getDMRDMREnable1() const;
@@ -100,6 +101,7 @@ public:
 
 	// The DMR to System Fusion section
 	bool         getDMRYSFEnable() const;
+	std::vector<std::tuple<uint8_t, uint32_t, uint8_t>> getDMRYSFDests() const;
 
 	// The DMR to P25 section
 	bool         getDMRP25Enable() const;
@@ -109,9 +111,11 @@ public:
 
 	// The DMR to FM section
 	bool         getDMRFMEnable() const;
+	std::pair<uint8_t, uint32_t> getDMRFMDest() const;
 
 	// The DMR to M17 section
 	bool         getDMRM17Enable() const;
+	std::vector<std::tuple<uint8_t, uint32_t, std::string>> getDMRM17Dests() const;
 
 	// The YSF to D-Star section
 	bool         getYSFDStarEnable() const;
@@ -332,19 +336,23 @@ private:
 	std::vector<std::string> m_dstarM17Dests;
 
 	bool         m_dmrDStarEnable;
+	std::vector<std::tuple<uint8_t, uint32_t, std::string>> m_dmrDStarDests;
 
 	bool         m_dmrDMREnable1;
 	bool         m_dmrDMREnable2;
 
 	bool         m_dmrYSFEnable;
+	std::vector<std::tuple<uint8_t, uint32_t, uint8_t>> m_dmrYSFDests;
 
 	bool         m_dmrP25Enable;
 
 	bool         m_dmrNXDNEnable;
 
 	bool         m_dmrFMEnable;
+	std::pair<uint8_t, uint32_t> m_dmrFMDest;
 
 	bool         m_dmrM17Enable;
+	std::vector<std::tuple<uint8_t, uint32_t, std::string>> m_dmrM17Dests;
 
 	bool         m_ysfDStarEnable;
 	std::vector<std::pair<uint8_t, std::string>> m_ysfDStarDGIds;
@@ -471,6 +479,9 @@ private:
 	std::string  m_m17ToLocalAddress;
 	uint16_t     m_m17ToLocalPort;
 	bool         m_m17ToDebug;
+
+	std::string getString(const char* text) const;
+	std::pair<uint8_t, uint32_t> getSlotTG(char* text) const;
 };
 
 #endif

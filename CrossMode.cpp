@@ -214,8 +214,8 @@ int CCrossMode::run()
 #endif
 
 	DATA_MODE fromMode = getFromMode();
-	if (fromMode = DATA_MODE_NONE) {
-		LogError("Unknown FromMode entered - %s", m_conf.getFromMode().c_str());
+	if (fromMode == DATA_MODE_NONE) {
+		LogError("Unknown FromMode entered - \"%s\"", m_conf.getFromMode().c_str());
 		return 1;
 	}
 

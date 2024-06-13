@@ -22,9 +22,17 @@
 #include <cstdlib>
 #include <cstring>
 #include <cctype>
+#include <cassert>
+
 #include <utility>
 
+#define	TRACE_CONFIG
+
 const int BUFFER_SIZE = 500;
+
+const uint8_t  NULL_SLOT = 0U;
+const uint16_t NULL_ID16 = 0xFFFFU;
+const uint32_t NULL_ID32 = 0xFFFFFFFFU;
 
 enum SECTION {
 	SECTION_NONE,
@@ -127,13 +135,17 @@ m_dstarFMEnable(false),
 m_dstarM17Enable(false),
 m_dstarM17Dests(),
 m_dmrDStarEnable(false),
+m_dmrDStarDests(),
 m_dmrDMREnable1(false),
 m_dmrDMREnable2(false),
 m_dmrYSFEnable(false),
+m_dmrYSFDests(),
 m_dmrP25Enable(false),
 m_dmrNXDNEnable(false),
 m_dmrFMEnable(false),
+m_dmrFMDest(),
 m_dmrM17Enable(false),
+m_dmrM17Dests(),
 m_ysfDStarEnable(false),
 m_ysfDStarDGIds(),
 m_ysfDMREnable(false),
@@ -411,8 +423,7 @@ bool CConf::read()
 				m_logDisplayLevel = (uint32_t)::atoi(value);
 			else if (::strcmp(key, "FileRotate") == 0)
 				m_logFileRotate = ::atoi(value) == 1;
-		}
-		else if (section == SECTION_TRANSCODER) {
+		} else if (section == SECTION_TRANSCODER) {
 			if (::strcmp(key, "Port") == 0)
 				m_transcoderPort = value;
 			else if (::strcmp(key, "Speed") == 0)
@@ -442,22 +453,23 @@ bool CConf::read()
 			if (::strcmp(key, "Enable") == 0) {
 				m_dstarDMREnable = ::atoi(value) == 1;
 			} else if (::strcmp(key, "Dest") == 0) {
-				char* p1 = ::strchr(value, '=');
-				if (p1 == nullptr)
-					break;
-				*p1 = '\0';
-				std::string dest = value;
+				char* p = ::strchr(value, '=');
+				if (p == nullptr)
+					continue;
+				*p = '\0';
 
-				p1++;
-				char* p2 = ::strchr(p1, ',');
-				if (p2 == nullptr)
-					break;
-				*p2 = '\0';
+				std::string dest = getString(value);
+				if (dest.empty())
+					continue;
 
-				uint8_t slot = uint8_t(::atoi(p1));
-				uint32_t  id = uint32_t(::atoi(p2 + 1U));
+				std::pair<uint8_t, uint32_t> slotTG = getSlotTG(p + 1U);
+				if ((slotTG.first == NULL_SLOT) || (slotTG.second == NULL_ID32))
+					continue;
 
-				m_dstarDMRDests.push_back(std::tuple<std::string, uint8_t, uint32_t>{dest, slot, id});
+#if defined(TRACE_CONFIG)
+				::fprintf(stdout, "D-Star => DMR, mapping \"%s\" to %u:TG%u\n", dest.c_str(), slotTG.first, slotTG.second);
+#endif
+				m_dstarDMRDests.push_back(std::tuple<std::string, uint8_t, uint32_t>(dest, slotTG.first, slotTG.second));
 			}
 		} else if (section == SECTION_DSTAR_YSF) {
 			if (::strcmp(key, "Enable") == 0) {
@@ -465,18 +477,18 @@ bool CConf::read()
 			} else if (::strcmp(key, "Dest") == 0) {
 				char* p = ::strchr(value, '=');
 				if (p == nullptr)
-					break;
+					continue;
 				*p = '\0';
-				std::string dest = value;
 
-				p++;
-				size_t len = ::strlen(p);
-				if (len > 1U && *p == '"' && p[len - 1U] == '"') {
-					p[len - 1U] = '\0';
-					p++;
-				}
-				uint8_t dgid = uint8_t(::atoi(p));
+				std::string dest = getString(value);
+				if (dest.empty())
+					continue;
 
+				uint8_t dgid = uint8_t(::atoi(p + 1U));
+
+#if defined(TRACE_CONFIG)
+				::fprintf(stdout, "D-Star => YSF, mapping \"%s\" to %u\n", dest.c_str(), dgid);
+#endif
 				m_dstarYSFDests.push_back(std::pair<std::string, uint8_t>(dest, dgid));
 			}
 		} else if (section == SECTION_DSTAR_P25) {
@@ -485,18 +497,18 @@ bool CConf::read()
 			} else if (::strcmp(key, "Dest") == 0) {
 				char* p = ::strchr(value, '=');
 				if (p == nullptr)
-					break;
+					continue;
 				*p = '\0';
-				std::string dest = value;
 
-				p++;
-				size_t len = ::strlen(p);
-				if (len > 1U && *p == '"' && p[len - 1U] == '"') {
-					p[len - 1U] = '\0';
-					p++;
-				}
-				uint16_t tgid = uint16_t(::atoi(p));
+				std::string dest = getString(value);
+				if (dest.empty())
+					continue;
 
+				uint16_t tgid = uint16_t(::atoi(p + 1U));
+
+#if defined(TRACE_CONFIG)
+				::fprintf(stdout, "D-Star => P25, mapping \"%s\" to TG%u\n", dest.c_str(), tgid);
+#endif
 				m_dstarP25Dests.push_back(std::pair<std::string, uint16_t>(dest, tgid));
 			}
 		} else if (section == SECTION_DSTAR_NXDN) {
@@ -505,41 +517,91 @@ bool CConf::read()
 			} else if (::strcmp(key, "Dest") == 0) {
 				char* p = ::strchr(value, '=');
 				if (p == nullptr)
-					break;
+					continue;
 				*p = '\0';
-				std::string dest = value;
 
-				p++;
-				size_t len = ::strlen(p);
-				if (len > 1U && *p == '"' && p[len - 1U] == '"') {
-					p[len - 1U] = '\0';
-					p++;
-				}
-				uint16_t tgid = uint16_t(::atoi(p));
+				std::string dest = getString(value);
+				if (dest.empty())
+					continue;
 
+				uint16_t tgid = uint16_t(::atoi(p + 1U));
+
+#if defined(TRACE_CONFIG)
+				::fprintf(stdout, "D-Star => NXDN, mapping \"%s\" to TG%u\n", dest.c_str(), tgid);
+#endif
 				m_dstarNXDNDests.push_back(std::pair<std::string, uint16_t>(dest, tgid));
 			}
 		} else if (section == SECTION_DSTAR_FM) {
-			if (::strcmp(key, "Enable") == 0)
+			if (::strcmp(key, "Enable") == 0) {
 				m_dstarFMEnable = ::atoi(value) == 1;
-			else if (::strcmp(key, "Dest") == 0)
-				m_dstarFMDest = value;
+			} else if (::strcmp(key, "Dest") == 0) {
+				std::string dest = getString(value);
+				if (dest.empty())
+					continue;
+#if defined(TRACE_CONFIG)
+				::fprintf(stdout, "D-Star => FM, mapping \"%s\"\n", dest.c_str());
+#endif
+				m_dstarFMDest = dest;
+			}
 		} else if (section == SECTION_DSTAR_M17) {
-			if (::strcmp(key, "Enable") == 0)
+			if (::strcmp(key, "Enable") == 0) {
 				m_dstarM17Enable = ::atoi(value) == 1;
-			else if (::strcmp(key, "Dest") == 0)
-				m_dstarM17Dests.push_back(value);
+			} else if (::strcmp(key, "Dest") == 0) {
+				std::string dest = getString(value);
+				if (dest.empty())
+					continue;
+#if defined(TRACE_CONFIG)
+				::fprintf(stdout, "D-Star => M17, mapping \"%s\"\n", dest.c_str());
+#endif
+				m_dstarM17Dests.push_back(dest);
+			}
 		} else if (section == SECTION_DMR_DSTAR) {
-			if (::strcmp(key, "Enable") == 0)
+			if (::strcmp(key, "Enable") == 0) {
 				m_dmrDStarEnable = ::atoi(value) == 1;
+			} else if (::strcmp(key, "TG") == 0) {
+				char* p = ::strchr(value, '=');
+				if (p == nullptr)
+					continue;
+				*p = '\0';
+
+				std::pair<uint8_t, uint32_t> slotTG = getSlotTG(value);
+				if ((slotTG.first == NULL_SLOT) || (slotTG.second == NULL_ID32))
+					continue;
+
+				std::string dest = getString(p + 1U);
+				if (dest.empty())
+					continue;
+
+#if defined(TRACE_CONFIG)
+				::fprintf(stdout, "DMR => D-Star, mapping %u:TG%u to \"%s\"\n", slotTG.first, slotTG.second, dest.c_str());
+#endif
+				m_dmrDStarDests.push_back(std::tuple<uint8_t, uint32_t, std::string>(slotTG.first, slotTG.second, dest));
+			}
 		} else if (section == SECTION_DMR_DMR) {
 			if (::strcmp(key, "Enable1") == 0)
 				m_dmrDMREnable1 = ::atoi(value) == 1;
 			else if (::strcmp(key, "Enable2") == 0)
 				m_dmrDMREnable2 = ::atoi(value) == 1;
 		} else if (section == SECTION_DMR_YSF) {
-			if (::strcmp(key, "Enable") == 0)
+			if (::strcmp(key, "Enable") == 0) {
 				m_dmrYSFEnable = ::atoi(value) == 1;
+			} else if (::strcmp(key, "TG") == 0) {
+				char* p = ::strchr(value, '=');
+				if (p == nullptr)
+					continue;
+				*p = '\0';
+
+				std::pair<uint8_t, uint32_t> slotTG = getSlotTG(value);
+				if ((slotTG.first == NULL_SLOT) || (slotTG.second == NULL_ID32))
+					continue;
+
+				uint8_t dgId = uint8_t(::atoi(p + 1U));
+
+#if defined(TRACE_CONFIG)
+				::fprintf(stdout, "DMR => YSF, mapping %u:TG%u to %u\n", slotTG.first, slotTG.second, dgId);
+#endif
+				m_dmrYSFDests.push_back(std::tuple<uint8_t, uint32_t, uint8_t>(slotTG.first, slotTG.second, dgId));
+			}
 		} else if (section == SECTION_DMR_P25) {
 			if (::strcmp(key, "Enable") == 0)
 				m_dmrP25Enable = ::atoi(value) == 1;
@@ -547,50 +609,79 @@ bool CConf::read()
 			if (::strcmp(key, "Enable") == 0)
 				m_dmrNXDNEnable = ::atoi(value) == 1;
 		} else if (section == SECTION_DMR_FM) {
-			if (::strcmp(key, "Enable") == 0)
+			if (::strcmp(key, "Enable") == 0) {
 				m_dmrFMEnable = ::atoi(value) == 1;
+			} else if (::strcmp(key, "TG") == 0) {
+				std::pair<uint8_t, uint32_t> slotTG = getSlotTG(value);
+				if ((slotTG.first == NULL_SLOT) || (slotTG.second == NULL_ID32))
+					continue;
+
+#if defined(TRACE_CONFIG)
+				::fprintf(stdout, "DMR => FM, mapping %u:TG%u\n", slotTG.first, slotTG.second);
+#endif
+				m_dmrFMDest = std::make_pair(slotTG.first, slotTG.second);
+			}
 		} else if (section == SECTION_DMR_M17) {
-			if (::strcmp(key, "Enable") == 0)
+			if (::strcmp(key, "Enable") == 0) {
 				m_dmrM17Enable = ::atoi(value) == 1;
+			} else if (::strcmp(key, "TG") == 0) {
+				char* p = ::strchr(value, '=');
+				if (p == nullptr)
+					continue;
+				*p = '\0';
+
+				std::pair<uint8_t, uint32_t> slotTG = getSlotTG(value);
+				if ((slotTG.first == NULL_SLOT) || (slotTG.second == NULL_ID32))
+					continue;
+
+				std::string dest = getString(p + 1U);
+				if (dest.empty())
+					continue;
+
+#if defined(TRACE_CONFIG)
+				::fprintf(stdout, "DMR => M17, mapping %u:TG%u to \"%s\"\n", slotTG.first, slotTG.second, dest.c_str());
+#endif
+				m_dmrM17Dests.push_back(std::tuple<uint8_t, uint32_t, std::string>(slotTG.first, slotTG.second, dest));
+			}
 		} else if (section == SECTION_YSF_DSTAR) {
 			if (::strcmp(key, "Enable") == 0) {
 				m_ysfDStarEnable = ::atoi(value) == 1;
 			} else if (::strcmp(key, "DGId") == 0) {
 				char* p = ::strchr(value, '=');
 				if (p == nullptr)
-					break;
+					continue;
 				*p = '\0';
+
 				uint8_t dgId = uint8_t(::atoi(value));
 
-				p++;
-				size_t len = ::strlen(p);
-				if (len > 1U && *p == '"' && p[len - 1U] == '"') {
-					p[len - 1U] = '\0';
-					p++;
-				}
-				std::string text = std::string(p);
+				std::string dest = getString(p + 1U);
+				if (dest.empty())
+					continue;
 
-				m_ysfDStarDGIds.push_back(std::pair<uint8_t, std::string>(dgId, text));
+#if defined(TRACE_CONFIG)
+				::fprintf(stdout, "YSF => D-Star, mapping %u to \"%s\"\n", dgId, dest.c_str());
+#endif
+				m_ysfDStarDGIds.push_back(std::pair<uint8_t, std::string>(dgId, dest));
 			}
 		} else if (section == SECTION_YSF_DMR) {
 			if (::strcmp(key, "Enable") == 0) {
 				m_ysfDMREnable = ::atoi(value) == 1;
 			} else if (::strcmp(key, "DGId") == 0) {
-				char* p1 = ::strchr(value, '=');
-				if (p1 == nullptr)
-					break;
-				*p1 = '\0';
+				char* p = ::strchr(value, '=');
+				if (p == nullptr)
+					continue;
+				*p = '\0';
+
 				uint8_t dgId = uint8_t(::atoi(value));
 
-				p1++;
-				char* p2 = ::strchr(p1, ',');
-				if (p2 == nullptr)
-					break;
+				std::pair<uint8_t, uint32_t> slotTG = getSlotTG(p + 1U);
+				if ((slotTG.first == NULL_SLOT) || (slotTG.second == NULL_ID32))
+					continue;
 
-				uint8_t slot = uint8_t(::atoi(p1));
-				uint32_t id  = uint32_t(::atoi(p2 + 1U));
-
-				m_ysfDMRDGIds.push_back(std::tuple<uint8_t, uint8_t, uint32_t>(dgId, slot, id));
+#if defined(TRACE_CONFIG)
+				::fprintf(stdout, "YSF => DMR, mapping %u to %u:TG%u\n", dgId, slotTG.first, slotTG.second);
+#endif
+				m_ysfDMRDGIds.push_back(std::tuple<uint8_t, uint8_t, uint32_t>(dgId, slotTG.first, slotTG.second));
 			}
 		} else if (section == SECTION_YSF_YSF) {
 			if (::strcmp(key, "Enable") == 0)
@@ -601,18 +692,16 @@ bool CConf::read()
 			} else if (::strcmp(key, "DGId") == 0) {
 				char* p = ::strchr(value, '=');
 				if (p == nullptr)
-					break;
+					continue;
 				*p = '\0';
+
 				uint8_t dgId = uint8_t(::atoi(value));
 
-				p++;
-				size_t len = ::strlen(p);
-				if (len > 1U && *p == '"' && p[len - 1U] == '"') {
-					p[len - 1U] = '\0';
-					p++;
-				}
-				uint16_t tgid = uint16_t(::atoi(p));
+				uint16_t tgid = uint16_t(::atoi(p + 1U));
 
+#if defined(TRACE_CONFIG)
+				::fprintf(stdout, "YSF => P25, mapping %u to TG%u\n", dgId, tgid);
+#endif
 				m_ysfP25DGIds.push_back(std::pair<uint8_t, uint16_t>(dgId, tgid));
 			}
 		} else if (section == SECTION_YSF_NXDN) {
@@ -621,44 +710,46 @@ bool CConf::read()
 			} else if (::strcmp(key, "DGId") == 0) {
 				char* p = ::strchr(value, '=');
 				if (p == nullptr)
-					break;
+					continue;
 				*p = '\0';
+
 				uint8_t dgId = uint8_t(::atoi(value));
 
-				p++;
-				size_t len = ::strlen(p);
-				if (len > 1U && *p == '"' && p[len - 1U] == '"') {
-					p[len - 1U] = '\0';
-					p++;
-				}
-				uint16_t tgid = uint16_t(::atoi(p));
+				uint16_t tgid = uint16_t(::atoi(p + 1U));
 
+#if defined(TRACE_CONFIG)
+				::fprintf(stdout, "YSF => NXDN, mapping %u to TG%u\n", dgId, tgid);
+#endif
 				m_ysfNXDNDGIds.push_back(std::pair<uint8_t, uint16_t>(dgId, tgid));
 			}
 		} else if (section == SECTION_YSF_FM) {
-			if (::strcmp(key, "Enable") == 0)
+			if (::strcmp(key, "Enable") == 0) {
 				m_ysfFMEnable = ::atoi(value) == 1;
-			else if (::strcmp(key, "DGId") == 0)
+			} else if (::strcmp(key, "DGId") == 0) {
 				m_ysfFMDGId = uint8_t(::atoi(value));
+#if defined(TRACE_CONFIG)
+				::fprintf(stdout, "YSF => FM, mapping %u\n", m_ysfFMDGId);
+#endif
+			}
 		} else if (section == SECTION_YSF_M17) {
 			if (::strcmp(key, "Enable") == 0) {
 				m_ysfM17Enable = ::atoi(value) == 1;
 			} else if (::strcmp(key, "DGId") == 0) {
 				char* p = ::strchr(value, '=');
 				if (p == nullptr)
-					break;
+					continue;
 				*p = '\0';
+
 				uint8_t dgId = uint8_t(::atoi(value));
 
-				p++;
-				size_t len = ::strlen(p);
-				if (len > 1U && *p == '"' && p[len - 1U] == '"') {
-					p[len - 1U] = '\0';
-					p++;
-				}
-				std::string text = std::string(p);
+				std::string dest = getString(p + 1U);
+				if (dest.empty())
+					continue;
 
-				m_ysfM17DGIds.push_back(std::pair<uint8_t, std::string>(dgId, text));
+#if defined(TRACE_CONFIG)
+				::fprintf(stdout, "YSF => M17, mapping %u to \"%s\"\n", dgId, dest.c_str());
+#endif
+				m_ysfM17DGIds.push_back(std::pair<uint8_t, std::string>(dgId, dest));
 			}
 		} else if (section == SECTION_P25_DSTAR) {
 			if (::strcmp(key, "Enable") == 0)
@@ -1009,6 +1100,11 @@ bool CConf::getDMRDStarEnable() const
 	return m_dmrDStarEnable;
 }
 
+std::vector<std::tuple<uint8_t, uint32_t, std::string>> CConf::getDMRDStarDests() const
+{
+	return m_dmrDStarDests;
+}
+
 bool CConf::getDMRDMREnable1() const
 {
 	return m_dmrDMREnable1;
@@ -1022,6 +1118,11 @@ bool CConf::getDMRDMREnable2() const
 bool CConf::getDMRYSFEnable() const
 {
 	return m_dmrYSFEnable;
+}
+
+std::vector<std::tuple<uint8_t, uint32_t, uint8_t>> CConf::getDMRYSFDests() const
+{
+	return m_dmrYSFDests;
 }
 
 bool CConf::getDMRP25Enable() const
@@ -1039,9 +1140,19 @@ bool CConf::getDMRFMEnable() const
 	return m_dmrFMEnable;
 }
 
+std::pair<uint8_t, uint32_t> CConf::getDMRFMDest() const
+{
+	return m_dmrFMDest;
+}
+
 bool CConf::getDMRM17Enable() const
 {
 	return m_dmrM17Enable;
+}
+
+std::vector<std::tuple<uint8_t, uint32_t, std::string>> CConf::getDMRM17Dests() const
+{
+	return m_dmrM17Dests;
 }
 
 bool CConf::getYSFDStarEnable() const
@@ -1457,4 +1568,31 @@ uint16_t CConf::getM17ToLocalPort() const
 bool CConf::getM17ToDebug() const
 {
 	return m_m17ToDebug;
+}
+
+std::string CConf::getString(const char* text) const
+{
+	assert(text != nullptr);
+
+	size_t len = ::strlen(text);
+	if (len > 1U && *text == '"' && text[len - 1U] == '"')
+		return std::string(text + 1U, len - 2U);
+	else
+		return std::string(text);
+}
+
+std::pair<uint8_t, uint32_t> CConf::getSlotTG(char* text) const
+{
+	assert(text != nullptr);
+
+	char* p = ::strchr(text, ',');
+	if (p == nullptr)
+		return std::pair<uint8_t, uint32_t>(NULL_SLOT, NULL_ID32);
+
+	*p = '\0';
+
+	uint8_t  slot = uint8_t(::atoi(text));
+	uint32_t   id = uint32_t(::atoi(p + 1U));
+
+	return std::pair<uint8_t, uint32_t>(slot, id);
 }
