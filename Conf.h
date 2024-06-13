@@ -93,7 +93,7 @@ public:
 
 	// The DMR to D-Star section
 	bool         getDMRDStarEnable() const;
-	std::vector<std::tuple<uint8_t, uint32_t, std::string>> getDMRDStarDests() const;
+	std::vector<std::tuple<uint8_t, uint32_t, std::string>> getDMRDStarTGs() const;
 
 	// The DMR to DMR section
 	bool         getDMRDMREnable1() const;
@@ -101,21 +101,23 @@ public:
 
 	// The DMR to System Fusion section
 	bool         getDMRYSFEnable() const;
-	std::vector<std::tuple<uint8_t, uint32_t, uint8_t>> getDMRYSFDests() const;
+	std::vector<std::tuple<uint8_t, uint32_t, uint8_t>> getDMRYSFTGs() const;
 
 	// The DMR to P25 section
 	bool         getDMRP25Enable() const;
+	std::vector<std::tuple<uint8_t, uint32_t, uint16_t>> getDMRP25TGs() const;
 
 	// The DMR to NXDN section
 	bool         getDMRNXDNEnable() const;
+	std::vector<std::tuple<uint8_t, uint32_t, uint16_t>> getDMRNXDNTGs() const;
 
 	// The DMR to FM section
 	bool         getDMRFMEnable() const;
-	std::pair<uint8_t, uint32_t> getDMRFMDest() const;
+	std::pair<uint8_t, uint32_t> getDMRFMTG() const;
 
 	// The DMR to M17 section
 	bool         getDMRM17Enable() const;
-	std::vector<std::tuple<uint8_t, uint32_t, std::string>> getDMRM17Dests() const;
+	std::vector<std::tuple<uint8_t, uint32_t, std::string>> getDMRM17TGs() const;
 
 	// The YSF to D-Star section
 	bool         getYSFDStarEnable() const;
@@ -336,23 +338,25 @@ private:
 	std::vector<std::string> m_dstarM17Dests;
 
 	bool         m_dmrDStarEnable;
-	std::vector<std::tuple<uint8_t, uint32_t, std::string>> m_dmrDStarDests;
+	std::vector<std::tuple<uint8_t, uint32_t, std::string>> m_dmrDStarTGs;
 
 	bool         m_dmrDMREnable1;
 	bool         m_dmrDMREnable2;
 
 	bool         m_dmrYSFEnable;
-	std::vector<std::tuple<uint8_t, uint32_t, uint8_t>> m_dmrYSFDests;
+	std::vector<std::tuple<uint8_t, uint32_t, uint8_t>> m_dmrYSFTGs;
 
 	bool         m_dmrP25Enable;
+	std::vector<std::tuple<uint8_t, uint32_t, uint16_t>> m_dmrP25TGs;
 
 	bool         m_dmrNXDNEnable;
+	std::vector<std::tuple<uint8_t, uint32_t, uint16_t>> m_dmrNXDNTGs;
 
 	bool         m_dmrFMEnable;
-	std::pair<uint8_t, uint32_t> m_dmrFMDest;
+	std::pair<uint8_t, uint32_t> m_dmrFMTG;
 
 	bool         m_dmrM17Enable;
-	std::vector<std::tuple<uint8_t, uint32_t, std::string>> m_dmrM17Dests;
+	std::vector<std::tuple<uint8_t, uint32_t, std::string>> m_dmrM17TGs;
 
 	bool         m_ysfDStarEnable;
 	std::vector<std::pair<uint8_t, std::string>> m_ysfDStarDGIds;

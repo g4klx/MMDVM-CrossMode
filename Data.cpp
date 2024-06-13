@@ -29,6 +29,7 @@
 
 const std::string NULL_CALLSIGN = "";
 const uint8_t  NULL_DGID = 0xFFU;
+const uint8_t  NULL_SLOT = 0U;
 const uint16_t NULL_ID16 = 0xFFFFU;
 const uint32_t NULL_ID32 = 0xFFFFFFFFU;
 
@@ -47,11 +48,24 @@ m_toP25(false),
 m_toNXDN(false),
 m_toFM(false),
 m_toM17(false),
+m_dstarDMRDests(),
+m_dstarYSFDests(),
+m_dstarP25Dests(),
+m_dstarNXDNDests(),
 m_dstarFMDest(NULL_CALLSIGN),
 m_dstarM17Dests(),
 m_ysfDStarDGIds(),
+m_ysfDMRDGIds(),
+m_ysfP25DGIds(),
+m_ysfNXDNDGIds(),
 m_ysfFMDGId(NULL_DGID),
 m_ysfM17DGIds(),
+m_dmrDStarTGs(),
+m_dmrYSFTGs(),
+m_dmrP25TGs(),
+m_dmrNXDNTGs(),
+m_dmrFMTG(),
+m_dmrM17TGs(),
 m_m17DStarDests(),
 m_m17FMDest(NULL_CALLSIGN),
 m_fromMode(DATA_MODE_NONE),
@@ -59,10 +73,10 @@ m_toMode(DATA_MODE_NONE),
 m_direction(DIR_NONE),
 m_srcCallsign(),
 m_dstCallsign(),
-m_dgId(0U),
-m_slot(0U),
-m_srcId(0U),
-m_dstId(0U),
+m_dgId(NULL_DGID),
+m_slot(NULL_SLOT),
+m_srcId(NULL_ID32),
+m_dstId(NULL_ID32),
 m_group(false),
 m_end(false),
 m_data(nullptr),
@@ -257,6 +271,36 @@ void CData::setYSFM17DGIds(const std::vector<std::pair<uint8_t, std::string>>& d
 	m_ysfM17DGIds = dgIds;
 }
 
+void CData::setDMRDStarTGs(const std::vector<std::tuple<uint8_t, uint32_t, std::string>>& tgs)
+{
+	m_dmrDStarTGs = tgs;
+}
+
+void CData::setDMRYSFTGs(const std::vector<std::tuple<uint8_t, uint32_t, uint8_t>>& tgs)
+{
+	m_dmrYSFTGs = tgs;
+}
+
+void CData::setDMRP25TGs(const std::vector<std::tuple<uint8_t, uint32_t, uint16_t>>& tgs)
+{
+	m_dmrP25TGs = tgs;
+}
+
+void CData::setDMRNXDNTGs(const std::vector<std::tuple<uint8_t, uint32_t, uint16_t>>& tgs)
+{
+	m_dmrNXDNTGs = tgs;
+}
+
+void CData::setDMRFMTG(const std::pair<uint8_t, uint32_t>& tg)
+{
+	m_dmrFMTG = tg;
+}
+
+void CData::setDMRM17TGs(const std::vector<std::tuple<uint8_t, uint32_t, std::string>>& tgs)
+{
+	m_dmrM17TGs = tgs;
+}
+
 void CData::setM17DStarDests(const std::vector<std::string>& dests)
 {
 	m_m17DStarDests = dests;
@@ -289,6 +333,8 @@ void CData::setDStar(NETWORK network, const uint8_t* source, const uint8_t* dest
 			if (srcId == NULL_ID32)
 				return;
 
+			LogDebug("D-Star => DMR, %s>%s -> %u>%u:%u", srcCallsign.c_str(), dstCallsign.c_str(), srcId, dst.first, dst.second);
+
 			m_slot   = dst.first;
 			m_dstId  = dst.second;
 			m_srcId  = srcId;
@@ -299,6 +345,8 @@ void CData::setDStar(NETWORK network, const uint8_t* source, const uint8_t* dest
 		if (m_toMode == DATA_MODE_NONE) {
 			uint8_t dgId = find(m_dstarYSFDests, dstCallsign);
 			if (dgId != NULL_DGID) {
+				LogDebug("D-Star => YSF, %s>%s -> %s>%u", srcCallsign.c_str(), dstCallsign.c_str(), srcCallsign.c_str(), dgId);
+
 				m_dgId        = dgId;
 				m_srcCallsign = srcCallsign;
 				m_toMode      = DATA_MODE_YSF;
@@ -311,6 +359,8 @@ void CData::setDStar(NETWORK network, const uint8_t* source, const uint8_t* dest
 				uint32_t srcId = m_dmrLookup.lookup(srcCallsign);
 				if (srcId == NULL_ID32)
 					return;
+
+				LogDebug("D-Star => P25, %s>%s -> %u>%u", srcCallsign.c_str(), dstCallsign.c_str(), srcId, dstId);
 
 				m_dstId  = dstId;
 				m_srcId  = srcId;
@@ -326,6 +376,8 @@ void CData::setDStar(NETWORK network, const uint8_t* source, const uint8_t* dest
 				if (srcId == NULL_ID16)
 					return;
 
+				LogDebug("D-Star => NXDN, %s>%s -> %u>%u", srcCallsign.c_str(), dstCallsign.c_str(), srcId, dstId);
+
 				m_dstId  = dstId;
 				m_srcId  = srcId;
 				m_group  = true;
@@ -334,13 +386,17 @@ void CData::setDStar(NETWORK network, const uint8_t* source, const uint8_t* dest
 		}
 
 		if (m_toMode == DATA_MODE_NONE) {
-			if (dstCallsign == m_dstarFMDest)
+			if (dstCallsign == m_dstarFMDest) {
+				LogDebug("D-Star => FM, %s>%s ->", srcCallsign.c_str(), dstCallsign.c_str());
 				m_toMode = DATA_MODE_FM;
+			}
 		}
 
 		if (m_toMode == DATA_MODE_NONE) {
 			const auto it = std::find(m_dstarM17Dests.cbegin(), m_dstarM17Dests.cend(), dstCallsign);
 			if (it != m_dstarM17Dests.cend()) {
+				LogDebug("D-Star => M17, %s>%s -> %s>%s", srcCallsign.c_str(), dstCallsign.c_str(), srcCallsign.c_str(), dstCallsign.c_str());
+
 				m_srcCallsign = srcCallsign;
 				m_dstCallsign = dstCallsign;
 				m_toMode      = DATA_MODE_M17;
@@ -349,15 +405,34 @@ void CData::setDStar(NETWORK network, const uint8_t* source, const uint8_t* dest
 
 		if (m_toMode == DATA_MODE_NONE) {
 			if (m_toDStar) {
+				LogDebug("D-Star => D-Star, %s>%s -> %s>%s", srcCallsign.c_str(), dstCallsign.c_str(), srcCallsign.c_str(), dstCallsign.c_str());
+
 				m_srcCallsign = srcCallsign;
 				m_dstCallsign = dstCallsign;
 				m_toMode      = DATA_MODE_DSTAR;
 			}
 		}
 	} else {
+		if (m_fromMode == DATA_MODE_DMR) {
+			std::pair<uint8_t, uint32_t> slotTG = find(m_dmrDStarTGs, dstCallsign);
+			if (slotTG.second != NULL_ID32) {
+				uint32_t srcId = m_dmrLookup.lookup(srcCallsign);
+				if (srcId != NULL_ID32) {
+					LogDebug("D-Star <= DMR, %s>%s -> %u>%u:%u", srcCallsign.c_str(), dstCallsign.c_str(), srcId, slotTG.first, slotTG.second);
+
+					m_slot   = slotTG.first;
+					m_srcId  = srcId;
+					m_dstId  = slotTG.second;
+					m_toMode = DATA_MODE_DSTAR;
+				}
+			}
+		}
+
 		if (m_fromMode == DATA_MODE_YSF) {
 			uint8_t dgId = find(m_ysfDStarDGIds, dstCallsign);
 			if (dgId != NULL_DGID) {
+				LogDebug("D-Star <= YSF, %s>%s -> %s>%u", srcCallsign.c_str(), dstCallsign.c_str(), srcCallsign.c_str(), dgId);
+
 				m_srcCallsign = srcCallsign;
 				m_dgId        = dgId;
 				m_toMode      = DATA_MODE_DSTAR;
@@ -367,6 +442,8 @@ void CData::setDStar(NETWORK network, const uint8_t* source, const uint8_t* dest
 		else if (m_fromMode == DATA_MODE_M17) {
 			const auto it = std::find(m_m17DStarDests.cbegin(), m_m17DStarDests.cend(), dstCallsign);
 			if (it != m_m17DStarDests.cend()) {
+				LogDebug("D-Star <= M17, %s>%s -> %s>%s", srcCallsign.c_str(), dstCallsign.c_str(), srcCallsign.c_str(), dstCallsign.c_str());
+
 				m_srcCallsign = srcCallsign;
 				m_dstCallsign = dstCallsign;
 				m_toMode      = DATA_MODE_DSTAR;
@@ -375,6 +452,8 @@ void CData::setDStar(NETWORK network, const uint8_t* source, const uint8_t* dest
 
 		else if (m_fromMode == DATA_MODE_DSTAR) {
 			if (m_toDStar) {
+				LogDebug("D-Star <= D-Star, %s>%s -> %s>%s", srcCallsign.c_str(), dstCallsign.c_str(), srcCallsign.c_str(), dstCallsign.c_str());
+
 				m_srcCallsign = srcCallsign;
 				m_dstCallsign = dstCallsign;
 				m_toMode      = DATA_MODE_DSTAR;
@@ -395,8 +474,59 @@ void CData::setDMR(NETWORK network, uint8_t slot, uint32_t source, uint32_t dest
 	if (network == NET_FROM) {
 		m_toMode = DATA_MODE_NONE;
 
+		std::string dst = find(m_dmrDStarTGs, slot, destination);
+		if (!dst.empty()) {
+			std::string src = m_dmrLookup.lookup(source);
+			if (!src.empty()) {
+				LogDebug("DMR => D-Star, %u>%u:%u -> %s>%s", source, slot, destination, src.c_str(), dst.c_str());
+
+				m_srcCallsign = src;
+				m_dstCallsign = dst;
+				m_toMode      = DATA_MODE_DSTAR;
+			}
+		}
+
+		if (m_toMode == DATA_MODE_NONE) {
+			uint8_t dgId = find(m_dmrYSFTGs, slot, destination);
+			if (dgId != NULL_DGID) {
+				std::string src = m_dmrLookup.lookup(source);
+				if (!src.empty()) {
+					LogDebug("DMR => YSF, %u>%u:%u -> %s>%u", source, slot, destination, src.c_str(), dgId);
+
+					m_srcCallsign = src;
+					m_dgId        = dgId;
+					m_toMode      = DATA_MODE_YSF;
+				}
+			}
+		}
+
+		if (m_toMode == DATA_MODE_NONE) {
+			std::pair<uint8_t, uint32_t> tg = std::make_pair(slot, destination);
+			if (tg == m_dmrFMTG) {
+				LogDebug("DMR => FM, %u>%u:%u ->", source, slot, destination);
+
+				m_toMode = DATA_MODE_FM;
+			}
+		}
+
+		if (m_toMode == DATA_MODE_NONE) {
+			std::string dst = find(m_dmrM17TGs, slot, destination);
+			if (!dst.empty()) {
+				std::string src = m_dmrLookup.lookup(source);
+				if (!src.empty()) {
+					LogDebug("DMR => M17, %u>%u:%u -> %s>%s", source, slot, destination, src.c_str(), dst.c_str());
+
+					m_srcCallsign = src;
+					m_dstCallsign = dst;
+					m_toMode      = DATA_MODE_M17;
+				}
+			}
+		}
+
 		if (m_toMode == DATA_MODE_NONE) {
 			if ((slot == 1U) && m_toDMR1) {
+				LogDebug("DMR => DMR, %u>%u:%u -> %u>%u:%u", source, slot, destination, source, slot, destination);
+
 				m_slot   = slot;
 				m_srcId  = source;
 				m_dstId  = destination;
@@ -404,6 +534,8 @@ void CData::setDMR(NETWORK network, uint8_t slot, uint32_t source, uint32_t dest
 				m_toMode = DATA_MODE_DMR;
 			}
 			if ((slot == 2U) && m_toDMR2) {
+				LogDebug("DMR => DMR, %u>%u:%u -> %u>%u:%u", source, slot, destination, source, slot, destination);
+
 				m_slot   = slot;
 				m_srcId  = source;
 				m_dstId  = destination;
@@ -419,6 +551,8 @@ void CData::setDMR(NETWORK network, uint8_t slot, uint32_t source, uint32_t dest
 				if (src == NULL_CALLSIGN)
 					return;
 
+				LogDebug("DMR <= D-Star, %u>%u:%u -> %s>%s", source, slot, destination, src.c_str(), dest.c_str());
+
 				m_srcCallsign = src;
 				m_dstCallsign = dest;
 				m_toMode      = DATA_MODE_DSTAR;
@@ -432,6 +566,8 @@ void CData::setDMR(NETWORK network, uint8_t slot, uint32_t source, uint32_t dest
 				if (src == NULL_CALLSIGN)
 					return;
 
+				LogDebug("DMR <= YSF, %u>%u:%u -> %s>%u", source, slot, destination, src.c_str(), dgId);
+
 				m_srcCallsign = src;
 				m_dgId        = dgId;
 				m_toMode      = DATA_MODE_DMR;
@@ -440,6 +576,8 @@ void CData::setDMR(NETWORK network, uint8_t slot, uint32_t source, uint32_t dest
 
 		else if (m_fromMode == DATA_MODE_DMR) {
 			if ((slot == 1U) && m_toDMR1) {
+				LogDebug("DMR <= DMR, %u>%u:%u -> %u>%u:%u", source, slot, destination, source, slot, destination);
+
 				m_slot   = slot;
 				m_srcId  = source;
 				m_dstId  = destination;
@@ -447,6 +585,8 @@ void CData::setDMR(NETWORK network, uint8_t slot, uint32_t source, uint32_t dest
 				m_toMode = DATA_MODE_DMR;
 			}
 			if ((slot == 2U) && m_toDMR2) {
+				LogDebug("DMR <= DMR, %u>%u:%u -> %u>%u:%u", source, slot, destination, source, slot, destination);
+
 				m_slot   = slot;
 				m_srcId  = source;
 				m_dstId  = destination;
@@ -470,6 +610,8 @@ void CData::setYSF(NETWORK network, const uint8_t* source, uint8_t dgId)
 		m_toMode = DATA_MODE_NONE;
 
 		std::string dest = find(m_ysfDStarDGIds, dgId);
+		LogDebug("YSF => D-Star, %s>%u -> %s>%s", srcCallsign.c_str(), dgId, srcCallsign.c_str(), dest.c_str());
+
 		if (dest != NULL_CALLSIGN) {
 			m_srcCallsign = srcCallsign;
 			m_dstCallsign = dest;
@@ -482,6 +624,8 @@ void CData::setYSF(NETWORK network, const uint8_t* source, uint8_t dgId)
 				uint32_t srcId = m_dmrLookup.lookup(srcCallsign);
 				if (srcId == NULL_ID32)
 					return;
+
+				LogDebug("YSF => DMR, %s>%u -> %u>%u:%u", srcCallsign.c_str(), dgId, srcId, dst.first, dst.second);
 
 				m_slot   = dst.first;
 				m_srcId  = srcId;
@@ -498,6 +642,8 @@ void CData::setYSF(NETWORK network, const uint8_t* source, uint8_t dgId)
 				if (srcId == NULL_ID32)
 					return;
 
+				LogDebug("YSF => P25, %s>%u -> %u>%u", srcCallsign.c_str(), dgId, srcId, dstId);
+
 				m_srcId  = srcId;
 				m_dstId  = dstId;
 				m_group  = true;
@@ -512,6 +658,8 @@ void CData::setYSF(NETWORK network, const uint8_t* source, uint8_t dgId)
 				if (srcId == NULL_ID16)
 					return;
 
+				LogDebug("YSF => NXDN, %s>%u -> %u>%u", srcCallsign.c_str(), dgId, srcId, dstId);
+
 				m_srcId  = srcId;
 				m_dstId  = dstId;
 				m_group  = true;
@@ -520,13 +668,18 @@ void CData::setYSF(NETWORK network, const uint8_t* source, uint8_t dgId)
 		}
 
 		if (m_toMode == DATA_MODE_NONE) {
-			if (dgId == m_ysfFMDGId)
+			if (dgId == m_ysfFMDGId) {
+				LogDebug("YSF => FM, %s>%u ->", srcCallsign.c_str(), dgId);
+
 				m_toMode = DATA_MODE_FM;
+			}
 		}
 
 		if (m_toMode == DATA_MODE_NONE) {
 			std::string dest = find(m_ysfM17DGIds, dgId);
 			if (dest != NULL_CALLSIGN) {
+				LogDebug("YSF => M17, %s>%u -> %s>%s", srcCallsign.c_str(), dgId, srcCallsign.c_str(), dest.c_str());
+
 				m_srcCallsign = srcCallsign;
 				m_dstCallsign = dest;
 				m_toMode      = DATA_MODE_M17;
@@ -535,6 +688,8 @@ void CData::setYSF(NETWORK network, const uint8_t* source, uint8_t dgId)
 
 		if (m_toMode == DATA_MODE_NONE) {
 			if (m_toYSF) {
+				LogDebug("YSF => YSF, %s>%u -> %s>%u", srcCallsign.c_str(), dgId, srcCallsign.c_str(), dgId);
+
 				m_srcCallsign = srcCallsign;
 				m_dgId        = dgId;
 				m_toMode      = DATA_MODE_YSF;
@@ -544,17 +699,36 @@ void CData::setYSF(NETWORK network, const uint8_t* source, uint8_t dgId)
 		if (m_fromMode == DATA_MODE_DSTAR) {
 			std::string dest = find(m_dstarYSFDests, dgId);
 			if (dgId != NULL_DGID) {
+				LogDebug("YSF <= D-Star, %s>%u -> %s>%s", srcCallsign.c_str(), dgId, srcCallsign.c_str(), dest.c_str());
+
 				m_srcCallsign = srcCallsign;
 				m_dstCallsign = dest;
-				m_toMode = DATA_MODE_YSF;
+				m_toMode      = DATA_MODE_YSF;
+			}
+		}
+
+		if (m_fromMode == DATA_MODE_DMR) {
+			std::pair<uint8_t, uint32_t> slotTG = find(m_dmrYSFTGs, dgId);
+			if (slotTG.second != NULL_ID32) {
+				uint32_t srcId = m_dmrLookup.lookup(srcCallsign);
+				if (srcId != NULL_ID32) {
+					LogDebug("YSF <= DMR, %s>%u -> %u>%u:%u", srcCallsign.c_str(), dgId, srcId, slotTG.first, slotTG.second);
+
+					m_slot   = slotTG.first;
+					m_srcId  = srcId;
+					m_dstId  = slotTG.second;
+					m_toMode = DATA_MODE_YSF;
+				}
 			}
 		}
 
 		else if (m_fromMode == DATA_MODE_YSF) {
 			if (m_toYSF) {
+				LogDebug("YSF <= YSF, %s>%u -> %s>%u", srcCallsign.c_str(), dgId, srcCallsign.c_str(), dgId);
+
 				m_srcCallsign = srcCallsign;
-				m_dgId = dgId;
-				m_toMode = DATA_MODE_YSF;
+				m_dgId        = dgId;
+				m_toMode      = DATA_MODE_YSF;
 			}
 		}
 
@@ -588,23 +762,44 @@ void CData::setFM(NETWORK network)
 {
 	if (network == NET_FROM) {
 		if (m_toMode == DATA_MODE_NONE) {
-			if (m_toFM)
+			if (m_toFM) {
+				LogDebug("FM => FM, %s ->", m_defaultCallsign.c_str());
+
 				m_toMode = DATA_MODE_FM;
+			}
 		}
 	} else {
 		if (m_toMode == DATA_MODE_NONE) {
 			if (m_fromMode == DATA_MODE_DSTAR) {
-				if (m_dstarFMDest != NULL_CALLSIGN)
+				if (m_dstarFMDest != NULL_CALLSIGN) {
+					LogDebug("D-Star <= FM, %s>%s ->", m_defaultCallsign.c_str(), m_dstarFMDest.c_str());
+
 					m_toMode = DATA_MODE_FM;
-			} else if (m_fromMode == DATA_MODE_YSF) {
-				if (m_ysfFMDGId != NULL_DGID)
+				}
+			}
+			
+			else if (m_fromMode == DATA_MODE_YSF) {
+				if (m_ysfFMDGId != NULL_DGID) {
+					LogDebug("YSF <= FM, %s>%u ->", m_defaultCallsign.c_str(), m_ysfFMDGId);
+
 					m_toMode = DATA_MODE_FM;
-			} else if (m_fromMode == DATA_MODE_M17) {
-				if (m_m17FMDest != NULL_CALLSIGN)
+				}
+			}
+			
+			else if (m_fromMode == DATA_MODE_M17) {
+				if (m_m17FMDest != NULL_CALLSIGN) {
+					LogDebug("M17 <= FM, %s>%s ->", m_defaultCallsign.c_str(), m_m17FMDest.c_str());
+
 					m_toMode = DATA_MODE_FM;
-			} else if (m_fromMode == DATA_MODE_FM) {
-				if (m_toFM)
+				}
+			}
+			
+			else if (m_fromMode == DATA_MODE_FM) {
+				if (m_toFM) {
+					LogDebug("FM <= FM, %s ->", m_defaultCallsign.c_str());
+
 					m_toMode = DATA_MODE_FM;
+				}
 			}
 		}
 	}
@@ -617,18 +812,25 @@ void CData::setM17(NETWORK network, const std::string& source, const std::string
 
 		const auto it = std::find(m_m17DStarDests.cbegin(), m_m17DStarDests.cend(), destination);
 		if (it == m_m17DStarDests.end()) {
+			LogDebug("M17 => D-Star, %s>%s -> %s>%s", source.c_str(), destination.c_str(), source.c_str(), destination.c_str());
+
 			m_srcCallsign = source;
 			m_dstCallsign = destination;
 			m_toMode      = DATA_MODE_DSTAR;
 		}
 
 		if (m_toMode == DATA_MODE_NONE) {
-			if (destination == m_m17FMDest)
+			if (destination == m_m17FMDest) {
+				LogDebug("M17 => FM, %s>%s ->", source.c_str(), destination.c_str());
+
 				m_toMode = DATA_MODE_FM;
+			}
 		}
 
 		if (m_toMode == DATA_MODE_NONE) {
 			if (m_toM17) {
+				LogDebug("M17 => M17, %s>%s -> %s>%s", source.c_str(), destination.c_str(), source.c_str(), destination.c_str());
+
 				m_srcCallsign = source;
 				m_dstCallsign = destination;
 				m_toMode      = DATA_MODE_M17;
@@ -638,19 +840,29 @@ void CData::setM17(NETWORK network, const std::string& source, const std::string
 		if (m_fromMode == DATA_MODE_DSTAR) {
 			const auto it = std::find(m_dstarM17Dests.cbegin(), m_dstarM17Dests.cend(), destination);
 			if (it != m_dstarM17Dests.cend()) {
+				LogDebug("M17 <= D-Star, %s>%s -> %s>%s", source.c_str(), destination.c_str(), source.c_str(), destination.c_str());
+
 				m_srcCallsign = source;
 				m_dstCallsign = destination;
 				m_toMode      = DATA_MODE_M17;
 			}
-		} else if (m_fromMode == DATA_MODE_YSF) {
+		}
+		
+		else if (m_fromMode == DATA_MODE_YSF) {
 			uint8_t dgId = find(m_ysfM17DGIds, destination);
 			if (dgId != NULL_DGID) {
+				LogDebug("M17 <= YSF, %s>%s -> %s>%u", source.c_str(), destination.c_str(), source.c_str(), dgId);
+
 				m_srcCallsign = source;
 				m_dgId        = dgId;
 				m_toMode      = DATA_MODE_M17;
 			}
-		} else if (m_fromMode == DATA_MODE_M17) {
+		}
+		
+		else if (m_fromMode == DATA_MODE_M17) {
 			if (m_toM17) {
+				LogDebug("M17 <= M17, %s>%s -> %s>%s", source.c_str(), destination.c_str(), source.c_str(), destination.c_str());
+
 				m_srcCallsign = source;
 				m_dstCallsign = destination;
 				m_toMode      = DATA_MODE_M17;
@@ -885,7 +1097,7 @@ std::pair<uint8_t, uint32_t> CData::find(const std::vector<std::tuple<std::strin
 			return std::make_pair(std::get<1>(it), std::get<2>(it));
 	}
 
-	return std::make_pair(0U, NULL_ID32);
+	return std::make_pair(NULL_SLOT, NULL_ID32);
 }
 
 std::string CData::find(const std::vector<std::tuple<std::string, uint8_t, uint32_t>>& mapping, uint8_t slot, uint32_t tgId) const
@@ -896,6 +1108,26 @@ std::string CData::find(const std::vector<std::tuple<std::string, uint8_t, uint3
 	}
 
 	return NULL_CALLSIGN;
+}
+
+std::string CData::find(const std::vector<std::tuple<uint8_t, uint32_t, std::string>>& mapping, uint8_t slot, uint32_t tgid) const
+{
+	for (const auto& it : mapping) {
+		if ((std::get<0>(it) == slot) && (std::get<1>(it) == tgid))
+			return std::get<2>(it);
+	}
+
+	return NULL_CALLSIGN;
+}
+
+std::pair<uint8_t, uint32_t> CData::find(const std::vector<std::tuple<uint8_t, uint32_t, std::string>>& mapping, const std::string& dest) const
+{
+	for (const auto& it : mapping) {
+		if (std::get<2>(it) == dest)
+			return std::make_pair(std::get<0>(it), std::get<1>(it));
+	}
+
+	return std::make_pair(NULL_SLOT, NULL_ID32);
 }
 
 uint8_t CData::find(const std::vector<std::pair<uint8_t, std::string>>& mapping, const std::string& dest) const
@@ -955,5 +1187,25 @@ std::pair<uint8_t, uint32_t> CData::find(const std::vector<std::tuple<uint8_t, u
 			return std::make_pair(std::get<1>(it), std::get<2>(it));
 	}
 
-	return std::make_pair(0U, NULL_ID32);
+	return std::make_pair(NULL_SLOT, NULL_ID32);
+}
+
+uint8_t CData::find(const std::vector<std::tuple<uint8_t, uint32_t, uint8_t>>& mapping, uint8_t slot, uint32_t tgid) const
+{
+	for (const auto& it : mapping) {
+		if ((std::get<0>(it) == slot) && (std::get<1>(it) == tgid))
+			return std::get<2>(it);
+	}
+
+	return NULL_DGID;
+}
+
+std::pair<uint8_t, uint32_t> CData::find(const std::vector<std::tuple<uint8_t, uint32_t, uint8_t>>& mapping, uint8_t dgId) const
+{
+	for (const auto& it : mapping) {
+		if (std::get<2>(it) == dgId)
+			return std::make_pair(std::get<0>(it), std::get<1>(it));
+	}
+
+	return std::make_pair(NULL_SLOT, NULL_ID32);
 }

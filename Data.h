@@ -53,6 +53,13 @@ public:
 	void setDStarFMDest(const std::string& dest);
 	void setDStarM17Dests(const std::vector<std::string>& dests);
 
+	void setDMRDStarTGs(const std::vector<std::tuple<uint8_t, uint32_t, std::string>>& tgs);
+	void setDMRYSFTGs(const std::vector<std::tuple<uint8_t, uint32_t, uint8_t>>& tgs);
+	void setDMRP25TGs(const std::vector<std::tuple<uint8_t, uint32_t, uint16_t>>& tgs);
+	void setDMRNXDNTGs(const std::vector<std::tuple<uint8_t, uint32_t, uint16_t>>& tgs);
+	void setDMRFMTG(const std::pair<uint8_t, uint32_t>& tg);
+	void setDMRM17TGs(const std::vector<std::tuple<uint8_t, uint32_t, std::string>>& tgs);
+
 	void setYSFDStarDGIds(const std::vector<std::pair<uint8_t, std::string>>& dgIds);
 	void setYSFDMRDGIds(const std::vector<std::tuple<uint8_t, uint8_t, uint32_t>>& dgIds);
 	void setYSFP25DGIds(const std::vector<std::pair<uint8_t, uint16_t>>& dgIds);
@@ -125,6 +132,13 @@ private:
 	std::string                                             m_dstarFMDest;
 	std::vector<std::string>                                m_dstarM17Dests;
 
+	std::vector<std::tuple<uint8_t, uint32_t, std::string>> m_dmrDStarTGs;
+	std::vector<std::tuple<uint8_t, uint32_t, uint8_t>>     m_dmrYSFTGs;
+	std::vector<std::tuple<uint8_t, uint32_t, uint16_t>>    m_dmrP25TGs;
+	std::vector<std::tuple<uint8_t, uint32_t, uint16_t>>    m_dmrNXDNTGs;
+	std::pair<uint8_t, uint32_t>                            m_dmrFMTG;
+	std::vector<std::tuple<uint8_t, uint32_t, std::string>> m_dmrM17TGs;
+
 	std::vector<std::pair<uint8_t, std::string>>            m_ysfDStarDGIds;
 	std::vector<std::tuple<uint8_t, uint8_t, uint32_t>>     m_ysfDMRDGIds;
 	std::vector<std::pair<uint8_t, uint16_t>>               m_ysfP25DGIds;
@@ -169,8 +183,14 @@ private:
 	uint8_t find(const std::vector<std::pair<uint8_t, uint16_t>>& mapping, uint16_t tgId) const;
 	uint16_t find(const std::vector<std::pair<uint8_t, uint16_t>>& mapping, uint8_t dgId) const;
 
+	std::string find(const std::vector<std::tuple<uint8_t, uint32_t, std::string>>& mapping, uint8_t slot, uint32_t tgId) const;
+	std::pair<uint8_t, uint32_t> find(const std::vector<std::tuple<uint8_t, uint32_t, std::string>>& mapping, const std::string& dest) const;
+
 	uint8_t find(const std::vector<std::tuple<uint8_t, uint8_t, uint32_t>>& mapping, uint8_t slot, uint32_t tgId) const;
 	std::pair<uint8_t, uint32_t> find(const std::vector<std::tuple<uint8_t, uint8_t, uint32_t>>& mapping, uint8_t dgId) const;
+
+	std::pair<uint8_t, uint32_t> find(const std::vector<std::tuple<uint8_t, uint32_t, uint8_t>>& mapping, uint8_t dgId) const;
+	uint8_t find(const std::vector<std::tuple<uint8_t, uint32_t, uint8_t>>& mapping, uint8_t slot, uint32_t tgid) const;
 
 	std::string bytesToString(const uint8_t* str, size_t length) const;
 	void stringToBytes(uint8_t* str, size_t length, const std::string& callsign) const;

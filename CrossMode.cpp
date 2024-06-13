@@ -693,6 +693,21 @@ void CCrossMode::loadModeTranslationTables(DATA_MODE fromMode, CData& data)
 			data.setDStarM17Dests(m_conf.getDStarM17Dests());
 	}
 
+	if (fromMode == DATA_MODE_DMR) {
+		if (m_conf.getDMRDStarEnable())
+			data.setDMRDStarTGs(m_conf.getDMRDStarTGs());
+		if (m_conf.getDMRYSFEnable())
+			data.setDMRYSFTGs(m_conf.getDMRYSFTGs());
+		if (m_conf.getDMRP25Enable())
+			data.setDMRP25TGs(m_conf.getDMRP25TGs());
+		if (m_conf.getDMRNXDNEnable())
+			data.setDMRNXDNTGs(m_conf.getDMRNXDNTGs());
+		if (m_conf.getDMRFMEnable())
+			data.setDMRFMTG(m_conf.getDMRFMTG());
+		if (m_conf.getDMRM17Enable())
+			data.setDMRM17TGs(m_conf.getDMRM17TGs());
+	}
+
 	if (fromMode == DATA_MODE_YSF) {
 		if (m_conf.getYSFDStarEnable())
 			data.setYSFDStarDGIds(m_conf.getYSFDStarDGIds());
