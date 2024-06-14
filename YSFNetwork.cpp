@@ -44,7 +44,7 @@ m_seqNo(0U),
 m_audio(nullptr),
 m_audioCount(0U),
 m_fn(0U)
-#if defined(DUMP_M17)
+#if defined(DUMP_YSF)
 , m_fpIn(nullptr),
 m_fpOut(nullptr)
 #endif
@@ -225,8 +225,6 @@ bool CYSFNetwork::writeHeader(CData& data)
 
 	m_seqNo++;
 	m_fn = 0U;
-
-	LogMessage("To YSF: src=%10.10s dgId=%u", source, dgId);
 
 	if (m_debug)
 		CUtils::dump(1U, "YSF Network Data Sent", buffer, 155U);

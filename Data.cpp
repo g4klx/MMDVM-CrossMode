@@ -769,37 +769,53 @@ void CData::setFM(NETWORK network)
 			}
 		}
 	} else {
-		if (m_toMode == DATA_MODE_NONE) {
-			if (m_fromMode == DATA_MODE_DSTAR) {
-				if (m_dstarFMDest != NULL_CALLSIGN) {
-					LogDebug("D-Star <= FM, %s>%s ->", m_defaultCallsign.c_str(), m_dstarFMDest.c_str());
+		if (m_fromMode == DATA_MODE_DSTAR) {
+			if (m_dstarFMDest != NULL_CALLSIGN) {
+				LogDebug("D-Star <= FM, %s>%s ->", m_defaultCallsign.c_str(), m_dstarFMDest.c_str());
 
-					m_toMode = DATA_MODE_FM;
-				}
+				m_srcCallsign = m_defaultCallsign;
+				m_dstCallsign = m_dstarFMDest;
+				m_toMode      = DATA_MODE_FM;
 			}
-			
-			else if (m_fromMode == DATA_MODE_YSF) {
-				if (m_ysfFMDGId != NULL_DGID) {
-					LogDebug("YSF <= FM, %s>%u ->", m_defaultCallsign.c_str(), m_ysfFMDGId);
+		}
 
-					m_toMode = DATA_MODE_FM;
-				}
+		if (m_fromMode == DATA_MODE_DMR) {
+			if (m_dmrFMTG.second != NULL_ID32) {
+				LogDebug("DMR <= FM, %u>%u:%u ->", m_defaultDMRId, m_dmrFMTG.first, m_dmrFMTG.second);
+
+				m_srcId  = m_defaultDMRId;
+				m_dstId  = m_dmrFMTG.second;
+				m_slot   = m_dmrFMTG.first;
+				m_group  = true;
+				m_toMode = DATA_MODE_FM;
 			}
-			
-			else if (m_fromMode == DATA_MODE_M17) {
-				if (m_m17FMDest != NULL_CALLSIGN) {
-					LogDebug("M17 <= FM, %s>%s ->", m_defaultCallsign.c_str(), m_m17FMDest.c_str());
+		}
 
-					m_toMode = DATA_MODE_FM;
-				}
+		else if (m_fromMode == DATA_MODE_YSF) {
+			if (m_ysfFMDGId != NULL_DGID) {
+				LogDebug("YSF <= FM, %s>%u ->", m_defaultCallsign.c_str(), m_ysfFMDGId);
+
+				m_srcCallsign = m_defaultCallsign;
+				m_dgId        = m_ysfFMDGId;
+				m_toMode      = DATA_MODE_FM;
 			}
-			
-			else if (m_fromMode == DATA_MODE_FM) {
-				if (m_toFM) {
-					LogDebug("FM <= FM, %s ->", m_defaultCallsign.c_str());
+		}
 
-					m_toMode = DATA_MODE_FM;
-				}
+		else if (m_fromMode == DATA_MODE_M17) {
+			if (m_m17FMDest != NULL_CALLSIGN) {
+				LogDebug("M17 <= FM, %s>%s ->", m_defaultCallsign.c_str(), m_m17FMDest.c_str());
+
+				m_srcCallsign = m_defaultCallsign;
+				m_dstCallsign = m_m17FMDest;
+				m_toMode      = DATA_MODE_FM;
+			}
+		}
+
+		else if (m_fromMode == DATA_MODE_FM) {
+			if (m_toFM) {
+				LogDebug("FM <= FM, %s ->", m_defaultCallsign.c_str());
+
+				m_toMode = DATA_MODE_FM;
 			}
 		}
 	}

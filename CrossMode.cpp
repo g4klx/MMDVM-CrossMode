@@ -20,6 +20,7 @@
 
 #include "DStarNetwork.h"
 #include "YSFNetwork.h"
+#include "DMRNetwork.h"
 #include "M17Network.h"
 #include "FMNetwork.h"
 #include "StopWatch.h"
@@ -407,6 +408,13 @@ bool CCrossMode::createFromNetwork(DATA_MODE mode)
 		uint16_t localPort        = m_conf.getDStarFromLocalPort();
 		bool debug                = m_conf.getDStarFromDebug();
 		m_fromNetwork = new CDStarNetwork(NET_FROM, dstarCallsign, localAddress, localPort, remoteAddress, remotePort, debug);
+	} else if (mode == DATA_MODE_DMR) {
+		std::string remoteAddress = m_conf.getDMRFromRemoteAddress();
+		std::string localAddress  = m_conf.getDMRFromLocalAddress();
+		uint16_t remotePort       = m_conf.getDMRFromRemotePort();
+		uint16_t localPort        = m_conf.getDMRFromLocalPort();
+		bool debug                = m_conf.getDMRFromDebug();
+		m_fromNetwork = new CDMRNetwork(NET_FROM, localAddress, localPort, remoteAddress, remotePort, debug);
 	} else if (mode == DATA_MODE_YSF) {
 		std::string remoteAddress = m_conf.getYSFFromRemoteAddress();
 		std::string localAddress  = m_conf.getYSFFromLocalAddress();
@@ -488,6 +496,36 @@ bool CCrossMode::createToNetworks(DATA_MODE fromMode, CData& data)
 		}
 
 		m_toNetworks.insert(std::pair<DATA_MODE, INetwork*>(DATA_MODE_DSTAR, network));
+	}
+
+	if (((fromMode == DATA_MODE_DSTAR) && m_conf.getDStarDMREnable()) ||
+		((fromMode == DATA_MODE_DMR)   && m_conf.getDMRDMREnable1())  ||
+		((fromMode == DATA_MODE_DMR)   && m_conf.getDMRDMREnable2())  ||
+		((fromMode == DATA_MODE_YSF)   && m_conf.getYSFDMREnable())   ||
+		((fromMode == DATA_MODE_P25)   && m_conf.getP25DMREnable())   ||
+		((fromMode == DATA_MODE_NXDN)  && m_conf.getNXDNDMREnable())  ||
+		((fromMode == DATA_MODE_FM)    && m_conf.getFMDMREnable())    ||
+		((fromMode == DATA_MODE_M17)   && m_conf.getM17DMREnable())) {
+		toDMR = true;
+	}
+
+	if (toDMR) {
+		std::string remoteAddress = m_conf.getDMRToRemoteAddress();
+		std::string localAddress  = m_conf.getDMRToLocalAddress();
+		uint16_t remotePort       = m_conf.getDMRToRemotePort();
+		uint16_t localPort        = m_conf.getDMRToLocalPort();
+		bool debug                = m_conf.getDMRToDebug();
+
+		CDMRNetwork* network = new CDMRNetwork(NET_TO, localAddress, localPort, remoteAddress, remotePort, debug);
+
+		bool ret = network->open();
+		if (!ret) {
+			LogError("Unable to open the DMR To network interface");
+			closeToNetworks();
+			return false;
+		}
+
+		m_toNetworks.insert(std::pair<DATA_MODE, INetwork*>(DATA_MODE_DMR, network));
 	}
 
 	if (((fromMode == DATA_MODE_DSTAR) && m_conf.getDStarYSFEnable()) ||

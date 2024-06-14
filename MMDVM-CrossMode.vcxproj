@@ -151,6 +151,8 @@
     <ClInclude Include="Data.h" />
     <ClInclude Include="Conf.h" />
     <ClInclude Include="Defines.h" />
+    <ClInclude Include="DMRDefines.h" />
+    <ClInclude Include="DMRNetwork.h" />
     <ClInclude Include="DStarDefines.h" />
     <ClInclude Include="DStarNetwork.h" />
     <ClInclude Include="FMNetwork.h" />
@@ -182,6 +184,7 @@
     <ClCompile Include="CrossMode.cpp" />
     <ClCompile Include="Data.cpp" />
     <ClCompile Include="Conf.cpp" />
+    <ClCompile Include="DMRNetwork.cpp" />
     <ClCompile Include="DStarNetwork.cpp" />
     <ClCompile Include="FMNetwork.cpp" />
     <ClCompile Include="Golay24128.cpp" />

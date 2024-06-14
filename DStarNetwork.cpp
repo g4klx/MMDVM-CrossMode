@@ -324,7 +324,7 @@ bool CDStarNetwork::read(CData& data)
 		return false;
 
 	uint16_t length = 0U;
-	m_buffer.add((uint8_t*)&length, sizeof(uint16_t));
+	m_buffer.get((uint8_t*)&length, sizeof(uint16_t));
 
 	uint8_t buffer[100U];
 	m_buffer.get(buffer, length);

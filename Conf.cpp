@@ -94,6 +94,8 @@ enum SECTION {
 	SECTION_M17_M17,
 	SECTION_DSTAR_NETWORK_FROM,
 	SECTION_DSTAR_NETWORK_TO,
+	SECTION_DMR_NETWORK_FROM,
+	SECTION_DMR_NETWORK_TO,
 	SECTION_YSF_NETWORK_FROM,
 	SECTION_YSF_NETWORK_TO,
 	SECTION_FM_NETWORK_FROM,
@@ -201,6 +203,16 @@ m_dStarToRemotePort(20011U),
 m_dStarToLocalAddress(),
 m_dStarToLocalPort(20010U),
 m_dStarToDebug(false),
+m_dmrFromRemoteAddress("127.0.0.1"),
+m_dmrFromRemotePort(62031U),
+m_dmrFromLocalAddress(),
+m_dmrFromLocalPort(62032U),
+m_dmrFromDebug(false),
+m_dmrToRemoteAddress("127.0.0.1"),
+m_dmrToRemotePort(62032U),
+m_dmrToLocalAddress(),
+m_dmrToLocalPort(62031U),
+m_dmrToDebug(false),
 m_ysfFromRemoteAddress("127.0.0.1"),
 m_ysfFromRemotePort(20011U),
 m_ysfFromLocalAddress(),
@@ -370,6 +382,10 @@ bool CConf::read()
 				section = SECTION_DSTAR_NETWORK_FROM;
 			else if (::strncmp(buffer, "[D-Star Network To]", 19U) == 0)
 				section = SECTION_DSTAR_NETWORK_TO;
+			else if (::strncmp(buffer, "[DMR Network From]", 18U) == 0)
+				section = SECTION_DMR_NETWORK_FROM;
+			else if (::strncmp(buffer, "[DMR Network To]", 16U) == 0)
+				section = SECTION_DMR_NETWORK_TO;
 			else if (::strncmp(buffer, "[System Fusion Network From]", 28U) == 0)
 				section = SECTION_YSF_NETWORK_FROM;
 			else if (::strncmp(buffer, "[System Fusion Network To]", 26U) == 0)
@@ -897,6 +913,28 @@ bool CConf::read()
 				m_dStarToLocalPort = uint16_t(::atoi(value));
 			else if (::strcmp(key, "Debug") == 0)
 				m_dStarToDebug = ::atoi(value) == 1;
+		} else if (section == SECTION_DMR_NETWORK_FROM) {
+			if (::strcmp(key, "RemoteAddress") == 0)
+				m_dmrFromRemoteAddress = value;
+			else if (::strcmp(key, "RemotePort") == 0)
+				m_dmrFromRemotePort = uint16_t(::atoi(value));
+			else if (::strcmp(key, "LocalAddress") == 0)
+				m_dmrFromLocalAddress = value;
+			else if (::strcmp(key, "LocalPort") == 0)
+				m_dmrFromLocalPort = uint16_t(::atoi(value));
+			else if (::strcmp(key, "Debug") == 0)
+				m_dmrFromDebug = ::atoi(value) == 1;
+		} else if (section == SECTION_DMR_NETWORK_TO) {
+			if (::strcmp(key, "RemoteAddress") == 0)
+				m_dmrToRemoteAddress = value;
+			else if (::strcmp(key, "RemotePort") == 0)
+				m_dmrToRemotePort = uint16_t(::atoi(value));
+			else if (::strcmp(key, "LocalAddress") == 0)
+				m_dmrToLocalAddress = value;
+			else if (::strcmp(key, "LocalPort") == 0)
+				m_dmrToLocalPort = uint16_t(::atoi(value));
+			else if (::strcmp(key, "Debug") == 0)
+				m_dmrToDebug = ::atoi(value) == 1;
 		} else if (section == SECTION_YSF_NETWORK_FROM) {
 			if (::strcmp(key, "RemoteAddress") == 0)
 				m_ysfFromRemoteAddress = value;
@@ -1464,6 +1502,56 @@ uint16_t CConf::getDStarToLocalPort() const
 bool CConf::getDStarToDebug() const
 {
 	return m_dStarToDebug;
+}
+
+std::string CConf::getDMRFromRemoteAddress() const
+{
+	return m_dmrFromRemoteAddress;
+}
+
+uint16_t CConf::getDMRFromRemotePort() const
+{
+	return m_dmrFromRemotePort;
+}
+
+std::string CConf::getDMRFromLocalAddress() const
+{
+	return m_dmrFromLocalAddress;
+}
+
+uint16_t CConf::getDMRFromLocalPort() const
+{
+	return m_dmrFromLocalPort;
+}
+
+bool CConf::getDMRFromDebug() const
+{
+	return m_dmrFromDebug;
+}
+
+std::string CConf::getDMRToRemoteAddress() const
+{
+	return m_dmrToRemoteAddress;
+}
+
+uint16_t CConf::getDMRToRemotePort() const
+{
+	return m_dmrToRemotePort;
+}
+
+std::string CConf::getDMRToLocalAddress() const
+{
+	return m_dmrToLocalAddress;
+}
+
+uint16_t CConf::getDMRToLocalPort() const
+{
+	return m_dmrToLocalPort;
+}
+
+bool CConf::getDMRToDebug() const
+{
+	return m_dmrToDebug;
 }
 
 std::string CConf::getYSFFromRemoteAddress() const

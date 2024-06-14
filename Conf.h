@@ -246,6 +246,20 @@ public:
 	uint16_t     getDStarToLocalPort() const;
 	bool         getDStarToDebug() const;
 
+	// The From DMR Network section
+	std::string  getDMRFromRemoteAddress() const;
+	uint16_t     getDMRFromRemotePort() const;
+	std::string  getDMRFromLocalAddress() const;
+	uint16_t     getDMRFromLocalPort() const;
+	bool         getDMRFromDebug() const;
+
+	// The To DMR Network section
+	std::string  getDMRToRemoteAddress() const;
+	uint16_t     getDMRToRemotePort() const;
+	std::string  getDMRToLocalAddress() const;
+	uint16_t     getDMRToLocalPort() const;
+	bool         getDMRToDebug() const;
+
 	// The From YSF Network section
 	std::string  getYSFFromRemoteAddress() const;
 	uint16_t     getYSFFromRemotePort() const;
@@ -447,6 +461,18 @@ private:
 	std::string  m_dStarToLocalAddress;
 	uint16_t     m_dStarToLocalPort;
 	bool         m_dStarToDebug;
+
+	std::string  m_dmrFromRemoteAddress;
+	uint16_t     m_dmrFromRemotePort;
+	std::string  m_dmrFromLocalAddress;
+	uint16_t     m_dmrFromLocalPort;
+	bool         m_dmrFromDebug;
+
+	std::string  m_dmrToRemoteAddress;
+	uint16_t     m_dmrToRemotePort;
+	std::string  m_dmrToLocalAddress;
+	uint16_t     m_dmrToLocalPort;
+	bool         m_dmrToDebug;
 
 	std::string  m_ysfFromRemoteAddress;
 	uint16_t     m_ysfFromRemotePort;

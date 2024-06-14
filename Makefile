@@ -4,7 +4,7 @@ CFLAGS  = -g -O3 -Wall -DHAVE_LOG_H
 LIBS    =
 LDFLAGS = -g
 
-OBJECTS =	CRC.o Conf.o CrossMode.o Data.o DMRLookup.o DStarNetwork.o FMNetwork.o Golay24128.o Log.o M17Network.o Network.o NXDNLookup.o \
+OBJECTS =	CRC.o Conf.o CrossMode.o Data.o DMRLookup.o DMRNetwork.o DStarNetwork.o FMNetwork.o Golay24128.o Log.o M17Network.o Network.o NXDNLookup.o \
 			StopWatch.o Thread.o Timer.o Transcoder.o UARTController.o UDPSocket.o Utils.o YSFConvolution.o YSFFICH.o YSFNetwork.o YSFPayload.o
 
 all:		CrossMode
