@@ -78,12 +78,6 @@ private:
 	bool writeHeader(CData& data);
 	bool writeAudio(CData& data);
 	bool writeTrailer(CData& data);
-
-	void encodeEMB(uint8_t* data, uint8_t cc, bool pi, uint8_t lcss) const;
-	void encodeSlotType(uint8_t* data, uint8_t cc, uint8_t dataType) const;
-
-	void encodeQR1676(uint8_t* data) const;
-	void encode2087(uint8_t* data) const;
 };
 
 #endif

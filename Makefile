@@ -1,6 +1,6 @@
 CC      = cc
 CXX     = c++
-CFLAGS  = -g -O3 -Wall -DHAVE_LOG_H
+CFLAGS  = -g -O3 -Wall
 LIBS    =
 LDFLAGS = -g
 

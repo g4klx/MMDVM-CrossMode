@@ -17,20 +17,13 @@
  */
 
 #include "UDPSocket.h"
+#include "Log.h"
 
 #include <cassert>
 
 #if !defined(_WIN32) && !defined(_WIN64)
 #include <cerrno>
 #include <cstring>
-#endif
-
-#if defined(HAVE_LOG_H)
-#include "Log.h"
-#else
-#define LogMessage(fmt, ...)	::fprintf(stderr, fmt "\n", ## __VA_ARGS__)
-#define LogError(fmt, ...)		::fprintf(stderr, fmt "\n", ## __VA_ARGS__)
-#define LogInfo(fmt, ...)		::fprintf(stderr, fmt "\n", ## __VA_ARGS__)
 #endif
 
 CUDPSocket::CUDPSocket(const std::string& address, uint16_t port) :
