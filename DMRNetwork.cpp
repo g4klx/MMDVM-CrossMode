@@ -59,6 +59,7 @@ m_fpOut(nullptr)
 #endif
 {
 	assert(remotePort > 0U);
+	assert(id > 0U);
 
 	if (CUDPSocket::lookup(remoteAddress, remotePort, m_addr, m_addrLen) != 0)
 		m_addrLen = 0U;
