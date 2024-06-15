@@ -35,7 +35,7 @@
 class CDMRNetwork : public INetwork
 {
 public:
-	CDMRNetwork(NETWORK network, const std::string& localAddress, uint16_t localPort, const std::string& remoteAddress, uint16_t remotePort, bool debug);
+	CDMRNetwork(NETWORK network, uint32_t id, const std::string& localAddress, uint16_t localPort, const std::string& remoteAddress, uint16_t remotePort, bool debug);
 	virtual ~CDMRNetwork();
 
 	virtual bool open();
@@ -62,7 +62,7 @@ private:
 	uint8_t*         m_id;
 	bool             m_debug;
 	uint8_t*         m_buffer;
-	uint32_t*        m_streamId;
+	uint32_t         m_streamId;
 	CRingBuffer<uint8_t> m_rxData;
 	std::mt19937     m_random;
 	CTimer           m_pingTimer;
@@ -78,6 +78,12 @@ private:
 	bool writeHeader(CData& data);
 	bool writeAudio(CData& data);
 	bool writeTrailer(CData& data);
+
+	void encodeEMB(uint8_t* data, uint8_t cc, bool pi, uint8_t lcss) const;
+	void encodeSlotType(uint8_t* data, uint8_t cc, uint8_t dataType) const;
+
+	void encodeQR1676(uint8_t* data) const;
+	void encode2087(uint8_t* data) const;
 };
 
 #endif

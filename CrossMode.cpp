@@ -409,12 +409,14 @@ bool CCrossMode::createFromNetwork(DATA_MODE mode)
 		bool debug                = m_conf.getDStarFromDebug();
 		m_fromNetwork = new CDStarNetwork(NET_FROM, dstarCallsign, localAddress, localPort, remoteAddress, remotePort, debug);
 	} else if (mode == DATA_MODE_DMR) {
+		uint32_t id = m_conf.getDMRId();
+
 		std::string remoteAddress = m_conf.getDMRFromRemoteAddress();
 		std::string localAddress  = m_conf.getDMRFromLocalAddress();
 		uint16_t remotePort       = m_conf.getDMRFromRemotePort();
 		uint16_t localPort        = m_conf.getDMRFromLocalPort();
 		bool debug                = m_conf.getDMRFromDebug();
-		m_fromNetwork = new CDMRNetwork(NET_FROM, localAddress, localPort, remoteAddress, remotePort, debug);
+		m_fromNetwork = new CDMRNetwork(NET_FROM, id, localAddress, localPort, remoteAddress, remotePort, debug);
 	} else if (mode == DATA_MODE_YSF) {
 		std::string remoteAddress = m_conf.getYSFFromRemoteAddress();
 		std::string localAddress  = m_conf.getYSFFromLocalAddress();
@@ -510,13 +512,15 @@ bool CCrossMode::createToNetworks(DATA_MODE fromMode, CData& data)
 	}
 
 	if (toDMR) {
+		uint32_t id = m_conf.getDMRId();
+
 		std::string remoteAddress = m_conf.getDMRToRemoteAddress();
 		std::string localAddress  = m_conf.getDMRToLocalAddress();
 		uint16_t remotePort       = m_conf.getDMRToRemotePort();
 		uint16_t localPort        = m_conf.getDMRToLocalPort();
 		bool debug                = m_conf.getDMRToDebug();
 
-		CDMRNetwork* network = new CDMRNetwork(NET_TO, localAddress, localPort, remoteAddress, remotePort, debug);
+		CDMRNetwork* network = new CDMRNetwork(NET_TO, id, localAddress, localPort, remoteAddress, remotePort, debug);
 
 		bool ret = network->open();
 		if (!ret) {
