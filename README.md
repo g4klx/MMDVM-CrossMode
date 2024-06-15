@@ -12,7 +12,7 @@ The final version will transcode between all of the following digital and non-di
 - FM
 - M17
 
-The initial versions will only allow for D-Star, M17, and FM, with System Fusion being possible, depending on the time available before Hamvention 2024.
+The initial version only allows for D-Star, DMR, YSF DN, M17, and FM being possible.
 
 It builds on 32-bit and 64-bit Linux as well as on Windows using Visual Studio
 2019 on x86 and x64. It can optionally control various Displays. Currently
