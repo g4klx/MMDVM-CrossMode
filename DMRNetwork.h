@@ -24,6 +24,7 @@
 #include "UDPSocket.h"
 #include "Timer.h"
 #include "RingBuffer.h"
+#include "DMRLC.h"
 #include "Data.h"
 
 #include <string>
@@ -68,6 +69,7 @@ private:
 	CTimer           m_pingTimer;
 	uint8_t*         m_audio;
 	uint8_t          m_audioCount;
+	CDMRLC           m_lc;
 	uint16_t         m_seqNo;
 	uint8_t          m_N;
 #if defined(DUMP_DMR)

@@ -51,6 +51,7 @@ m_random(),
 m_pingTimer(1000U, 10U),
 m_audio(nullptr),
 m_audioCount(0U),
+m_lc(),
 m_seqNo(0U),
 m_N(0U)
 #if defined(DUMP_DMR)
@@ -282,6 +283,10 @@ bool CDMRNetwork::writeHeader(CData& data)
 	bool grp = true;
 	data.getDMR(network, slot, srcId, dstId, grp);
 
+	FLCO flco = grp ? FLCO_GROUP : FLCO_USER_USER;
+
+	m_lc.setParameters(flco, srcId, dstId);
+
 	uint8_t buffer[HOMEBREW_DATA_PACKET_LENGTH];
 	::memset(buffer, 0x00U, HOMEBREW_DATA_PACKET_LENGTH);
 
@@ -304,18 +309,18 @@ bool CDMRNetwork::writeHeader(CData& data)
 
 	buffer[15U] |= grp ? 0x00U : 0x40U;
 
-	std::uniform_int_distribution<uint32_t> dist(0x00000001, 0xFFFFFFFE);
+	std::uniform_int_distribution<uint32_t> dist(0x00000001U, 0xFFFFFFFEU);
 	m_streamId = dist(m_random);
 
 	buffer[15U] |= (0x20U | DT_VOICE_LC_HEADER);
 
-	buffer[4U] = uint8_t(m_seqNo & 0xFFU);
+	buffer[4U] = uint8_t(m_seqNo & 0x00FFU);
 
 	::memcpy(buffer + 16U, &m_streamId, 4U);
 
 	::memcpy(buffer + 20U, HEADER_SYNC_SLOT_TYPE, DMR_FRAME_LENGTH_BYTES);
 
-	// Add LC here
+	m_lc.encode(buffer + 20U, DT_VOICE_LC_HEADER);
 
 	buffer[53U] = 0U;
 	buffer[54U] = 0U;
@@ -336,6 +341,10 @@ bool CDMRNetwork::writeAudio(CData& data)
 	uint32_t srcId = 0U, dstId = 0U;
 	bool grp = true;
 	data.getDMR(network, slot, srcId, dstId, grp);
+
+	FLCO flco = grp ? FLCO_GROUP : FLCO_USER_USER;
+
+	m_lc.setParameters(flco, srcId, dstId);
 
 	uint8_t buffer[HOMEBREW_DATA_PACKET_LENGTH];
 	::memset(buffer, 0x00U, HOMEBREW_DATA_PACKET_LENGTH);
@@ -359,7 +368,7 @@ bool CDMRNetwork::writeAudio(CData& data)
 
 	buffer[15U] |= grp ? 0x00U : 0x40U;
 
-	buffer[4U] = uint8_t(m_seqNo & 0xFFU);
+	buffer[4U] = uint8_t(m_seqNo & 0x00FFU);
 
 	::memcpy(buffer + 16U, &m_streamId, 4U);
 
@@ -371,25 +380,25 @@ bool CDMRNetwork::writeAudio(CData& data)
 		break;
 	case 1U:
 		::memcpy(buffer + 20U, FIRST_LC_EMB, DMR_FRAME_LENGTH_BYTES);
-		// Add LC
+		m_lc.getData(buffer + 20U, 0U);
 		buffer[15U] |= 1U;
 		m_N++;
 		break;
 	case 2U:
 		::memcpy(buffer + 20U, CONT_LC_EMB, DMR_FRAME_LENGTH_BYTES);
-		// Add LC
+		m_lc.getData(buffer + 20U, 1U);
 		buffer[15U] |= 2U;
 		m_N++;
 		break;
 	case 3U:
 		::memcpy(buffer + 20U, CONT_LC_EMB, DMR_FRAME_LENGTH_BYTES);
-		// Add LC
+		m_lc.getData(buffer + 20U, 2U);
 		buffer[15U] |= 3U;
 		m_N++;
 		break;
 	case 4U:
 		::memcpy(buffer + 20U, LAST_LC_EMB, DMR_FRAME_LENGTH_BYTES);
-		// Add LC
+		m_lc.getData(buffer + 20U, 3U);
 		buffer[15U] |= 4U;
 		m_N++;
 		break;
@@ -435,6 +444,10 @@ bool CDMRNetwork::writeTrailer(CData& data)
 	bool grp = true;
 	data.getDMR(network, slot, srcId, dstId, grp);
 
+	FLCO flco = grp ? FLCO_GROUP : FLCO_USER_USER;
+
+	m_lc.setParameters(flco, srcId, dstId);
+
 	uint8_t buffer[HOMEBREW_DATA_PACKET_LENGTH];
 	::memset(buffer, 0x00U, HOMEBREW_DATA_PACKET_LENGTH);
 
@@ -459,13 +472,13 @@ bool CDMRNetwork::writeTrailer(CData& data)
 
 	buffer[15U] |= (0x20U | DT_TERMINATOR_WITH_LC);
 
-	buffer[4U] = uint8_t(m_seqNo & 0xFFU);
+	buffer[4U] = uint8_t(m_seqNo & 0x00FFU);
 
 	::memcpy(buffer + 16U, &m_streamId, 4U);
 
 	::memcpy(buffer + 20U, TRAILER_SYNC_SLOT_TYPE, DMR_FRAME_LENGTH_BYTES);
 
-	// Add LC here
+	m_lc.encode(buffer + 20U, DT_TERMINATOR_WITH_LC);
 
 	buffer[53U] = 0U;
 	buffer[54U] = 0U;

@@ -146,17 +146,20 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="BPTC19696.h" />
     <ClInclude Include="CRC.h" />
     <ClInclude Include="CrossMode.h" />
     <ClInclude Include="Data.h" />
     <ClInclude Include="Conf.h" />
     <ClInclude Include="Defines.h" />
     <ClInclude Include="DMRDefines.h" />
+    <ClInclude Include="DMRLC.h" />
     <ClInclude Include="DMRNetwork.h" />
     <ClInclude Include="DStarDefines.h" />
     <ClInclude Include="DStarNetwork.h" />
     <ClInclude Include="FMNetwork.h" />
     <ClInclude Include="Golay24128.h" />
+    <ClInclude Include="Hamming.h" />
     <ClInclude Include="Log.h" />
     <ClInclude Include="DMRLookup.h" />
     <ClInclude Include="M17Defines.h" />
@@ -164,6 +167,7 @@
     <ClInclude Include="Network.h" />
     <ClInclude Include="NXDNLookup.h" />
     <ClInclude Include="RingBuffer.h" />
+    <ClInclude Include="RS129.h" />
     <ClInclude Include="StopWatch.h" />
     <ClInclude Include="Thread.h" />
     <ClInclude Include="Timer.h" />
@@ -180,19 +184,23 @@
     <ClInclude Include="YSFPayload.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="BPTC19696.cpp" />
     <ClCompile Include="CRC.cpp" />
     <ClCompile Include="CrossMode.cpp" />
     <ClCompile Include="Data.cpp" />
     <ClCompile Include="Conf.cpp" />
+    <ClCompile Include="DMRLC.cpp" />
     <ClCompile Include="DMRNetwork.cpp" />
     <ClCompile Include="DStarNetwork.cpp" />
     <ClCompile Include="FMNetwork.cpp" />
     <ClCompile Include="Golay24128.cpp" />
+    <ClCompile Include="Hamming.cpp" />
     <ClCompile Include="Log.cpp" />
     <ClCompile Include="DMRLookup.cpp" />
     <ClCompile Include="M17Network.cpp" />
     <ClCompile Include="Network.cpp" />
     <ClCompile Include="NXDNLookup.cpp" />
+    <ClCompile Include="RS129.cpp" />
     <ClCompile Include="StopWatch.cpp" />
     <ClCompile Include="Thread.cpp" />
     <ClCompile Include="Timer.cpp" />

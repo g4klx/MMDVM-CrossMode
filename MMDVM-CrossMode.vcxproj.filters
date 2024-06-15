@@ -107,6 +107,18 @@
     <ClInclude Include="DMRDefines.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="DMRLC.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RS129.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Hamming.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BPTC19696.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Conf.cpp">
@@ -179,6 +191,18 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="DMRNetwork.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DMRLC.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RS129.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Hamming.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BPTC19696.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
