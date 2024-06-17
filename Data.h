@@ -39,7 +39,7 @@ public:
 	bool setToMode(DATA_MODE mode);
 	bool setDirection(DIRECTION direction);
 
-	void setToModes(bool toDStar, bool toDMR1, bool toDMR2, bool toYSF, bool toP25, bool toNXDN, bool toFM, bool toM17);
+	void setThroughModes(bool toDStar, bool toDMR1, bool toDMR2, bool toYSF, bool toP25, bool toNXDN, bool toFM, bool toM17);
 
 	bool setDMRLookup(const std::string& filename, unsigned int reloadTime);
 	bool setNXDNLookup(const std::string& filename, unsigned int reloadTime);
@@ -67,7 +67,25 @@ public:
 	void setYSFFMDGId(uint8_t dgId);
 	void setYSFM17DGIds(const std::vector<std::pair<uint8_t, std::string>>& dgIds);
 
+	void setP25DStarTGs(const std::vector<std::pair<uint16_t, std::string>>& tgs);
+	void setP25DMRTGs(const std::vector<std::tuple<uint16_t, uint8_t, uint32_t>>& tgs);
+	void setP25YSFTGs(const std::vector<std::pair<uint16_t, uint8_t>>& tgs);
+	void setP25NXDNTGs(const std::vector<std::pair<uint16_t, uint16_t>>& tgs);
+	void setP25FMTG(uint16_t tg);
+	void setP25M17TGs(const std::vector<std::pair<uint16_t, std::string>>& tgs);
+
+	void setNXDNDStarTGs(const std::vector<std::pair<uint16_t, std::string>>& tgs);
+	void setNXDNDMRTGs(const std::vector<std::tuple<uint16_t, uint8_t, uint32_t>>& tgs);
+	void setNXDNYSFTGs(const std::vector<std::pair<uint16_t, uint8_t>>& tgs);
+	void setNXDNP25TGs(const std::vector<std::pair<uint16_t, uint16_t>>& tgs);
+	void setNXDNFMTG(uint16_t tg);
+	void setNXDNM17TGs(const std::vector<std::pair<uint16_t, std::string>>& tgs);
+
 	void setM17DStarDests(const std::vector<std::string>& dests);
+	void setM17DMRDests(const std::vector<std::tuple<std::string, uint8_t, uint32_t>>& dests);
+	void setM17YSFDests(const std::vector<std::pair<std::string, uint8_t>>& dests);
+	void setM17P25Dests(const std::vector<std::pair<std::string, uint16_t>>& dests);
+	void setM17NXDNDests(const std::vector<std::pair<std::string, uint16_t>>& dests);
 	void setM17FMDest(const std::string& dest);
 
 	bool open();
@@ -146,7 +164,25 @@ private:
 	uint8_t                                                 m_ysfFMDGId;
 	std::vector<std::pair<uint8_t, std::string>>            m_ysfM17DGIds;
 
+	std::vector<std::pair<uint16_t, std::string>>           m_p25DStarTGs;
+	std::vector<std::tuple<uint16_t, uint8_t, uint32_t>>    m_p25DMRTGs;
+	std::vector<std::pair<uint16_t, uint8_t>>               m_p25YSFTGs;
+	std::vector<std::pair<uint16_t, uint16_t>>              m_p25NXDNTGs;
+	uint16_t                                                m_p25FMTG;
+	std::vector<std::pair<uint16_t, std::string>>           m_p25M17TGs;
+
+	std::vector<std::pair<uint16_t, std::string>>           m_nxdnDStarTGs;
+	std::vector<std::tuple<uint16_t, uint8_t, uint32_t>>    m_nxdnDMRTGs;
+	std::vector<std::pair<uint16_t, uint8_t>>               m_nxdnYSFTGs;
+	std::vector<std::pair<uint16_t, uint16_t>>              m_nxdnP25TGs;
+	uint16_t                                                m_nxdnFMTG;
+	std::vector<std::pair<uint16_t, std::string>>           m_nxdnM17TGs;
+
 	std::vector<std::string>                                m_m17DStarDests;
+	std::vector<std::tuple<std::string, uint8_t, uint32_t>> m_m17DMRDests;
+	std::vector<std::pair<std::string, uint8_t>>            m_m17YSFDests;
+	std::vector<std::pair<std::string, uint16_t>>           m_m17P25Dests;
+	std::vector<std::pair<std::string, uint16_t>>           m_m17NXDNDests;
 	std::string                                             m_m17FMDest;
 
 	DATA_MODE   m_fromMode;

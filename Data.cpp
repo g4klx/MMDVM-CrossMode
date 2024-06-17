@@ -66,7 +66,23 @@ m_ysfP25DGIds(),
 m_ysfNXDNDGIds(),
 m_ysfFMDGId(NULL_DGID),
 m_ysfM17DGIds(),
+m_p25DStarTGs(),
+m_p25DMRTGs(),
+m_p25YSFTGs(),
+m_p25NXDNTGs(),
+m_p25FMTG(),
+m_p25M17TGs(),
+m_nxdnDStarTGs(),
+m_nxdnDMRTGs(),
+m_nxdnYSFTGs(),
+m_nxdnP25TGs(),
+m_nxdnFMTG(),
+m_nxdnM17TGs(),
 m_m17DStarDests(),
+m_m17DMRDests(),
+m_m17YSFDests(),
+m_m17P25Dests(),
+m_m17NXDNDests(),
 m_m17FMDest(NULL_CALLSIGN),
 m_fromMode(DATA_MODE_NONE),
 m_toMode(DATA_MODE_NONE),
@@ -184,7 +200,7 @@ bool CData::setTranscoder()
 	}
 }
 
-void CData::setToModes(bool toDStar, bool toDMR1, bool toDMR2, bool toYSF, bool toP25, bool toNXDN, bool toFM, bool toM17)
+void CData::setThroughModes(bool toDStar, bool toDMR1, bool toDMR2, bool toYSF, bool toP25, bool toNXDN, bool toFM, bool toM17)
 {
 	m_toDStar = toDStar;
 	m_toDMR1  = toDMR1;
@@ -241,36 +257,6 @@ void CData::setDStarM17Dests(const std::vector<std::string>& dests)
 	m_dstarM17Dests = dests;
 }
 
-void CData::setYSFDStarDGIds(const std::vector<std::pair<uint8_t, std::string>>& dgIds)
-{
-	m_ysfDStarDGIds = dgIds;
-}
-
-void CData::setYSFDMRDGIds(const std::vector<std::tuple<uint8_t, uint8_t, uint32_t>>& dgIds)
-{
-	m_ysfDMRDGIds = dgIds;
-}
-
-void CData::setYSFP25DGIds(const std::vector<std::pair<uint8_t, uint16_t>>& dgIds)
-{
-	m_ysfP25DGIds = dgIds;
-}
-
-void CData::setYSFNXDNDGIds(const std::vector<std::pair<uint8_t, uint16_t>>& dgIds)
-{
-	m_ysfNXDNDGIds = dgIds;
-}
-
-void CData::setYSFFMDGId(uint8_t dgId)
-{
-	m_ysfFMDGId = dgId;
-}
-
-void CData::setYSFM17DGIds(const std::vector<std::pair<uint8_t, std::string>>& dgIds)
-{
-	m_ysfM17DGIds = dgIds;
-}
-
 void CData::setDMRDStarTGs(const std::vector<std::tuple<uint8_t, uint32_t, std::string>>& tgs)
 {
 	m_dmrDStarTGs = tgs;
@@ -301,9 +287,119 @@ void CData::setDMRM17TGs(const std::vector<std::tuple<uint8_t, uint32_t, std::st
 	m_dmrM17TGs = tgs;
 }
 
+void CData::setYSFDStarDGIds(const std::vector<std::pair<uint8_t, std::string>>& dgIds)
+{
+	m_ysfDStarDGIds = dgIds;
+}
+
+void CData::setYSFDMRDGIds(const std::vector<std::tuple<uint8_t, uint8_t, uint32_t>>& dgIds)
+{
+	m_ysfDMRDGIds = dgIds;
+}
+
+void CData::setYSFP25DGIds(const std::vector<std::pair<uint8_t, uint16_t>>& dgIds)
+{
+	m_ysfP25DGIds = dgIds;
+}
+
+void CData::setYSFNXDNDGIds(const std::vector<std::pair<uint8_t, uint16_t>>& dgIds)
+{
+	m_ysfNXDNDGIds = dgIds;
+}
+
+void CData::setYSFFMDGId(uint8_t dgId)
+{
+	m_ysfFMDGId = dgId;
+}
+
+void CData::setYSFM17DGIds(const std::vector<std::pair<uint8_t, std::string>>& dgIds)
+{
+	m_ysfM17DGIds = dgIds;
+}
+
+void CData::setP25DStarTGs(const std::vector<std::pair<uint16_t, std::string>>& tgs)
+{
+	m_p25DStarTGs = tgs;
+}
+
+void CData::setP25DMRTGs(const std::vector<std::tuple<uint16_t, uint8_t, uint32_t>>& tgs)
+{
+	m_p25DMRTGs = tgs;
+}
+
+void CData::setP25YSFTGs(const std::vector<std::pair<uint16_t, uint8_t>>& tgs)
+{
+	m_p25YSFTGs = tgs;
+}
+
+void CData::setP25NXDNTGs(const std::vector<std::pair<uint16_t, uint16_t>>& tgs)
+{
+	m_p25NXDNTGs = tgs;
+}
+
+void CData::setP25FMTG(uint16_t tg)
+{
+	m_p25FMTG = tg;
+}
+
+void CData::setP25M17TGs(const std::vector<std::pair<uint16_t, std::string>>& tgs)
+{
+	m_p25M17TGs = tgs;
+}
+
+void CData::setNXDNDStarTGs(const std::vector<std::pair<uint16_t, std::string>>& tgs)
+{
+	m_nxdnDStarTGs = tgs;
+}
+
+void CData::setNXDNDMRTGs(const std::vector<std::tuple<uint16_t, uint8_t, uint32_t>>& tgs)
+{
+	m_nxdnDMRTGs = tgs;
+}
+
+void CData::setNXDNYSFTGs(const std::vector<std::pair<uint16_t, uint8_t>>& tgs)
+{
+	m_nxdnYSFTGs = tgs;
+}
+
+void CData::setNXDNP25TGs(const std::vector<std::pair<uint16_t, uint16_t>>& tgs)
+{
+	m_nxdnP25TGs = tgs;
+}
+
+void CData::setNXDNFMTG(uint16_t tg)
+{
+	m_nxdnFMTG = tg;
+}
+
+void CData::setNXDNM17TGs(const std::vector<std::pair<uint16_t, std::string>>& tgs)
+{
+	m_nxdnM17TGs = tgs;
+}
+
 void CData::setM17DStarDests(const std::vector<std::string>& dests)
 {
 	m_m17DStarDests = dests;
+}
+
+void CData::setM17DMRDests(const std::vector<std::tuple<std::string, uint8_t, uint32_t>>& dests)
+{
+	m_m17DMRDests = dests;
+}
+
+void CData::setM17YSFDests(const std::vector<std::pair<std::string, uint8_t>>& dests)
+{
+	m_m17YSFDests = dests;
+}
+
+void CData::setM17P25Dests(const std::vector<std::pair<std::string, uint16_t>>& dests)
+{
+	m_m17P25Dests = dests;
+}
+
+void CData::setM17NXDNDests(const std::vector<std::pair<std::string, uint16_t>>& dests)
+{
+	m_m17NXDNDests = dests;
 }
 
 void CData::setM17FMDest(const std::string& dest)

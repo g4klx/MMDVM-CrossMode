@@ -98,6 +98,10 @@ enum SECTION {
 	SECTION_DMR_NETWORK_TO,
 	SECTION_YSF_NETWORK_FROM,
 	SECTION_YSF_NETWORK_TO,
+	SECTION_P25_NETWORK_FROM,
+	SECTION_P25_NETWORK_TO,
+	SECTION_NXDN_NETWORK_FROM,
+	SECTION_NXDN_NETWORK_TO,
 	SECTION_FM_NETWORK_FROM,
 	SECTION_FM_NETWORK_TO,
 	SECTION_M17_NETWORK_FROM,
@@ -165,19 +169,31 @@ m_ysfFMDGId(0U),
 m_ysfM17Enable(false),
 m_ysfM17DGIds(),
 m_p25DStarEnable(false),
+m_p25DStarTGs(),
 m_p25DMREnable(false),
+m_p25DMRTGs(),
 m_p25YSFEnable(false),
+m_p25YSFTGs(),
 m_p25P25Enable(false),
 m_p25NXDNEnable(false),
+m_p25NXDNTGs(),
 m_p25FMEnable(false),
+m_p25FMTG(0U),
 m_p25M17Enable(false),
+m_p25M17TGs(),
 m_nxdnDStarEnable(false),
+m_nxdnDStarTGs(),
 m_nxdnDMREnable(false),
+m_nxdnDMRTGs(),
 m_nxdnYSFEnable(false),
+m_nxdnYSFTGs(),
 m_nxdnP25Enable(false),
+m_nxdnP25TGs(),
 m_nxdnNXDNEnable(false),
 m_nxdnFMEnable(false),
+m_nxdnFMTG(0U),
 m_nxdnM17Enable(false),
+m_nxdnM17TGs(),
 m_fmDStarEnable(false),
 m_fmDMREnable(false),
 m_fmYSFEnable(false),
@@ -188,60 +204,84 @@ m_fmM17Enable(false),
 m_m17DStarEnable(false),
 m_m17DStarDests(),
 m_m17DMREnable(false),
+m_m17DMRDests(),
 m_m17YSFEnable(false),
+m_m17YSFDests(),
 m_m17P25Enable(false),
+m_m17P25Dests(),
 m_m17NXDNEnable(false),
+m_m17NXDNDests(),
 m_m17FMEnable(false),
 m_m17FMDest(),
 m_m17M17Enable(false),
 m_dStarFromRemoteAddress("127.0.0.1"),
 m_dStarFromRemotePort(20011U),
-m_dStarFromLocalAddress(),
+m_dStarFromLocalAddress("127.0.0.1"),
 m_dStarFromLocalPort(20010U),
 m_dStarFromDebug(false),
 m_dStarToRemoteAddress("127.0.0.1"),
 m_dStarToRemotePort(20011U),
-m_dStarToLocalAddress(),
+m_dStarToLocalAddress("127.0.0.1"),
 m_dStarToLocalPort(20010U),
 m_dStarToDebug(false),
 m_dmrFromRemoteAddress("127.0.0.1"),
 m_dmrFromRemotePort(62031U),
-m_dmrFromLocalAddress(),
+m_dmrFromLocalAddress("127.0.0.1"),
 m_dmrFromLocalPort(62032U),
 m_dmrFromDebug(false),
 m_dmrToRemoteAddress("127.0.0.1"),
 m_dmrToRemotePort(62032U),
-m_dmrToLocalAddress(),
+m_dmrToLocalAddress("127.0.0.1"),
 m_dmrToLocalPort(62031U),
 m_dmrToDebug(false),
 m_ysfFromRemoteAddress("127.0.0.1"),
 m_ysfFromRemotePort(20011U),
-m_ysfFromLocalAddress(),
+m_ysfFromLocalAddress("127.0.0.1"),
 m_ysfFromLocalPort(20010U),
 m_ysfFromDebug(false),
 m_ysfToRemoteAddress("127.0.0.1"),
 m_ysfToRemotePort(20011U),
-m_ysfToLocalAddress(),
+m_ysfToLocalAddress("127.0.0.1"),
 m_ysfToLocalPort(20010U),
 m_ysfToDebug(false),
+m_p25FromRemoteAddress("127.0.0.1"),
+m_p25FromRemotePort(32010U),
+m_p25FromLocalAddress("127.0.0.1"),
+m_p25FromLocalPort(42020U),
+m_p25FromDebug(false),
+m_p25ToRemoteAddress("127.0.0.1"),
+m_p25ToRemotePort(42020U),
+m_p25ToLocalAddress("127.0.0.1"),
+m_p25ToLocalPort(32010U),
+m_p25ToDebug(false),
+m_nxdnFromRemoteAddress("127.0.0.1"),
+m_nxdnFromRemotePort(42021U),
+m_nxdnFromLocalAddress("127.0.0.1"),
+m_nxdnFromLocalPort(42022U),
+m_nxdnFromDebug(false),
+m_nxdnToRemoteAddress("127.0.0.1"),
+m_nxdnToRemotePort(42022U),
+m_nxdnToLocalAddress("127.0.0.1"),
+m_nxdnToLocalPort(42021U),
+m_nxdnToDebug(false),
 m_fmFromRemoteAddress("127.0.0.1"),
 m_fmFromRemotePort(20011U),
-m_fmFromLocalAddress(),
+m_fmFromLocalAddress("127.0.0.1"),
 m_fmFromLocalPort(20010U),
 m_fmFromDebug(false),
 m_fmToRemoteAddress("127.0.0.1"),
 m_fmToRemotePort(20011U),
-m_fmToLocalAddress(),
+m_fmToLocalAddress("127.0.0.1"),
 m_fmToLocalPort(20010U),
 m_fmToDebug(false),
 m_m17FromRemoteAddress("127.0.0.1"),
 m_m17FromRemotePort(17011U),
-m_m17FromLocalAddress(),
+m_m17FromLocalAddress("127.0.0.1"),
 m_m17FromLocalPort(17010U),
 m_m17FromDebug(false),
 m_m17ToRemoteAddress("127.0.0.1"),
 m_m17ToRemotePort(17011U),
-m_m17ToLocalAddress(),
+m_m17ToLocalAddress("127.0.0.1"),
 m_m17ToLocalPort(17010U),
 m_m17ToDebug(false)
 {
@@ -391,6 +431,14 @@ bool CConf::read()
 				section = SECTION_YSF_NETWORK_FROM;
 			else if (::strncmp(buffer, "[System Fusion Network To]", 26U) == 0)
 				section = SECTION_YSF_NETWORK_TO;
+			else if (::strncmp(buffer, "[P25 Network From]", 18U) == 0)
+				section = SECTION_P25_NETWORK_FROM;
+			else if (::strncmp(buffer, "[P25 Network To]", 16U) == 0)
+				section = SECTION_P25_NETWORK_TO;
+			else if (::strncmp(buffer, "[NXDN Network From]", 19U) == 0)
+				section = SECTION_NXDN_NETWORK_FROM;
+			else if (::strncmp(buffer, "[NXDN Network To]", 17U) == 0)
+				section = SECTION_NXDN_NETWORK_TO;
 			else if (::strncmp(buffer, "[FM Network From]", 17U) == 0)
 				section = SECTION_FM_NETWORK_FROM;
 			else if (::strncmp(buffer, "[FM Network To]", 15U) == 0)
@@ -805,47 +853,221 @@ bool CConf::read()
 				m_ysfM17DGIds.push_back(std::pair<uint8_t, std::string>(dgId, dest));
 			}
 		} else if (section == SECTION_P25_DSTAR) {
-			if (::strcmp(key, "Enable") == 0)
+			if (::strcmp(key, "Enable") == 0) {
 				m_p25DStarEnable = ::atoi(value) == 1;
+			} else if (::strcmp(key, "TG") == 0) {
+				char* p = ::strchr(value, '=');
+				if (p == nullptr)
+					continue;
+				*p = '\0';
+
+				uint16_t tg = uint16_t(::atoi(value));
+
+				std::string dest = getString(p + 1U);
+				if (dest.empty())
+					continue;
+
+	#if defined(TRACE_CONFIG)
+				::fprintf(stdout, "P25 => D-Star, mapping TG%u to \"%s\"\n", tg, dest.c_str());
+	#endif
+				m_p25DStarTGs.push_back(std::pair<uint16_t, std::string>(tg, dest));
+			}
 		} else if (section == SECTION_P25_DMR) {
-			if (::strcmp(key, "Enable") == 0)
+			if (::strcmp(key, "Enable") == 0) {
 				m_p25DMREnable = ::atoi(value) == 1;
+			} else if (::strcmp(key, "TG") == 0) {
+				char* p = ::strchr(value, '=');
+				if (p == nullptr)
+					continue;
+				*p = '\0';
+
+				uint16_t tg = uint16_t(::atoi(value));
+
+				std::pair<uint8_t, uint32_t> slotTG = getSlotTG(p + 1U);
+				if ((slotTG.first == NULL_SLOT) || (slotTG.second == NULL_ID32))
+					continue;
+
+#if defined(TRACE_CONFIG)
+				::fprintf(stdout, "P25 => DMR, mapping TG%u to %u:TG%u\n", tg, slotTG.first, slotTG.second);
+#endif
+				m_p25DMRTGs.push_back(std::tuple<uint16_t, uint8_t, uint32_t>(tg, slotTG.first, slotTG.second));
+			}
 		} else if (section == SECTION_P25_YSF) {
-			if (::strcmp(key, "Enable") == 0)
+			if (::strcmp(key, "Enable") == 0) {
 				m_p25YSFEnable = ::atoi(value) == 1;
+			} else if (::strcmp(key, "TG") == 0) {
+				char* p = ::strchr(value, '=');
+				if (p == nullptr)
+					continue;
+				*p = '\0';
+
+				uint16_t tg = uint16_t(::atoi(value));
+
+				uint8_t dgId = uint8_t(::atoi(p + 1U));
+
+#if defined(TRACE_CONFIG)
+				::fprintf(stdout, "P25 => YSF, mapping TG%u to %u\n", tg, dgId);
+#endif
+				m_p25YSFTGs.push_back(std::pair<uint16_t, uint8_t>(tg, dgId));
+			}
 		} else if (section == SECTION_P25_P25) {
 			if (::strcmp(key, "Enable") == 0)
 				m_p25P25Enable = ::atoi(value) == 1;
 		} else if (section == SECTION_P25_NXDN) {
-			if (::strcmp(key, "Enable") == 0)
+			if (::strcmp(key, "Enable") == 0) {
 				m_p25NXDNEnable = ::atoi(value) == 1;
+			} else if (::strcmp(key, "TG") == 0) {
+				char* p = ::strchr(value, '=');
+				if (p == nullptr)
+					continue;
+				*p = '\0';
+
+				uint16_t tg1 = uint16_t(::atoi(value));
+
+				uint16_t tg2 = uint16_t(::atoi(p + 1U));
+
+#if defined(TRACE_CONFIG)
+				::fprintf(stdout, "P25 => NXDN, mapping TG%u to TG%u\n", tg1, tg2);
+#endif
+				m_p25NXDNTGs.push_back(std::pair<uint16_t, uint16_t>(tg1, tg2));
+			}
 		} else if (section == SECTION_P25_FM) {
-			if (::strcmp(key, "Enable") == 0)
+			if (::strcmp(key, "Enable") == 0) {
 				m_p25FMEnable = ::atoi(value) == 1;
+			} else if (::strcmp(key, "TG") == 0) {
+				m_p25FMTG = uint16_t(::atoi(value));
+#if defined(TRACE_CONFIG)
+				::fprintf(stdout, "P25 => FM, mapping TG%u\n", m_p25FMTG);
+#endif
+			}
 		} else if (section == SECTION_P25_M17) {
-			if (::strcmp(key, "Enable") == 0)
+			if (::strcmp(key, "Enable") == 0) {
 				m_p25M17Enable = ::atoi(value) == 1;
+			} else if (::strcmp(key, "TG") == 0) {
+				char* p = ::strchr(value, '=');
+				if (p == nullptr)
+					continue;
+				*p = '\0';
+
+				uint16_t tg = uint16_t(::atoi(value));
+
+				std::string dest = getString(p + 1U);
+				if (dest.empty())
+					continue;
+
+#if defined(TRACE_CONFIG)
+				::fprintf(stdout, "P25 => M17, mapping TG%u to \"%s\"\n", tg, dest.c_str());
+#endif
+				m_p25M17TGs.push_back(std::pair<uint16_t, std::string>(tg, dest));
+			}
 		} else if (section == SECTION_NXDN_DSTAR) {
-			if (::strcmp(key, "Enable") == 0)
+			if (::strcmp(key, "Enable") == 0) {
 				m_nxdnDStarEnable = ::atoi(value) == 1;
+			} else if (::strcmp(key, "TG") == 0) {
+				char* p = ::strchr(value, '=');
+				if (p == nullptr)
+					continue;
+				*p = '\0';
+
+				uint16_t tg = uint16_t(::atoi(value));
+
+				std::string dest = getString(p + 1U);
+				if (dest.empty())
+					continue;
+
+#if defined(TRACE_CONFIG)
+				::fprintf(stdout, "NXDN => D-Star, mapping TG%u to \"%s\"\n", tg, dest.c_str());
+#endif
+				m_nxdnDStarTGs.push_back(std::pair<uint16_t, std::string>(tg, dest));
+			}
 		} else if (section == SECTION_NXDN_DMR) {
-			if (::strcmp(key, "Enable") == 0)
+			if (::strcmp(key, "Enable") == 0) {
 				m_nxdnDMREnable = ::atoi(value) == 1;
+			} else if (::strcmp(key, "TG") == 0) {
+				char* p = ::strchr(value, '=');
+				if (p == nullptr)
+					continue;
+				*p = '\0';
+
+				uint16_t tg = uint16_t(::atoi(value));
+
+				std::pair<uint8_t, uint32_t> slotTG = getSlotTG(p + 1U);
+				if ((slotTG.first == NULL_SLOT) || (slotTG.second == NULL_ID32))
+					continue;
+
+#if defined(TRACE_CONFIG)
+				::fprintf(stdout, "NXDN => DMR, mapping TG%u to %u:TG%u\n", tg, slotTG.first, slotTG.second);
+#endif
+				m_nxdnDMRTGs.push_back(std::tuple<uint16_t, uint8_t, uint32_t>(tg, slotTG.first, slotTG.second));
+			}
 		} else if (section == SECTION_NXDN_YSF) {
-			if (::strcmp(key, "Enable") == 0)
+			if (::strcmp(key, "Enable") == 0) {
 				m_nxdnYSFEnable = ::atoi(value) == 1;
+			} else if (::strcmp(key, "TG") == 0) {
+				char* p = ::strchr(value, '=');
+				if (p == nullptr)
+					continue;
+				*p = '\0';
+
+				uint16_t tg = uint16_t(::atoi(value));
+
+				uint8_t dgid = uint8_t(::atoi(p + 1U));
+
+#if defined(TRACE_CONFIG)
+				::fprintf(stdout, "NXDN => YSF, mapping TG%u to %u\n", tg, dgid);
+#endif
+				m_nxdnYSFTGs.push_back(std::pair<uint16_t, uint8_t>(tg, dgid));
+			}
 		} else if (section == SECTION_NXDN_P25) {
-			if (::strcmp(key, "Enable") == 0)
+			if (::strcmp(key, "Enable") == 0) {
 				m_nxdnP25Enable = ::atoi(value) == 1;
+			} else if (::strcmp(key, "TG") == 0) {
+				char* p = ::strchr(value, '=');
+				if (p == nullptr)
+					continue;
+				*p = '\0';
+
+				uint16_t tg1 = uint16_t(::atoi(value));
+
+				uint16_t tg2 = uint16_t(::atoi(p + 1U));
+
+#if defined(TRACE_CONFIG)
+				::fprintf(stdout, "NXDN => P25, mapping TG%u to TG%u\n", tg1, tg2);
+#endif
+				m_nxdnP25TGs.push_back(std::pair<uint16_t, uint16_t>(tg1, tg2));
+			}
 		} else if (section == SECTION_NXDN_NXDN) {
 			if (::strcmp(key, "Enable") == 0)
 				m_nxdnNXDNEnable = ::atoi(value) == 1;
 		} else if (section == SECTION_NXDN_FM) {
-			if (::strcmp(key, "Enable") == 0)
+			if (::strcmp(key, "Enable") == 0) {
 				m_nxdnFMEnable = ::atoi(value) == 1;
+			} else if (::strcmp(key, "TG") == 0) {
+				m_nxdnFMTG = uint16_t(::atoi(value));
+#if defined(TRACE_CONFIG)
+				::fprintf(stdout, "NXDN => FM, mapping TG%u\n", m_nxdnFMTG);
+#endif
+			}
 		} else if (section == SECTION_NXDN_M17) {
-			if (::strcmp(key, "Enable") == 0)
+			if (::strcmp(key, "Enable") == 0) {
 				m_nxdnM17Enable = ::atoi(value) == 1;
+			} else if (::strcmp(key, "TG") == 0) {
+				char* p = ::strchr(value, '=');
+				if (p == nullptr)
+					continue;
+				*p = '\0';
+
+				uint16_t tg = uint16_t(::atoi(value));
+
+				std::string dest = getString(p + 1U);
+				if (dest.empty())
+					continue;
+
+#if defined(TRACE_CONFIG)
+				::fprintf(stdout, "NXDN => M17, mapping TG%u to \"%s\"\n", tg, dest.c_str());
+#endif
+				m_nxdnM17TGs.push_back(std::pair<uint16_t, std::string>(tg, dest));
+			}
 		} else if (section == SECTION_FM_DSTAR) {
 			if (::strcmp(key, "Enable") == 0)
 				m_fmDStarEnable = ::atoi(value) == 1;
@@ -868,27 +1090,111 @@ bool CConf::read()
 			if (::strcmp(key, "Enable") == 0)
 				m_fmM17Enable = ::atoi(value) == 1;
 		} else if (section == SECTION_M17_DSTAR) {
-			if (::strcmp(key, "Enable") == 0)
+			if (::strcmp(key, "Enable") == 0) {
 				m_m17DStarEnable = ::atoi(value) == 1;
-			else if (::strcmp(key, "Dest") == 0)
-				m_m17DStarDests.push_back(value);
+			} else if (::strcmp(key, "Dest") == 0) {
+				std::string dest = getString(value);
+				if (dest.empty())
+					continue;
+#if defined(TRACE_CONFIG)
+				::fprintf(stdout, "M17 => D-Star, mapping \"%s\"\n", dest.c_str());
+#endif
+				m_m17DStarDests.push_back(dest);
+			}
 		} else if (section == SECTION_M17_DMR) {
-			if (::strcmp(key, "Enable") == 0)
+			if (::strcmp(key, "Enable") == 0) {
 				m_m17DMREnable = ::atoi(value) == 1;
+			} else if (::strcmp(key, "Dest") == 0) {
+				char* p = ::strchr(value, '=');
+				if (p == nullptr)
+					continue;
+				*p = '\0';
+
+				std::string dest = getString(value);
+				if (dest.empty())
+					continue;
+
+				std::pair<uint8_t, uint32_t> slotTG = getSlotTG(p + 1U);
+				if ((slotTG.first == NULL_SLOT) || (slotTG.second == NULL_ID32))
+					continue;
+
+#if defined(TRACE_CONFIG)
+				::fprintf(stdout, "M17 => DMR, mapping \"%s\" to %u:TG%u\n", dest.c_str(), slotTG.first, slotTG.second);
+#endif
+				m_m17DMRDests.push_back(std::tuple<std::string, uint8_t, uint32_t>(dest, slotTG.first, slotTG.second));
+			}
 		} else if (section == SECTION_M17_YSF) {
-			if (::strcmp(key, "Enable") == 0)
+			if (::strcmp(key, "Enable") == 0) {
 				m_m17YSFEnable = ::atoi(value) == 1;
+			} else if (::strcmp(key, "Dest") == 0) {
+				char* p = ::strchr(value, '=');
+				if (p == nullptr)
+					continue;
+				*p = '\0';
+
+				std::string dest = getString(value);
+				if (dest.empty())
+					continue;
+
+				uint8_t dgid = uint8_t(::atoi(p + 1U));
+
+#if defined(TRACE_CONFIG)
+				::fprintf(stdout, "M17 => YSF, mapping \"%s\" to %u\n", dest.c_str(), dgid);
+#endif
+				m_m17YSFDests.push_back(std::pair<std::string, uint8_t>(dest, dgid));
+			}
 		} else if (section == SECTION_M17_P25) {
-			if (::strcmp(key, "Enable") == 0)
+			if (::strcmp(key, "Enable") == 0) {
 				m_m17P25Enable = ::atoi(value) == 1;
+			} else if (::strcmp(key, "Dest") == 0) {
+				char* p = ::strchr(value, '=');
+				if (p == nullptr)
+					continue;
+				*p = '\0';
+
+				std::string dest = getString(value);
+				if (dest.empty())
+					continue;
+
+				uint16_t tg = uint16_t(::atoi(p + 1U));
+
+#if defined(TRACE_CONFIG)
+				::fprintf(stdout, "M17 => P25, mapping \"%s\" to TG%u\n", dest.c_str(), tg);
+#endif
+				m_m17P25Dests.push_back(std::pair<std::string, uint16_t>(dest, tg));
+			}
 		} else if (section == SECTION_M17_NXDN) {
-			if (::strcmp(key, "Enable") == 0)
+			if (::strcmp(key, "Enable") == 0) {
 				m_m17NXDNEnable = ::atoi(value) == 1;
+			} else if (::strcmp(key, "Dest") == 0) {
+				char* p = ::strchr(value, '=');
+				if (p == nullptr)
+					continue;
+				*p = '\0';
+
+				std::string dest = getString(value);
+				if (dest.empty())
+					continue;
+
+				uint16_t tg = uint16_t(::atoi(p + 1U));
+
+#if defined(TRACE_CONFIG)
+				::fprintf(stdout, "M17 => NXDN, mapping \"%s\" to TG%u\n", dest.c_str(), tg);
+#endif
+				m_m17NXDNDests.push_back(std::pair<std::string, uint16_t>(dest, tg));
+			}
 		} else if (section == SECTION_M17_FM) {
-			if (::strcmp(key, "Enable") == 0)
+			if (::strcmp(key, "Enable") == 0) {
 				m_m17FMEnable = ::atoi(value) == 1;
-			else if (::strcmp(key, "Dest") == 0)
-				m_m17FMDest = value;
+			} else if (::strcmp(key, "Dest") == 0) {
+				std::string dest = getString(value);
+				if (dest.empty())
+					continue;
+#if defined(TRACE_CONFIG)
+				::fprintf(stdout, "M17 => FM, mapping \"%s\"\n", dest.c_str());
+#endif
+				m_m17FMDest = dest;
+			}
 		} else if (section == SECTION_M17_M17) {
 			if (::strcmp(key, "Enable") == 0)
 				m_m17M17Enable = ::atoi(value) == 1;
@@ -958,6 +1264,50 @@ bool CConf::read()
 				m_ysfToLocalPort = uint16_t(::atoi(value));
 			else if (::strcmp(key, "Debug") == 0)
 				m_ysfToDebug = ::atoi(value) == 1;
+		} else if (section == SECTION_P25_NETWORK_FROM) {
+			if (::strcmp(key, "RemoteAddress") == 0)
+				m_p25FromRemoteAddress = value;
+			else if (::strcmp(key, "RemotePort") == 0)
+				m_p25FromRemotePort = uint16_t(::atoi(value));
+			else if (::strcmp(key, "LocalAddress") == 0)
+				m_p25FromLocalAddress = value;
+			else if (::strcmp(key, "LocalPort") == 0)
+				m_p25FromLocalPort = uint16_t(::atoi(value));
+			else if (::strcmp(key, "Debug") == 0)
+				m_p25FromDebug = ::atoi(value) == 1;
+		} else if (section == SECTION_P25_NETWORK_TO) {
+			if (::strcmp(key, "RemoteAddress") == 0)
+				m_p25ToRemoteAddress = value;
+			else if (::strcmp(key, "RemotePort") == 0)
+				m_p25ToRemotePort = uint16_t(::atoi(value));
+			else if (::strcmp(key, "LocalAddress") == 0)
+				m_p25ToLocalAddress = value;
+			else if (::strcmp(key, "LocalPort") == 0)
+				m_p25ToLocalPort = uint16_t(::atoi(value));
+			else if (::strcmp(key, "Debug") == 0)
+				m_p25ToDebug = ::atoi(value) == 1;
+		} else if (section == SECTION_NXDN_NETWORK_FROM) {
+			if (::strcmp(key, "RemoteAddress") == 0)
+				m_nxdnFromRemoteAddress = value;
+			else if (::strcmp(key, "RemotePort") == 0)
+				m_nxdnFromRemotePort = uint16_t(::atoi(value));
+			else if (::strcmp(key, "LocalAddress") == 0)
+				m_nxdnFromLocalAddress = value;
+			else if (::strcmp(key, "LocalPort") == 0)
+				m_nxdnFromLocalPort = uint16_t(::atoi(value));
+			else if (::strcmp(key, "Debug") == 0)
+				m_nxdnFromDebug = ::atoi(value) == 1;
+		} else if (section == SECTION_NXDN_NETWORK_TO) {
+			if (::strcmp(key, "RemoteAddress") == 0)
+				m_nxdnToRemoteAddress = value;
+			else if (::strcmp(key, "RemotePort") == 0)
+				m_nxdnToRemotePort = uint16_t(::atoi(value));
+			else if (::strcmp(key, "LocalAddress") == 0)
+				m_nxdnToLocalAddress = value;
+			else if (::strcmp(key, "LocalPort") == 0)
+				m_nxdnToLocalPort = uint16_t(::atoi(value));
+			else if (::strcmp(key, "Debug") == 0)
+				m_nxdnToDebug = ::atoi(value) == 1;
 		} else if (section == SECTION_FM_NETWORK_FROM) {
 			if (::strcmp(key, "RemoteAddress") == 0)
 				m_fmFromRemoteAddress = value;
@@ -1310,14 +1660,29 @@ bool CConf::getP25DStarEnable() const
 	return m_p25DStarEnable;
 }
 
+std::vector<std::pair<uint16_t, std::string>> CConf::getP25DStarTGs() const
+{
+	return m_p25DStarTGs;
+}
+
 bool CConf::getP25DMREnable() const
 {
 	return m_p25DMREnable;
 }
 
+std::vector<std::tuple<uint16_t, uint8_t, uint32_t>> CConf::getP25DMRTGs() const
+{
+	return m_p25DMRTGs;
+}
+
 bool CConf::getP25YSFEnable() const
 {
 	return m_p25YSFEnable;
+}
+
+std::vector<std::pair<uint16_t, uint8_t>> CConf::getP25YSFTGs() const
+{
+	return m_p25YSFTGs;
 }
 
 bool CConf::getP25P25Enable() const
@@ -1330,9 +1695,19 @@ bool CConf::getP25NXDNEnable() const
 	return m_p25NXDNEnable;
 }
 
+std::vector<std::pair<uint16_t, uint16_t>> CConf::getP25NXDNTGs() const
+{
+	return m_p25NXDNTGs;
+}
+
 bool CConf::getP25FMEnable() const
 {
 	return m_p25FMEnable;
+}
+
+uint16_t CConf::getP25FMTG() const
+{
+	return m_p25FMTG;
 }
 
 bool CConf::getP25M17Enable() const
@@ -1340,9 +1715,19 @@ bool CConf::getP25M17Enable() const
 	return m_p25M17Enable;
 }
 
+std::vector<std::pair<uint16_t, std::string>> CConf::getP25M17TGs() const
+{
+	return m_p25M17TGs;
+}
+
 bool CConf::getNXDNDStarEnable() const
 {
 	return m_nxdnDStarEnable;
+}
+
+std::vector<std::pair<uint16_t, std::string>> CConf::getNXDNDStarTGs() const
+{
+	return m_nxdnDStarTGs;
 }
 
 bool CConf::getNXDNDMREnable() const
@@ -1350,14 +1735,29 @@ bool CConf::getNXDNDMREnable() const
 	return m_nxdnDMREnable;
 }
 
+std::vector<std::tuple<uint16_t, uint8_t, uint32_t>> CConf::getNXDNDMRTGs() const
+{
+	return m_nxdnDMRTGs;
+}
+
 bool CConf::getNXDNYSFEnable() const
 {
 	return m_nxdnYSFEnable;
 }
 
+std::vector<std::pair<uint16_t, uint8_t>> CConf::getNXDNYSFTGs() const
+{
+	return m_nxdnYSFTGs;
+}
+
 bool CConf::getNXDNP25Enable() const
 {
 	return m_nxdnP25Enable;
+}
+
+std::vector<std::pair<uint16_t, uint16_t>> CConf::getNXDNP25TGs() const
+{
+	return m_nxdnP25TGs;
 }
 
 bool CConf::getNXDNNXDNEnable() const
@@ -1370,9 +1770,19 @@ bool CConf::getNXDNFMEnable() const
 	return m_nxdnFMEnable;
 }
 
+uint16_t CConf::getNXDNFMTG() const
+{
+	return m_nxdnFMTG;
+}
+
 bool CConf::getNXDNM17Enable() const
 {
 	return m_nxdnM17Enable;
+}
+
+std::vector<std::pair<uint16_t, std::string>> CConf::getNXDNM17TGs() const
+{
+	return m_nxdnM17TGs;
 }
 
 bool CConf::getFMDStarEnable() const
@@ -1425,9 +1835,19 @@ bool CConf::getM17DMREnable() const
 	return m_m17DMREnable;
 }
 
+std::vector<std::tuple<std::string, uint8_t, uint32_t>> CConf::getM17DMRDests() const
+{
+	return m_m17DMRDests;
+}
+
 bool CConf::getM17YSFEnable() const
 {
 	return m_m17YSFEnable;
+}
+
+std::vector<std::pair<std::string, uint8_t>> CConf::getM17YSFDests() const
+{
+	return m_m17YSFDests;
 }
 
 bool CConf::getM17P25Enable() const
@@ -1435,9 +1855,19 @@ bool CConf::getM17P25Enable() const
 	return m_m17P25Enable;
 }
 
+std::vector<std::pair<std::string, uint16_t>> CConf::getM17P25Dests() const
+{
+	return m_m17P25Dests;
+}
+
 bool CConf::getM17NXDNEnable() const
 {
 	return m_m17NXDNEnable;
+}
+
+std::vector<std::pair<std::string, uint16_t>> CConf::getM17NXDNDests() const
+{
+	return m_m17NXDNDests;
 }
 
 bool CConf::getM17FMEnable() const
@@ -1603,6 +2033,106 @@ uint16_t CConf::getYSFToLocalPort() const
 bool CConf::getYSFToDebug() const
 {
 	return m_ysfToDebug;
+}
+
+std::string CConf::getP25FromRemoteAddress() const
+{
+	return m_p25FromRemoteAddress;
+}
+
+uint16_t CConf::getP25FromRemotePort() const
+{
+	return m_p25FromRemotePort;
+}
+
+std::string CConf::getP25FromLocalAddress() const
+{
+	return m_p25FromLocalAddress;
+}
+
+uint16_t CConf::getP25FromLocalPort() const
+{
+	return m_p25FromLocalPort;
+}
+
+bool CConf::getP25FromDebug() const
+{
+	return m_p25FromDebug;
+}
+
+std::string CConf::getP25ToRemoteAddress() const
+{
+	return m_p25ToRemoteAddress;
+}
+
+uint16_t CConf::getP25ToRemotePort() const
+{
+	return m_p25ToRemotePort;
+}
+
+std::string CConf::getP25ToLocalAddress() const
+{
+	return m_p25ToLocalAddress;
+}
+
+uint16_t CConf::getP25ToLocalPort() const
+{
+	return m_p25ToLocalPort;
+}
+
+bool CConf::getP25ToDebug() const
+{
+	return m_p25ToDebug;
+}
+
+std::string CConf::getNXDNFromRemoteAddress() const
+{
+	return m_nxdnFromRemoteAddress;
+}
+
+uint16_t CConf::getNXDNFromRemotePort() const
+{
+	return m_nxdnFromRemotePort;
+}
+
+std::string CConf::getNXDNFromLocalAddress() const
+{
+	return m_nxdnFromLocalAddress;
+}
+
+uint16_t CConf::getNXDNFromLocalPort() const
+{
+	return m_nxdnFromLocalPort;
+}
+
+bool CConf::getNXDNFromDebug() const
+{
+	return m_nxdnFromDebug;
+}
+
+std::string CConf::getNXDNToRemoteAddress() const
+{
+	return m_nxdnToRemoteAddress;
+}
+
+uint16_t CConf::getNXDNToRemotePort() const
+{
+	return m_nxdnToRemotePort;
+}
+
+std::string CConf::getNXDNToLocalAddress() const
+{
+	return m_nxdnToLocalAddress;
+}
+
+uint16_t CConf::getNXDNToLocalPort() const
+{
+	return m_nxdnToLocalPort;
+}
+
+bool CConf::getNXDNToDebug() const
+{
+	return m_nxdnToDebug;
 }
 
 std::string CConf::getFMFromRemoteAddress() const

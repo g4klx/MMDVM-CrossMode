@@ -424,6 +424,20 @@ bool CCrossMode::createFromNetwork(DATA_MODE mode)
 		uint16_t localPort        = m_conf.getYSFFromLocalPort();
 		bool debug                = m_conf.getYSFFromDebug();
 		m_fromNetwork = new CYSFNetwork(NET_FROM, callsign, localAddress, localPort, remoteAddress, remotePort, debug);
+	} else if (mode == DATA_MODE_P25) {
+		std::string remoteAddress = m_conf.getP25FromRemoteAddress();
+		std::string localAddress  = m_conf.getP25FromLocalAddress();
+		uint16_t remotePort       = m_conf.getP25FromRemotePort();
+		uint16_t localPort        = m_conf.getP25FromLocalPort();
+		bool debug                = m_conf.getP25FromDebug();
+		// m_fromNetwork = new CP25Network(NET_FROM, localAddress, localPort, remoteAddress, remotePort, debug);
+	} else if (mode == DATA_MODE_NXDN) {
+		std::string remoteAddress = m_conf.getNXDNFromRemoteAddress();
+		std::string localAddress  = m_conf.getNXDNFromLocalAddress();
+		uint16_t remotePort       = m_conf.getNXDNFromRemotePort();
+		uint16_t localPort        = m_conf.getNXDNFromLocalPort();
+		bool debug                = m_conf.getNXDNFromDebug();
+		// m_fromNetwork = new CNXDNNetwork(NET_FROM, localAddress, localPort, remoteAddress, remotePort, debug);
 	} else if (mode == DATA_MODE_FM) {
 		std::string remoteAddress = m_conf.getFMFromRemoteAddress();
 		std::string localAddress  = m_conf.getFMFromLocalAddress();
@@ -561,6 +575,66 @@ bool CCrossMode::createToNetworks(DATA_MODE fromMode, CData& data)
 		m_toNetworks.insert(std::pair<DATA_MODE, INetwork*>(DATA_MODE_YSF, network));
 	}
 
+	if (((fromMode == DATA_MODE_DSTAR) && m_conf.getDStarP25Enable()) ||
+		((fromMode == DATA_MODE_DMR)   && m_conf.getDMRP25Enable())   ||
+		((fromMode == DATA_MODE_YSF)   && m_conf.getYSFP25Enable())   ||
+		((fromMode == DATA_MODE_P25)   && m_conf.getP25P25Enable())   ||
+		((fromMode == DATA_MODE_NXDN)  && m_conf.getNXDNP25Enable())  ||
+		((fromMode == DATA_MODE_FM)    && m_conf.getFMP25Enable())    ||
+		((fromMode == DATA_MODE_M17)   && m_conf.getM17P25Enable())) {
+		toP25 = true;
+	}
+
+	if (toP25) {
+		std::string remoteAddress = m_conf.getP25ToRemoteAddress();
+		std::string localAddress  = m_conf.getP25ToLocalAddress();
+		uint16_t remotePort       = m_conf.getP25ToRemotePort();
+		uint16_t localPort        = m_conf.getP25ToLocalPort();
+		bool debug                = m_conf.getP25ToDebug();
+/*
+		CP25Network* network = new CP25Network(NET_TO, localAddress, localPort, remoteAddress, remotePort, debug);
+
+		bool ret = network->open();
+		if (!ret) {
+			LogError("Unable to open the P25 To network interface");
+			closeToNetworks();
+			return false;
+		}
+
+		m_toNetworks.insert(std::pair<DATA_MODE, INetwork*>(DATA_MODE_P25, network));
+*/
+	}
+
+	if (((fromMode == DATA_MODE_DSTAR) && m_conf.getDStarNXDNEnable()) ||
+		((fromMode == DATA_MODE_DMR)   && m_conf.getDMRNXDNEnable())   ||
+		((fromMode == DATA_MODE_YSF)   && m_conf.getYSFNXDNEnable())   ||
+		((fromMode == DATA_MODE_P25)   && m_conf.getP25NXDNEnable())   ||
+		((fromMode == DATA_MODE_NXDN)  && m_conf.getNXDNNXDNEnable())  ||
+		((fromMode == DATA_MODE_FM)    && m_conf.getFMNXDNEnable())    ||
+		((fromMode == DATA_MODE_M17)   && m_conf.getM17NXDNEnable())) {
+		toNXDN = true;
+	}
+
+	if (toNXDN) {
+		std::string remoteAddress = m_conf.getNXDNToRemoteAddress();
+		std::string localAddress  = m_conf.getNXDNToLocalAddress();
+		uint16_t remotePort       = m_conf.getNXDNToRemotePort();
+		uint16_t localPort        = m_conf.getNXDNToLocalPort();
+		bool debug                = m_conf.getNXDNToDebug();
+/*
+		CNXDNNetwork* network = new CNXDNNetwork(NET_TO, localAddress, localPort, remoteAddress, remotePort, debug);
+
+		bool ret = network->open();
+		if (!ret) {
+			LogError("Unable to open the NXDN To network interface");
+			closeToNetworks();
+			return false;
+		}
+
+		m_toNetworks.insert(std::pair<DATA_MODE, INetwork*>(DATA_MODE_NXDN, network));
+*/
+	}
+
 	if (((fromMode == DATA_MODE_DSTAR) && m_conf.getDStarFMEnable()) ||
 		((fromMode == DATA_MODE_DMR)   && m_conf.getDMRFMEnable())   ||
 		((fromMode == DATA_MODE_YSF)   && m_conf.getYSFFMEnable())   ||
@@ -619,14 +693,14 @@ bool CCrossMode::createToNetworks(DATA_MODE fromMode, CData& data)
 		m_toNetworks.insert(std::pair<DATA_MODE, INetwork*>(DATA_MODE_M17, network));
 	}
 
-	data.setToModes(m_conf.getDStarDStarEnable(),
-					m_conf.getDMRDMREnable1(),
-					m_conf.getDMRDMREnable2(),
-					m_conf.getYSFYSFEnable(),
-					m_conf.getP25P25Enable(),
-					m_conf.getNXDNNXDNEnable(),
-					m_conf.getFMFMEnable(),
-					m_conf.getM17M17Enable());
+	data.setThroughModes(m_conf.getDStarDStarEnable(),
+						 m_conf.getDMRDMREnable1(),
+						 m_conf.getDMRDMREnable2(),
+						 m_conf.getYSFYSFEnable(),
+						 m_conf.getP25P25Enable(),
+						 m_conf.getNXDNNXDNEnable(),
+						 m_conf.getFMFMEnable(),
+						 m_conf.getM17M17Enable());
 
 	return true;
 }
@@ -765,9 +839,47 @@ void CCrossMode::loadModeTranslationTables(DATA_MODE fromMode, CData& data)
 			data.setYSFM17DGIds(m_conf.getYSFM17DGIds());
 	}
 
+	if (fromMode == DATA_MODE_P25) {
+		if (m_conf.getP25DStarEnable())
+			data.setP25DStarTGs(m_conf.getP25DStarTGs());
+		if (m_conf.getP25DMREnable())
+			data.setP25DMRTGs(m_conf.getP25DMRTGs());
+		if (m_conf.getP25YSFEnable())
+			data.setP25YSFTGs(m_conf.getP25YSFTGs());
+		if (m_conf.getP25NXDNEnable())
+			data.setP25NXDNTGs(m_conf.getP25NXDNTGs());
+		if (m_conf.getP25FMEnable())
+			data.setP25FMTG(m_conf.getP25FMTG());
+		if (m_conf.getP25M17Enable())
+			data.setP25M17TGs(m_conf.getP25M17TGs());
+	}
+
+	if (fromMode == DATA_MODE_NXDN) {
+		if (m_conf.getNXDNDStarEnable())
+			data.setNXDNDStarTGs(m_conf.getNXDNDStarTGs());
+		if (m_conf.getNXDNDMREnable())
+			data.setNXDNDMRTGs(m_conf.getNXDNDMRTGs());
+		if (m_conf.getNXDNYSFEnable())
+			data.setNXDNYSFTGs(m_conf.getNXDNYSFTGs());
+		if (m_conf.getNXDNP25Enable())
+			data.setNXDNP25TGs(m_conf.getNXDNP25TGs());
+		if (m_conf.getNXDNFMEnable())
+			data.setNXDNFMTG(m_conf.getNXDNFMTG());
+		if (m_conf.getNXDNM17Enable())
+			data.setNXDNM17TGs(m_conf.getNXDNM17TGs());
+	}
+
 	if (fromMode == DATA_MODE_M17) {
 		if (m_conf.getM17DStarEnable())
 			data.setM17DStarDests(m_conf.getM17DStarDests());
+		if (m_conf.getM17DMREnable())
+			data.setM17DMRDests(m_conf.getM17DMRDests());
+		if (m_conf.getM17YSFEnable())
+			data.setM17YSFDests(m_conf.getM17YSFDests());
+		if (m_conf.getM17P25Enable())
+			data.setM17P25Dests(m_conf.getM17P25Dests());
+		if (m_conf.getM17NXDNEnable())
+			data.setM17NXDNDests(m_conf.getM17NXDNDests());
 		if (m_conf.getM17FMEnable())
 			data.setM17FMDest(m_conf.getM17FMDest());
 	}

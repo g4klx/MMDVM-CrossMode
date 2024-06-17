@@ -148,45 +148,57 @@ public:
 
 	// The P25 to D-Star section
 	bool         getP25DStarEnable() const;
+	std::vector<std::pair<uint16_t, std::string>> getP25DStarTGs() const;
+
+	// The P25 to YSF section
+	bool         getP25YSFEnable() const;
+	std::vector<std::pair<uint16_t, uint8_t>> getP25YSFTGs() const;
 
 	// The P25 to DMR section
 	bool         getP25DMREnable() const;
-
-	// The P25 to System Fusion section
-	bool         getP25YSFEnable() const;
+	std::vector<std::tuple<uint16_t, uint8_t, uint32_t>> getP25DMRTGs() const;
 
 	// The P25 to P25 section
 	bool         getP25P25Enable() const;
 
 	// The P25 to NXDN section
 	bool         getP25NXDNEnable() const;
+	std::vector<std::pair<uint16_t, uint16_t>> getP25NXDNTGs() const;
 
 	// The P25 to FM section
 	bool         getP25FMEnable() const;
+	uint16_t     getP25FMTG() const;
 
 	// The P25 to M17 section
 	bool         getP25M17Enable() const;
+	std::vector<std::pair<uint16_t, std::string>> getP25M17TGs() const;
 
 	// The NXDN to D-Star section
 	bool         getNXDNDStarEnable() const;
+	std::vector<std::pair<uint16_t, std::string>> getNXDNDStarTGs() const;
 
 	// The NXDN to DMR section
 	bool         getNXDNDMREnable() const;
+	std::vector<std::tuple<uint16_t, uint8_t, uint32_t>> getNXDNDMRTGs() const;
 
 	// The NXDN to System Fusion section
 	bool         getNXDNYSFEnable() const;
+	std::vector<std::pair<uint16_t, uint8_t>> getNXDNYSFTGs() const;
 
 	// The NXDN to P25 section
 	bool         getNXDNP25Enable() const;
+	std::vector<std::pair<uint16_t, uint16_t>> getNXDNP25TGs() const;
 
 	// The NXDN to NXDN section
 	bool         getNXDNNXDNEnable() const;
 
 	// The NXDN to FM section
 	bool         getNXDNFMEnable() const;
+	uint16_t     getNXDNFMTG() const;
 
 	// The NXDN to M17 section
 	bool         getNXDNM17Enable() const;
+	std::vector<std::pair<uint16_t, std::string>> getNXDNM17TGs() const;
 
 	// The FM to D-Star section
 	bool         getFMDStarEnable() const;
@@ -215,15 +227,19 @@ public:
 
 	// The M17 to DMR section
 	bool         getM17DMREnable() const;
+	std::vector<std::tuple<std::string, uint8_t, uint32_t>> getM17DMRDests() const;
 
 	// The M17 to System Fusion section
 	bool         getM17YSFEnable() const;
+	std::vector<std::pair<std::string, uint8_t>> getM17YSFDests() const;
 
 	// The M17 to P25 section
 	bool         getM17P25Enable() const;
+	std::vector<std::pair<std::string, uint16_t>> getM17P25Dests() const;
 
 	// The M17 to NXDN section
 	bool         getM17NXDNEnable() const;
+	std::vector<std::pair<std::string, uint16_t>> getM17NXDNDests() const;
 
 	// The M17 to FM section
 	bool         getM17FMEnable() const;
@@ -273,6 +289,34 @@ public:
 	std::string  getYSFToLocalAddress() const;
 	uint16_t     getYSFToLocalPort() const;
 	bool         getYSFToDebug() const;
+
+	// The From P25 Network section
+	std::string  getP25FromRemoteAddress() const;
+	uint16_t     getP25FromRemotePort() const;
+	std::string  getP25FromLocalAddress() const;
+	uint16_t     getP25FromLocalPort() const;
+	bool         getP25FromDebug() const;
+
+	// The To P25 Network section
+	std::string  getP25ToRemoteAddress() const;
+	uint16_t     getP25ToRemotePort() const;
+	std::string  getP25ToLocalAddress() const;
+	uint16_t     getP25ToLocalPort() const;
+	bool         getP25ToDebug() const;
+
+	// The From NXDN Network section
+	std::string  getNXDNFromRemoteAddress() const;
+	uint16_t     getNXDNFromRemotePort() const;
+	std::string  getNXDNFromLocalAddress() const;
+	uint16_t     getNXDNFromLocalPort() const;
+	bool         getNXDNFromDebug() const;
+
+	// The To NXDN Network section
+	std::string  getNXDNToRemoteAddress() const;
+	uint16_t     getNXDNToRemotePort() const;
+	std::string  getNXDNToLocalAddress() const;
+	uint16_t     getNXDNToLocalPort() const;
+	bool         getNXDNToDebug() const;
 
 	// The From FM Network section
 	std::string  getFMFromRemoteAddress() const;
@@ -393,32 +437,44 @@ private:
 	std::vector<std::pair<uint8_t, std::string>> m_ysfM17DGIds;
 
 	bool         m_p25DStarEnable;
+	std::vector<std::pair<uint16_t, std::string>> m_p25DStarTGs;
 
 	bool         m_p25DMREnable;
+	std::vector<std::tuple<uint16_t, uint8_t, uint32_t>> m_p25DMRTGs;
 
 	bool         m_p25YSFEnable;
+	std::vector<std::pair<uint16_t, uint8_t>> m_p25YSFTGs;
 
 	bool         m_p25P25Enable;
 
 	bool         m_p25NXDNEnable;
+	std::vector<std::pair<uint16_t, uint16_t>> m_p25NXDNTGs;
 
 	bool         m_p25FMEnable;
+	uint16_t     m_p25FMTG;
 
 	bool         m_p25M17Enable;
+	std::vector<std::pair<uint16_t, std::string>> m_p25M17TGs;
 
 	bool         m_nxdnDStarEnable;
+	std::vector<std::pair<uint16_t, std::string>> m_nxdnDStarTGs;
 
 	bool         m_nxdnDMREnable;
+	std::vector<std::tuple<uint16_t, uint8_t, uint32_t>> m_nxdnDMRTGs;
 
 	bool         m_nxdnYSFEnable;
+	std::vector<std::pair<uint16_t, uint8_t>> m_nxdnYSFTGs;
 
 	bool         m_nxdnP25Enable;
+	std::vector<std::pair<uint16_t, uint16_t>> m_nxdnP25TGs;
 
 	bool         m_nxdnNXDNEnable;
 
 	bool         m_nxdnFMEnable;
+	uint16_t     m_nxdnFMTG;
 
 	bool         m_nxdnM17Enable;
+	std::vector<std::pair<uint16_t, std::string>> m_nxdnM17TGs;
 
 	bool         m_fmDStarEnable;
 
@@ -438,12 +494,16 @@ private:
 	std::vector<std::string> m_m17DStarDests;
 
 	bool         m_m17DMREnable;
+	std::vector<std::tuple<std::string, uint8_t, uint32_t>> m_m17DMRDests;
 
 	bool         m_m17YSFEnable;
+	std::vector<std::pair<std::string, uint8_t>> m_m17YSFDests;
 
 	bool         m_m17P25Enable;
+	std::vector<std::pair<std::string, uint16_t>> m_m17P25Dests;
 
 	bool         m_m17NXDNEnable;
+	std::vector<std::pair<std::string, uint16_t>> m_m17NXDNDests;
 
 	bool         m_m17FMEnable;
 	std::string  m_m17FMDest;
@@ -485,6 +545,30 @@ private:
 	std::string  m_ysfToLocalAddress;
 	uint16_t     m_ysfToLocalPort;
 	bool         m_ysfToDebug;
+
+	std::string  m_p25FromRemoteAddress;
+	uint16_t     m_p25FromRemotePort;
+	std::string  m_p25FromLocalAddress;
+	uint16_t     m_p25FromLocalPort;
+	bool         m_p25FromDebug;
+
+	std::string  m_p25ToRemoteAddress;
+	uint16_t     m_p25ToRemotePort;
+	std::string  m_p25ToLocalAddress;
+	uint16_t     m_p25ToLocalPort;
+	bool         m_p25ToDebug;
+
+	std::string  m_nxdnFromRemoteAddress;
+	uint16_t     m_nxdnFromRemotePort;
+	std::string  m_nxdnFromLocalAddress;
+	uint16_t     m_nxdnFromLocalPort;
+	bool         m_nxdnFromDebug;
+
+	std::string  m_nxdnToRemoteAddress;
+	uint16_t     m_nxdnToRemotePort;
+	std::string  m_nxdnToLocalAddress;
+	uint16_t     m_nxdnToLocalPort;
+	bool         m_nxdnToDebug;
 
 	std::string  m_fmFromRemoteAddress;
 	uint16_t     m_fmFromRemotePort;
