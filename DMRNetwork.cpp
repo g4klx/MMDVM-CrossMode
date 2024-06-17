@@ -525,7 +525,7 @@ void CDMRNetwork::clock(unsigned int ms)
 {
 	m_pingTimer.clock(ms);
 	if (m_pingTimer.isRunning() && m_pingTimer.hasExpired()) {
-		// writeConfig();
+		writePing();
 		m_pingTimer.start();
 	}
 
@@ -548,3 +548,17 @@ void CDMRNetwork::clock(unsigned int ms)
 	m_rxData.add(m_buffer, len);
 }
 
+bool CDMRNetwork::writePing()
+{
+	uint8_t buffer[10U];
+
+	buffer[0U] = 'D';
+	buffer[1U] = 'M';
+	buffer[2U] = 'R';
+	buffer[3U] = 'P';
+
+	// if (m_debug)
+	//	CUtils::dump(1U, "DMR Network Ping Sent", buffer, 4U);
+
+	return m_socket.write(buffer, 4U, m_addr, m_addrLen);
+}

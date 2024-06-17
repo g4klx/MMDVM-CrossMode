@@ -80,6 +80,7 @@ private:
 	bool writeHeader(CData& data);
 	bool writeAudio(CData& data);
 	bool writeTrailer(CData& data);
+	bool writePing();
 };
 
 #endif
