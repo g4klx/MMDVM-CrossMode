@@ -94,17 +94,17 @@ public:
 	void setDMR(NETWORK network, uint8_t slot, uint32_t source, uint32_t destination, bool group);
 	void setYSF(NETWORK network, const uint8_t* source, uint8_t dgId);
 	void setNXDN(NETWORK network, uint16_t source, uint16_t destination, bool group);
-	void setP25(NETWORK network, uint32_t source, uint32_t destination, bool group);
+	void setP25(NETWORK network, uint32_t source, uint16_t destination, bool group);
 	void setFM(NETWORK network);
 	void setM17(NETWORK network, const std::string& source, const std::string& destination);
 
 	void setEnd();
 
 	void getDStar(NETWORK network, uint8_t* source, uint8_t* destination) const;
-	void getDMR(NETWORK network, uint8_t& slot, uint32_t& source, uint32_t& destination, bool& group);
+	void getDMR(NETWORK network, uint8_t& slot, uint32_t& source, uint32_t& destination, bool& group) const;
 	void getYSF(NETWORK network, uint8_t* source, uint8_t* destination, uint8_t& dgId) const;
-	void getNXDN(NETWORK network, uint16_t& source, uint16_t& destination, bool& group);
-	void getP25(NETWORK network, uint32_t& source, uint32_t& destination, bool& group);
+	void getNXDN(NETWORK network, uint16_t& source, uint16_t& destination, bool& group) const;
+	void getP25(NETWORK network, uint32_t& source, uint16_t& destination, bool& group) const;
 	void getM17(NETWORK network, std::string& source, std::string& destination) const;
 
 	void     setRaw(const uint8_t* data, uint16_t length);
@@ -204,24 +204,46 @@ private:
 
 	bool setTranscoder();
 
+	// uint8_t <=> std::string
 	uint8_t find(const std::vector<std::pair<std::string, uint8_t>>& mapping, const std::string& dest) const;
 	std::string find(const std::vector<std::pair<std::string, uint8_t>>& mapping, uint8_t dgId) const;
-
-	uint16_t find(const std::vector<std::pair<std::string, uint16_t>>& mapping, const std::string& dest) const;
-	std::string find(const std::vector<std::pair<std::string, uint16_t>>& mapping, uint16_t tgId) const;
-
-	std::pair<uint8_t, uint32_t> find(const std::vector<std::tuple<std::string, uint8_t, uint32_t>>& mapping, const std::string& dest) const;
-	std::string find(const std::vector<std::tuple<std::string, uint8_t, uint32_t>>& mapping, uint8_t slot, uint32_t tgId) const;
 
 	uint8_t find(const std::vector<std::pair<uint8_t, std::string>>& mapping, const std::string& dest) const;
 	std::string find(const std::vector<std::pair<uint8_t, std::string>>& mapping, uint8_t dgId) const;
 
-	uint8_t find(const std::vector<std::pair<uint8_t, uint16_t>>& mapping, uint16_t tgId) const;
-	uint16_t find(const std::vector<std::pair<uint8_t, uint16_t>>& mapping, uint8_t dgId) const;
+	// uint16_t <=> std::string
+	uint16_t find(const std::vector<std::pair<std::string, uint16_t>>& mapping, const std::string& dest) const;
+	std::string find(const std::vector<std::pair<std::string, uint16_t>>& mapping, uint16_t tgId) const;
+
+	uint16_t find(const std::vector<std::pair<uint16_t, std::string>>& mapping, const std::string& dest) const;
+	std::string find(const std::vector<std::pair<uint16_t, std::string>>& mapping, uint16_t tgId) const;
+
+	// <uint8_t, uint32_t> <=> std::string
+	std::pair<uint8_t, uint32_t> find(const std::vector<std::tuple<std::string, uint8_t, uint32_t>>& mapping, const std::string& dest) const;
+	std::string find(const std::vector<std::tuple<std::string, uint8_t, uint32_t>>& mapping, uint8_t slot, uint32_t tgId) const;
 
 	std::string find(const std::vector<std::tuple<uint8_t, uint32_t, std::string>>& mapping, uint8_t slot, uint32_t tgId) const;
 	std::pair<uint8_t, uint32_t> find(const std::vector<std::tuple<uint8_t, uint32_t, std::string>>& mapping, const std::string& dest) const;
 
+	// <uint8_t, uint32_t> <=> uint16_t
+	std::pair<uint8_t, uint32_t> find(const std::vector<std::tuple<uint8_t, uint32_t, uint16_t>>& mapping, uint16_t tgId) const;
+	uint16_t find(const std::vector<std::tuple<uint8_t, uint32_t, uint16_t>>& mapping, uint8_t slot, uint32_t tgId) const;
+
+	std::pair<uint8_t, uint32_t> find(const std::vector<std::tuple<uint16_t, uint8_t, uint32_t>>& mapping, uint16_t tgId) const;
+	uint16_t find(const std::vector<std::tuple<uint16_t, uint8_t, uint32_t>>& mapping, uint8_t slot, uint32_t tgId) const;
+
+	// uint8_t <=> uint16_t
+	uint8_t find(const std::vector<std::pair<uint8_t, uint16_t>>& mapping, uint16_t tgId) const;
+	uint16_t find(const std::vector<std::pair<uint8_t, uint16_t>>& mapping, uint8_t dgId) const;
+
+	uint8_t find(const std::vector<std::pair<uint16_t, uint8_t>>& mapping, uint16_t tgId) const;
+	uint16_t find(const std::vector<std::pair<uint16_t, uint8_t>>& mapping, uint8_t dgId) const;
+
+	// uint16_t <=> uint16_t
+	uint16_t find1(const std::vector<std::pair<uint16_t, uint16_t>>& mapping, uint16_t tgId) const;
+	uint16_t find2(const std::vector<std::pair<uint16_t, uint16_t>>& mapping, uint16_t tgId) const;
+
+	// <uint8_t, uint32_t> <=> uint8_t
 	uint8_t find(const std::vector<std::tuple<uint8_t, uint8_t, uint32_t>>& mapping, uint8_t slot, uint32_t tgId) const;
 	std::pair<uint8_t, uint32_t> find(const std::vector<std::tuple<uint8_t, uint8_t, uint32_t>>& mapping, uint8_t dgId) const;
 

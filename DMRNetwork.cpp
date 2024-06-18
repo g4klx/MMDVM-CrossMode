@@ -225,7 +225,7 @@ bool CDMRNetwork::writeData(CData& data)
 	switch (m_audioCount) {
 	case 0U:
 		for (uint16_t i = 0U; i < 3U; i++)
-			::memcpy(m_audio + (i * DMR_NXDN_DATA_LENGTH), DMR_NXDN_SILENCE, DMR_NXDN_DATA_LENGTH);
+			::memcpy(m_audio + (i * DMR_NXDN_DATA_LENGTH), DMR_SILENCE, DMR_NXDN_DATA_LENGTH);
 
 		if (data.hasData()) {
 			data.getData(m_audio + 0U);
