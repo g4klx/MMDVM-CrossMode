@@ -44,10 +44,6 @@ m_seqNo(0U),
 m_audio(nullptr),
 m_audioCount(0U),
 m_fn(0U)
-#if defined(DUMP_YSF)
-, m_fpIn(nullptr),
-m_fpOut(nullptr)
-#endif
 {
 	m_callsign = callsign;
 	m_callsign.resize(YSF_CALLSIGN_LENGTH, ' ');
@@ -77,11 +73,6 @@ bool CYSFNetwork::open()
 	LogMessage("Opening YSF network connection");
 
 	m_pollTimer.start();
-
-#if defined(DUMP_YSF)
-	m_fpIn  = ::fopen("dump_in.ysf", "wb");
-	m_fpOut = ::fopen("dump_out.ysf", "wb");
-#endif
 
 	return m_socket.open(m_addr);
 }
@@ -466,13 +457,6 @@ bool CYSFNetwork::read(CData& data)
 	CYSFPayload payload;
 	payload.processVDMode2Audio(buffer + 35U, m_audio);
 
-#if defined(DUMP_YSF)
-	if (m_fpIn != nullptr) {
-		::fwrite(m_audio, 1U, YSFDN_DATA_LENGTH * 5U, m_fpIn);
-		::fflush(m_fpIn);
-	}
-#endif
-
 	data.setData(m_audio + 0U);
 
 	m_audioCount = 1U;
@@ -523,18 +507,6 @@ bool CYSFNetwork::hasData()
 void CYSFNetwork::close()
 {
 	m_socket.close();
-
-#if defined(DUMP_YSF)
-	if (m_fpIn != nullptr) {
-		::fclose(m_fpIn);
-		m_fpIn = nullptr;
-	}
-
-	if (m_fpOut != nullptr) {
-		::fclose(m_fpOut);
-		m_fpOut = nullptr;
-	}
-#endif
 
 	LogMessage("Closing YSF network connection");
 }

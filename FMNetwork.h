@@ -26,6 +26,7 @@
 #include <cstdint>
 #include <string>
 
+
 class CFMNetwork : public INetwork {
 public:
 	CFMNetwork(NETWORK network, const std::string& callsign, const std::string& localAddress, uint16_t localPort, const std::string& remoteAddress, uint16_t remotePort, bool debug);

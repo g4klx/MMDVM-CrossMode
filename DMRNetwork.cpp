@@ -54,10 +54,6 @@ m_audioCount(0U),
 m_lc(),
 m_seqNo(0U),
 m_N(0U)
-#if defined(DUMP_DMR)
-, m_fpIn(nullptr),
-m_fpOut(nullptr)
-#endif
 {
 	assert(remotePort > 0U);
 	assert(id > 0U);
@@ -100,11 +96,6 @@ bool CDMRNetwork::open()
 		return false;
 
 	m_pingTimer.start();
-
-#if defined(DUMP_DMR)
-	m_fpIn = ::fopen("dump_in.dmr", "wb");
-	m_fpOut = ::fopen("dump_out.dmr", "wb");
-#endif
 
 	return true;
 }
@@ -190,13 +181,6 @@ bool CDMRNetwork::read(CData& data)
 		bool b = READ_BIT8(m_buffer, inOffset) != 0U;
 		WRITE_BIT8(m_audio, outOffset, b);
 	}
-
-#if defined(DUMP_DMR)
-	if (m_fpIn != nullptr) {
-		::fwrite(m_audio, 1U, DMR_NXDN_DATA_LENGTH * 3U, m_fpIn);
-		::fflush(m_fpIn);
-	}
-#endif
 
 	data.setData(m_audio + 0U);
 
@@ -505,18 +489,6 @@ bool CDMRNetwork::hasData()
 void CDMRNetwork::close()
 {
 	LogMessage("Closing DMR Network");
-
-#if defined(DUMP_DMR)
-	if (m_fpIn != nullptr) {
-		::fclose(m_fpIn);
-		m_fpIn = nullptr;
-	}
-
-	if (m_fpOut != nullptr) {
-		::fclose(m_fpOut);
-		m_fpOut = nullptr;
-	}
-#endif
 
 	m_socket.close();
 }

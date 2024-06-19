@@ -28,7 +28,6 @@
 #include <cstdint>
 #include <string>
 
-// #define	DUMP_YSF
 
 class CYSFNetwork : public INetwork {
 public:
@@ -65,10 +64,6 @@ private:
 	uint8_t*         m_audio;
 	uint8_t          m_audioCount;
 	uint8_t          m_fn;
-#if defined(DUMP_YSF)
-	FILE*            m_fpIn;
-	FILE*            m_fpOut;
-#endif
 
 	bool writeHeader(CData& data);
 	bool writeCommunication(CData& data);

@@ -78,10 +78,6 @@ m_buffer(1000U, "D-Star Network"),
 m_pollTimer(1000U, 60U),
 m_random(),
 m_header(nullptr)
-#if defined(DUMP_DSTAR)
-, m_fpIn(nullptr),
-m_fpOut(nullptr)
-#endif
 {
 	assert(!callsign.empty());
 	assert(remotePort > 0U);
@@ -111,14 +107,6 @@ bool CDStarNetwork::open()
 	LogMessage("Opening D-Star network connection");
 
 	m_pollTimer.start();
-
-#if defined(DUMP_DSTAR)
-	m_fpIn  = ::fopen("dump_in.dstar", "wb");
-	m_fpOut = ::fopen("dump_out.dstar", "wb");
-
-	::fwrite("AMBE", 1U, 4U, m_fpIn);
-	::fwrite("AMBE", 1U, 4U, m_fpOut);
-#endif
 
 	return m_socket.open(m_addr);
 }
@@ -218,13 +206,6 @@ bool CDStarNetwork::writeBody(CData& data)
 	data.getData(buffer + 9U);
 
 	addSlowData(buffer + 18U);
-
-#if defined(DUMP_DSTAR)
-	if (m_fpOut != nullptr) {
-		::fwrite(buffer + 9U, 1U, DSTAR_VOICE_FRAME_LENGTH_BYTES, m_fpOut);
-		::fflush(m_fpOut);
-	}
-#endif
 
 	const unsigned int length = 9U + DSTAR_VOICE_FRAME_LENGTH_BYTES + DSTAR_DATA_FRAME_LENGTH_BYTES;
 
@@ -363,12 +344,6 @@ bool CDStarNetwork::read(CData& data)
 				m_inId = 0U;
 				data.setEnd();
 			} else {
-#if defined(DUMP_DSTAR)
-				if (m_fpIn != nullptr) {
-					::fwrite(buffer + 10U, 1U, DSTAR_VOICE_FRAME_LENGTH_BYTES, m_fpIn);
-					::fflush(m_fpIn);
-				}
-#endif
 				data.setData(buffer + 10U);
 			}
 		}
@@ -411,18 +386,6 @@ void CDStarNetwork::reset()
 void CDStarNetwork::close()
 {
 	m_socket.close();
-
-#if defined(DUMP_DSTAR)
-	if (m_fpIn != nullptr) {
-		::fclose(m_fpIn);
-		m_fpIn = nullptr;
-	}
-
-	if (m_fpOut != nullptr) {
-		::fclose(m_fpOut);
-		m_fpOut = nullptr;
-	}
-#endif
 
 	LogMessage("Closing D-Star network connection");
 }

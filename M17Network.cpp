@@ -45,10 +45,6 @@ m_lich(nullptr),
 m_hasMeta(false),
 m_audio(nullptr),
 m_audioCount(0U)
-#if defined(DUMP_M17)
-, m_fpIn(nullptr),
-m_fpOut(nullptr)
-#endif
 {
 	if (CUDPSocket::lookup(remoteAddress, remotePort, m_addr, m_addrLen) != 0) {
 		m_addrLen = 0U;
@@ -80,18 +76,12 @@ bool CM17Network::open()
 	LogMessage("Opening M17 network connection");
 
 	bool ret = m_socket.open(m_addr);
-
-#if defined(DUMP_M17)
-	m_fpIn  = ::fopen("dump_in.m17", "wb");
-	m_fpOut = ::fopen("dump_out.m17", "wb");
-#endif
-
-	if (ret) {
-		m_timer.start();
-		return true;
-	} else {
+	if (!ret)
 		return false;
-	}
+
+	m_timer.start();
+
+	return true;
 }
 
 bool CM17Network::writeRaw(CData& data)
@@ -163,12 +153,6 @@ bool CM17Network::writeData(CData& data)
 		buffer[34U] |= 0x80U;
 	} else {
 		::memcpy(buffer + 36U, m_audio, M17_PAYLOAD_LENGTH_BYTES);
-#if defined(DUMP_M17)
-		if (m_fpOut != nullptr) {
-			::fwrite(m_audio, 1U, M17_PAYLOAD_LENGTH_BYTES, m_fpOut);
-			::fflush(m_fpOut);
-		}
-#endif
 	}
 
 	// Dummy CRC
@@ -252,13 +236,6 @@ bool CM17Network::read(CData& data)
 		m_hasMeta = true;
 	}
 
-#if defined(DUMP_M17)
-	if (m_fpIn != nullptr) {
-		::fwrite(buffer + 36U, 1U, M17_PAYLOAD_LENGTH_BYTES, m_fpIn);
-		::fflush(m_fpIn);
-	}
-#endif
-
 	::memcpy(m_audio, buffer + 36U, M17_PAYLOAD_LENGTH_BYTES);
 	m_audioCount = 1U;
 
@@ -289,18 +266,6 @@ bool CM17Network::hasData()
 void CM17Network::close()
 {
 	m_socket.close();
-
-#if defined(DUMP_M17)
-	if (m_fpIn != nullptr) {
-		::fclose(m_fpIn);
-		m_fpIn = nullptr;
-	}
-
-	if (m_fpOut != nullptr) {
-		::fclose(m_fpOut);
-		m_fpOut = nullptr;
-	}
-#endif
 
 	LogMessage("Closing M17 network connection");
 }

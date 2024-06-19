@@ -31,8 +31,6 @@
 #include <cstdint>
 #include <random>
 
-// #define	DUMP_DMR
-
 class CDMRNetwork : public INetwork
 {
 public:
@@ -72,10 +70,6 @@ private:
 	CDMRLC           m_lc;
 	uint16_t         m_seqNo;
 	uint8_t          m_N;
-#if defined(DUMP_DMR)
-	FILE*            m_fpIn;
-	FILE*            m_fpOut;
-#endif
 
 	bool writeHeader(CData& data);
 	bool writeAudio(CData& data);
