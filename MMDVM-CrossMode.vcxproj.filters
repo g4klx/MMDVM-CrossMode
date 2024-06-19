@@ -119,6 +119,18 @@
     <ClInclude Include="BPTC19696.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="NXDNNetwork.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="P25Network.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="NXDNDefines.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="P25Defines.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Conf.cpp">
@@ -203,6 +215,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="BPTC19696.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="NXDNNetwork.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="P25Network.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

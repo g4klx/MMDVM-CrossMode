@@ -165,7 +165,11 @@
     <ClInclude Include="M17Defines.h" />
     <ClInclude Include="M17Network.h" />
     <ClInclude Include="Network.h" />
+    <ClInclude Include="NXDNDefines.h" />
     <ClInclude Include="NXDNLookup.h" />
+    <ClInclude Include="NXDNNetwork.h" />
+    <ClInclude Include="P25Defines.h" />
+    <ClInclude Include="P25Network.h" />
     <ClInclude Include="RingBuffer.h" />
     <ClInclude Include="RS129.h" />
     <ClInclude Include="StopWatch.h" />
@@ -200,6 +204,8 @@
     <ClCompile Include="M17Network.cpp" />
     <ClCompile Include="Network.cpp" />
     <ClCompile Include="NXDNLookup.cpp" />
+    <ClCompile Include="NXDNNetwork.cpp" />
+    <ClCompile Include="P25Network.cpp" />
     <ClCompile Include="RS129.cpp" />
     <ClCompile Include="StopWatch.cpp" />
     <ClCompile Include="Thread.cpp" />

@@ -19,36 +19,42 @@
 #ifndef	P25Network_H
 #define	P25Network_H
 
-#include "P25LowSpeedData.h"
+#include "Network.h"
 #include "RingBuffer.h"
 #include "UDPSocket.h"
-#include "P25Audio.h"
-#include "P25Data.h"
 
 #include <cstdint>
 #include <string>
 
-class CP25Network {
+class CP25Network : public INetwork {
 public:
-	CP25Network(const std::string& gatewayAddress, unsigned short gatewayPort, const std::string& localAddress, unsigned short localPort, bool debug);
-	~CP25Network();
+	CP25Network(const std::string& localAddress, uint16_t localPort, const std::string& remoteAddress, uint16_t remotePort, bool debug);
+	virtual ~CP25Network();
 
-	bool open();
+	virtual bool open();
+
+	virtual bool writeRaw(CData& data);
+	virtual bool writeData(CData& data);
 
 	bool writeLDU1(const uint8_t* ldu1, const CP25Data& control, const CP25LowSpeedData& lsd, bool end);
 
 	bool writeLDU2(const uint8_t* ldu2, const CP25Data& control, const CP25LowSpeedData& lsd, bool end);
 
-	unsigned int read(uint8_t* data, unsigned int length);
+	virtual bool read(CData& data) = 0;
+	virtual bool read() = 0;
 
-	void close();
+	virtual bool hasData();
 
-	void clock(unsigned int ms);
+	virtual void reset();
+
+	virtual void close();
+
+	virtual void clock(unsigned int ms);
 
 private:
 	CUDPSocket       m_socket;
 	sockaddr_storage m_addr;
-	unsigned int     m_addrLen;
+	size_t           m_addrLen;
 	bool             m_debug;
 	CRingBuffer<uint8_t> m_buffer;
 	CP25Audio        m_audio;

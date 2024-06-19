@@ -19,6 +19,8 @@
 #include "CrossMode.h"
 
 #include "DStarNetwork.h"
+#include "NXDNNetwork.h"
+#include "P25Network.h"
 #include "YSFNetwork.h"
 #include "DMRNetwork.h"
 #include "M17Network.h"
@@ -430,14 +432,14 @@ bool CCrossMode::createFromNetwork(DATA_MODE mode)
 		uint16_t remotePort       = m_conf.getP25FromRemotePort();
 		uint16_t localPort        = m_conf.getP25FromLocalPort();
 		bool debug                = m_conf.getP25FromDebug();
-		// m_fromNetwork = new CP25Network(NET_FROM, localAddress, localPort, remoteAddress, remotePort, debug);
+		m_fromNetwork = new CP25Network(NET_FROM, localAddress, localPort, remoteAddress, remotePort, debug);
 	} else if (mode == DATA_MODE_NXDN) {
 		std::string remoteAddress = m_conf.getNXDNFromRemoteAddress();
 		std::string localAddress  = m_conf.getNXDNFromLocalAddress();
 		uint16_t remotePort       = m_conf.getNXDNFromRemotePort();
 		uint16_t localPort        = m_conf.getNXDNFromLocalPort();
 		bool debug                = m_conf.getNXDNFromDebug();
-		// m_fromNetwork = new CNXDNNetwork(NET_FROM, localAddress, localPort, remoteAddress, remotePort, debug);
+		m_fromNetwork = new CNXDNNetwork(NET_FROM, localAddress, localPort, remoteAddress, remotePort, debug);
 	} else if (mode == DATA_MODE_FM) {
 		std::string remoteAddress = m_conf.getFMFromRemoteAddress();
 		std::string localAddress  = m_conf.getFMFromLocalAddress();
@@ -591,7 +593,7 @@ bool CCrossMode::createToNetworks(DATA_MODE fromMode, CData& data)
 		uint16_t remotePort       = m_conf.getP25ToRemotePort();
 		uint16_t localPort        = m_conf.getP25ToLocalPort();
 		bool debug                = m_conf.getP25ToDebug();
-/*
+
 		CP25Network* network = new CP25Network(NET_TO, localAddress, localPort, remoteAddress, remotePort, debug);
 
 		bool ret = network->open();
@@ -602,7 +604,6 @@ bool CCrossMode::createToNetworks(DATA_MODE fromMode, CData& data)
 		}
 
 		m_toNetworks.insert(std::pair<DATA_MODE, INetwork*>(DATA_MODE_P25, network));
-*/
 	}
 
 	if (((fromMode == DATA_MODE_DSTAR) && m_conf.getDStarNXDNEnable()) ||
@@ -621,7 +622,7 @@ bool CCrossMode::createToNetworks(DATA_MODE fromMode, CData& data)
 		uint16_t remotePort       = m_conf.getNXDNToRemotePort();
 		uint16_t localPort        = m_conf.getNXDNToLocalPort();
 		bool debug                = m_conf.getNXDNToDebug();
-/*
+
 		CNXDNNetwork* network = new CNXDNNetwork(NET_TO, localAddress, localPort, remoteAddress, remotePort, debug);
 
 		bool ret = network->open();
@@ -632,7 +633,6 @@ bool CCrossMode::createToNetworks(DATA_MODE fromMode, CData& data)
 		}
 
 		m_toNetworks.insert(std::pair<DATA_MODE, INetwork*>(DATA_MODE_NXDN, network));
-*/
 	}
 
 	if (((fromMode == DATA_MODE_DSTAR) && m_conf.getDStarFMEnable()) ||

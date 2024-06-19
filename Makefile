@@ -5,8 +5,8 @@ LIBS    =
 LDFLAGS = -g
 
 OBJECTS =	BPTC19696.o CRC.o Conf.o CrossMode.o Data.o DMRLookup.o DMRLC.o DMRNetwork.o DStarNetwork.o FMNetwork.o Golay24128.o Hamming.o \
-			Log.o M17Network.o Network.o NXDNLookup.o RS129.o StopWatch.o Thread.o Timer.o Transcoder.o UARTController.o UDPSocket.o Utils.o \
-			YSFConvolution.o YSFFICH.o YSFNetwork.o YSFPayload.o
+			Log.o M17Network.o Network.o NXDNLookup.o NXDNNetwork.o P25Network.o RS129.o StopWatch.o Thread.o Timer.o Transcoder.o \
+			UARTController.o UDPSocket.o Utils.o YSFConvolution.o YSFFICH.o YSFNetwork.o YSFPayload.o
 
 all:		CrossMode
 

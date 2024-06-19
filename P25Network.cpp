@@ -86,7 +86,7 @@ const uint8_t REC80[] = {
 
 const unsigned int BUFFER_LENGTH = 100U;
 
-CP25Network::CP25Network(const std::string& gatewayAddress, unsigned short gatewayPort, const std::string& localAddress, unsigned short localPort, bool debug) :
+CP25Network::CP25Network(const std::string& localAddress, uint16_t localPort, const std::string& remoteAddress, uint16_t remotePort, bool debug) :
 m_socket(localAddress, localPort),
 m_addr(),
 m_addrLen(0U),
@@ -94,7 +94,11 @@ m_debug(debug),
 m_buffer(1000U, "P25 Network"),
 m_audio()
 {
-	if (CUDPSocket::lookup(gatewayAddress, gatewayPort, m_addr, m_addrLen) != 0)
+	assert(localPort > 0U);
+	assert(!remoteAddress.empty());
+	assert(remotePort > 0U);
+
+	if (CUDPSocket::lookup(remoteAddress, remotePort, m_addr, m_addrLen) != 0)
 		m_addrLen = 0U;
 }
 
@@ -114,9 +118,34 @@ bool CP25Network::open()
 	return m_socket.open(m_addr);
 }
 
+bool CP25Network::writeRaw(CData& data)
+{
+	if (m_addrLen == 0U)
+		return false;
+
+	uint8_t buffer[100U];
+	uint16_t length = data.getRaw(buffer);
+
+	if (length == 0U)
+		return true;
+
+	if (m_debug)
+		CUtils::dump(1U, "P25 Network Raw Sent", buffer, length);
+
+	return m_socket.write(buffer, length, m_addr, m_addrLen);
+}
+
+bool CP25Network::writeData(CData& data)
+{
+	if (m_addrLen == 0U)
+		return false;
+
+	return true;
+}
+
 bool CP25Network::writeLDU1(const uint8_t* ldu1, const CP25Data& control, const CP25LowSpeedData& lsd, bool end)
 {
-	assert(ldu1 != NULL);
+	assert(ldu1 != nullptr);
 
 	uint8_t buffer[22U];
 
@@ -245,7 +274,7 @@ bool CP25Network::writeLDU1(const uint8_t* ldu1, const CP25Data& control, const 
 
 bool CP25Network::writeLDU2(const uint8_t* ldu2, const CP25Data& control, const CP25LowSpeedData& lsd, bool end)
 {
-	assert(ldu2 != NULL);
+	assert(ldu2 != nullptr);
 
 	uint8_t buffer[22U];
 
@@ -383,12 +412,12 @@ void CP25Network::clock(unsigned int ms)
 	uint8_t buffer[BUFFER_LENGTH];
 
 	sockaddr_storage address;
-	unsigned int addrLen;
+	size_t addrLen;
 	int length = m_socket.read(buffer, BUFFER_LENGTH, address, addrLen);
 	if (length <= 0)
 		return;
 
-	if (!CUDPSocket::match(m_addr, address)) {
+	if (!CUDPSocket::match(m_addr, address, IMT_ADDRESS_AND_PORT)) {
 		LogMessage("P25, packet received from an invalid source");
 		return;
 	}
@@ -397,26 +426,50 @@ void CP25Network::clock(unsigned int ms)
 		CUtils::dump(1U, "P25 Network Data Received", buffer, length);
 
 	uint8_t c = length;
-	m_buffer.addData(&c, 1U);
+	m_buffer.add(&c, 1U);
 
-	m_buffer.addData(buffer, length);
+	m_buffer.add(buffer, length);
 }
 
-unsigned int CP25Network::read(uint8_t* data, unsigned int length)
+bool CP25Network::read(CData& data)
 {
-	assert(data != NULL);
-
-	if (m_buffer.isEmpty())
+	if (m_buffer.empty())
 		return 0U;
 
-	uint8_t c = 0U;
-	m_buffer.getData(&c, 1U);
+	uint8_t length = 0U;
+	m_buffer.get(&length, 1U);
 
-	assert(c <= length);
+	uint8_t buffer[BUFFER_LENGTH];
+	m_buffer.get(buffer, length);
 
-	m_buffer.getData(data, c);
+	data.setRaw(buffer, length);
 
 	return c;
+}
+
+bool CP25Network::read()
+{
+	if (m_buffer.empty())
+		return false;
+
+	uint8_t length = 0U;
+	m_buffer.get(&length, 1U);
+
+	uint8_t buffer[BUFFER_LENGTH];
+	m_buffer.get(buffer, length);
+
+	return true;
+}
+
+void CP25Network::reset()
+{
+	m_buffer.clear();
+	m_audioCount = 0U;
+}
+
+bool CP25Network::hasData()
+{
+	return m_buffer.hasData() || (m_audioCount > 0U);
 }
 
 void CP25Network::close()
