@@ -434,7 +434,7 @@ void CP25Network::clock(unsigned int ms)
 bool CP25Network::read(CData& data)
 {
 	if (m_buffer.empty())
-		return 0U;
+		return false;
 
 	uint8_t length = 0U;
 	m_buffer.get(&length, 1U);
@@ -444,7 +444,7 @@ bool CP25Network::read(CData& data)
 
 	data.setRaw(buffer, length);
 
-	return c;
+	return true;
 }
 
 bool CP25Network::read()

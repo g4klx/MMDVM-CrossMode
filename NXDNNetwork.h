@@ -20,6 +20,7 @@
 #define	NXDNNetwork_H
 
 #include "Network.h"
+#include "NXDNLayer3.h"
 
 #include "RingBuffer.h"
 #include "UDPSocket.h"
@@ -29,7 +30,7 @@
 
 class CNXDNNetwork : public INetwork {
 public:
-	CNXDNNetwork(const std::string& localAddress, uint16_t localPort, const std::string& remoteAddress, uint16_t remotePort, bool debug);
+	CNXDNNetwork(NETWORK network, const std::string& localAddress, uint16_t localPort, const std::string& remoteAddress, uint16_t remotePort, bool debug);
 	virtual ~CNXDNNetwork();
 
 	virtual bool open();
@@ -37,8 +38,8 @@ public:
 	virtual bool writeRaw(CData& data);
 	virtual bool writeData(CData& data);
 
-	virtual bool read(CData& data) = 0;
-	virtual bool read() = 0;
+	virtual bool read(CData& data);
+	virtual bool read();
 
 	virtual bool hasData();
 
@@ -49,11 +50,21 @@ public:
     virtual void clock(unsigned int ms);
 
 private:
+	NETWORK          m_network;
 	CUDPSocket       m_socket;
 	sockaddr_storage m_addr;
 	size_t           m_addrLen;
 	bool             m_debug;
 	CRingBuffer<uint8_t> m_buffer;
+	uint16_t         m_seqNo;
+	uint8_t*         m_audio;
+	uint8_t          m_audioCount;
+	uint8_t          m_maxAudio;
+	CNXDNLayer3      m_layer3;
+
+	bool writeHeader(CData& data);
+	bool writeBody(CData& data);
+	bool writeTrailer(CData& data);
 };
 
 #endif

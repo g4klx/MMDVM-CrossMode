@@ -101,4 +101,6 @@ const uint8_t NXDN_DATA_CALL_OPTION_9600 = 0x02U;
 
 const uint8_t SACCH_IDLE[] = { NXDN_MESSAGE_TYPE_IDLE, 0x00U, 0x00U };
 
+const uint8_t NXDN_SILENCE[] = { 0xB9U, 0xE8U, 0x81U, 0x52U, 0x61U, 0x73U, 0x00U, 0x2AU, 0x6BU };
+
 #endif

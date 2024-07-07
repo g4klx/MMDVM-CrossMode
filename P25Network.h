@@ -28,7 +28,7 @@
 
 class CP25Network : public INetwork {
 public:
-	CP25Network(const std::string& localAddress, uint16_t localPort, const std::string& remoteAddress, uint16_t remotePort, bool debug);
+	CP25Network(NETWORK network, const std::string& localAddress, uint16_t localPort, const std::string& remoteAddress, uint16_t remotePort, bool debug);
 	virtual ~CP25Network();
 
 	virtual bool open();
@@ -36,12 +36,8 @@ public:
 	virtual bool writeRaw(CData& data);
 	virtual bool writeData(CData& data);
 
-	bool writeLDU1(const uint8_t* ldu1, const CP25Data& control, const CP25LowSpeedData& lsd, bool end);
-
-	bool writeLDU2(const uint8_t* ldu2, const CP25Data& control, const CP25LowSpeedData& lsd, bool end);
-
-	virtual bool read(CData& data) = 0;
-	virtual bool read() = 0;
+	virtual bool read(CData& data);
+	virtual bool read();
 
 	virtual bool hasData();
 
@@ -52,12 +48,16 @@ public:
 	virtual void clock(unsigned int ms);
 
 private:
+	NETWORK          m_network;
 	CUDPSocket       m_socket;
 	sockaddr_storage m_addr;
 	size_t           m_addrLen;
 	bool             m_debug;
 	CRingBuffer<uint8_t> m_buffer;
 	CP25Audio        m_audio;
+
+	bool writeLDU1(const uint8_t* ldu1, const CP25Data& control, const CP25LowSpeedData& lsd, bool end);
+	bool writeLDU2(const uint8_t* ldu2, const CP25Data& control, const CP25LowSpeedData& lsd, bool end);
 };
 
 #endif
