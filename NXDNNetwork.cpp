@@ -251,7 +251,8 @@ bool CNXDNNetwork::writeBody(CData& data)
 
 	CNXDNCRC::encodeCRC6(buffer + 41U, 26U);
 
-	::memcpy(buffer + 45U + 14U, m_audio + 0U, 2U * DMR_NXDN_DATA_LENGTH);
+	::memcpy(buffer + 45U + 0U,  m_audio + 0U,                   DMR_NXDN_DATA_LENGTH);
+	::memcpy(buffer + 45U + 14U, m_audio + DMR_NXDN_DATA_LENGTH, DMR_NXDN_DATA_LENGTH);
 
 	m_audioCount = 0U;
 	m_seqNo++;
@@ -421,19 +422,24 @@ bool CNXDNNetwork::read(CData& data)
 
 		switch (option) {
 		case NXDN_LICH_STEAL_NONE:
-			::memcpy(m_audio, buffer + 42U + NXDN_FSW_LICH_SACCH_LENGTH_BYTES + 0U, 4U * DMR_NXDN_DATA_LENGTH);
+			::memcpy(m_audio + 0U,                                                                 buffer + 45U + 0U,  DMR_NXDN_DATA_LENGTH);
+			::memcpy(m_audio + DMR_NXDN_DATA_LENGTH,                                               buffer + 45U + 14U, DMR_NXDN_DATA_LENGTH);
+			::memcpy(m_audio + DMR_NXDN_DATA_LENGTH + DMR_NXDN_DATA_LENGTH,                        buffer + 45U + 18U, DMR_NXDN_DATA_LENGTH);
+			::memcpy(m_audio + DMR_NXDN_DATA_LENGTH + DMR_NXDN_DATA_LENGTH + DMR_NXDN_DATA_LENGTH, buffer + 45U + 32U, DMR_NXDN_DATA_LENGTH);
 			data.setData(m_audio + 0U);
 			m_audioCount = 1U;
 			m_maxAudio   = 4U;
 			break;
 		case NXDN_LICH_STEAL_FACCH1_1:
-			::memcpy(m_audio, buffer + 42U + NXDN_FSW_LICH_SACCH_LENGTH_BYTES + 18U, 2U * DMR_NXDN_DATA_LENGTH);
+			::memcpy(m_audio + 0U,                   buffer + 45U + 18U, DMR_NXDN_DATA_LENGTH);
+			::memcpy(m_audio + DMR_NXDN_DATA_LENGTH, buffer + 45U + 32U, DMR_NXDN_DATA_LENGTH);
 			data.setData(m_audio + 0U);
 			m_audioCount = 1U;
 			m_maxAudio   = 2U;
 			break;
 		case NXDN_LICH_STEAL_FACCH1_2:
-			::memcpy(m_audio, buffer + 42U + NXDN_FSW_LICH_SACCH_LENGTH_BYTES + 0U, 2U * DMR_NXDN_DATA_LENGTH);
+			::memcpy(m_audio + 0U,                   buffer + 45U + 0U, DMR_NXDN_DATA_LENGTH);
+			::memcpy(m_audio + DMR_NXDN_DATA_LENGTH, buffer + 45U + 14U, DMR_NXDN_DATA_LENGTH);
 			data.setData(m_audio + 0U);
 			m_audioCount = 1U;
 			m_maxAudio   = 2U;
