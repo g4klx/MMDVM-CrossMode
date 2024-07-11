@@ -173,7 +173,6 @@
     <ClInclude Include="NXDNLICH.h" />
     <ClInclude Include="NXDNLookup.h" />
     <ClInclude Include="NXDNNetwork.h" />
-    <ClInclude Include="NXDNSACCH.h" />
     <ClInclude Include="P25Defines.h" />
     <ClInclude Include="P25Network.h" />
     <ClInclude Include="RingBuffer.h" />
@@ -216,7 +215,6 @@
     <ClCompile Include="NXDNLICH.cpp" />
     <ClCompile Include="NXDNLookup.cpp" />
     <ClCompile Include="NXDNNetwork.cpp" />
-    <ClCompile Include="NXDNSACCH.cpp" />
     <ClCompile Include="P25Network.cpp" />
     <ClCompile Include="RS129.cpp" />
     <ClCompile Include="StopWatch.cpp" />

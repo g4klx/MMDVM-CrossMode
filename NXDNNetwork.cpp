@@ -20,14 +20,19 @@
 #include "NXDNDefines.h"
 #include "NXDNLayer3.h"
 #include "NXDNFACCH1.h"
-#include "NXDNSACCH.h"
 #include "NXDNLICH.h"
+#include "NXDNCRC.h"
 #include "Utils.h"
 #include "Log.h"
 
 #include <cstdio>
 #include <cassert>
 #include <cstring>
+
+const uint8_t BIT_MASK_TABLE[] = { 0x80U, 0x40U, 0x20U, 0x10U, 0x08U, 0x04U, 0x02U, 0x01U };
+
+#define WRITE_BIT(p,i,b) p[(i)>>3] = (b) ? (p[(i)>>3] | BIT_MASK_TABLE[(i)&7]) : (p[(i)>>3] & ~BIT_MASK_TABLE[(i)&7])
+#define READ_BIT(p,i)    (p[(i)>>3] & BIT_MASK_TABLE[(i)&7])
 
 const unsigned int BUFFER_LENGTH = 200U;
 
@@ -41,8 +46,7 @@ m_buffer(1000U, "NXDN Network"),
 m_seqNo(0U),
 m_audio(nullptr),
 m_audioCount(0U),
-m_maxAudio(0U),
-m_layer3()
+m_maxAudio(0U)
 {
 	assert(localPort > 0U);
 	assert(!remoteAddress.empty());
@@ -154,35 +158,25 @@ bool CNXDNNetwork::writeHeader(CData& data)
 	buffer[38U] = 0x1CU;
 	buffer[39U] = 0x21U;
 
-	CNXDNLICH lich;
-	lich.setRFCT(NXDN_LICH_RFCT_RDCH);
-	lich.setFCT(NXDN_LICH_USC_SACCH_NS);
-	lich.setOption(NXDN_LICH_STEAL_FACCH);
-	lich.setDirection(NXDN_LICH_DIRECTION_OUTBOUND);
-	buffer[40U] = lich.getRaw();
-
-	CNXDNSACCH sacch;
-	sacch.setRAN(0U);
-	sacch.setStructure(NXDN_SR_SINGLE);
-	sacch.setData(SACCH_IDLE);
-	sacch.getRaw(buffer + 41U);
+	::memcpy(buffer + 40U, HEADER_BYTES, 8U);
 
 	NETWORK network = NET_TO;
 	uint16_t srcId = 0U, dstId = 0U;
 	bool grp = true;
 	data.getNXDN(network, srcId, dstId, grp);
 
-	uint8_t message[22U];
-	m_layer3.setMessageType(NXDN_MESSAGE_TYPE_VCALL);
-	m_layer3.setSourceUnitId(srcId);
-	m_layer3.setDestinationGroupId(srcId);
-	m_layer3.setIsGroup(grp);
-	m_layer3.getData(message);
+	if (grp)
+		buffer[47U] = 0x20U;
 
-	CNXDNFACCH1 facch;
-	facch.setData(message);
-	facch.getRaw(buffer + 45U + 0U);
-	facch.getRaw(buffer + 45U + 14U);
+	buffer[48U] = (srcId >> 8) & 0xFFU;
+	buffer[49U] = (srcId >> 0) & 0xFFU;
+
+	buffer[50U] = (dstId >> 8) & 0xFFU;
+	buffer[51U] = (dstId >> 0) & 0xFFU;
+
+	CNXDNCRC::encodeCRC12(buffer + 45U, 80U);
+
+	::memcpy(buffer + 59U, buffer + 45U, 12U);
 
 	m_seqNo++;
 
@@ -210,43 +204,52 @@ bool CNXDNNetwork::writeBody(CData& data)
 	buffer[38U] = 0x10U;
 	buffer[39U] = 0x21U;
 
-	CNXDNLICH lich;
-	lich.setRFCT(NXDN_LICH_RFCT_RDCH);
-	lich.setFCT(NXDN_LICH_USC_SACCH_SS);
-	lich.setOption(NXDN_LICH_STEAL_FACCH1_1);
-	lich.setDirection(NXDN_LICH_DIRECTION_OUTBOUND);
-	buffer[40U] = lich.getRaw();
+	buffer[40U] = 0xAEU;
 
-	CNXDNSACCH sacch;
-	sacch.setRAN(0U);
+	NETWORK network = NET_TO;
+	uint16_t srcId = 0U, dstId = 0U;
+	bool grp = true;
+	data.getNXDN(network, srcId, dstId, grp);
 
-	uint8_t message[3U];
+	unsigned char sacch[12U];
+	::memset(sacch, 0x00U, 12U);
 
-	switch ((m_seqNo - 1U) % 4U) {
+	sacch[0U] = 0x01U;
+
+	if (grp)
+		sacch[2U] = 0x20U;
+
+	sacch[3U] = (srcId >> 8) & 0xFFU;
+	sacch[4U] = (srcId >> 0) & 0xFFU;
+
+	sacch[5U] = (dstId >> 8) & 0xFFU;
+	sacch[6U] = (dstId >> 0) & 0xFFU;
+
+	uint8_t n = (m_seqNo - 1U) % 4U;
+
+	switch (n) {
 	case 0U:
-		sacch.setStructure(NXDN_SR_1_4);
-		m_layer3.encode(message, 18U, 0U);
+		buffer[41U] = 0xC1U;
 		break;
 	case 1U:
-		sacch.setStructure(NXDN_SR_2_4);
-		m_layer3.encode(message, 18U, 18U);
+		buffer[41U] = 0x81U;
 		break;
 	case 2U:
-		sacch.setStructure(NXDN_SR_3_4);
-		m_layer3.encode(message, 18U, 36U);
+		buffer[41U] = 0x41U;
 		break;
 	default:
-		sacch.setStructure(NXDN_SR_4_4);
-		m_layer3.encode(message, 18U, 54U);
+		buffer[41U] = 0x01U;
 		break;
 	}
 
-	sacch.setData(SACCH_IDLE);
-	sacch.getRaw(buffer + 41U);
+	uint8_t* p = buffer + 40U;
 
-	CNXDNFACCH1 facch;
-	facch.setData(message);
-	facch.getRaw(buffer + 45U + 0U);
+	for (unsigned int j = 0U; j < 18U; j++) {
+		bool b = READ_BIT(sacch, j + n * 18U);
+		WRITE_BIT(p, j + 16U, b);
+	}
+
+	CNXDNCRC::encodeCRC6(buffer + 41U, 26U);
 
 	::memcpy(buffer + 45U + 14U, m_audio + 0U, 2U * DMR_NXDN_DATA_LENGTH);
 
@@ -277,27 +280,25 @@ bool CNXDNNetwork::writeTrailer(CData& data)
 	buffer[38U] = 0x1CU;
 	buffer[39U] = 0x21U;
 
-	CNXDNLICH lich;
-	lich.setRFCT(NXDN_LICH_RFCT_RDCH);
-	lich.setFCT(NXDN_LICH_USC_SACCH_NS);
-	lich.setOption(NXDN_LICH_STEAL_FACCH);
-	lich.setDirection(NXDN_LICH_DIRECTION_OUTBOUND);
-	buffer[40U] = lich.getRaw();
+	::memcpy(buffer + 40U, TRAILER_BYTES, 8U);
 
-	CNXDNSACCH sacch;
-	sacch.setRAN(0U);
-	sacch.setStructure(NXDN_SR_SINGLE);
-	sacch.setData(SACCH_IDLE);
-	sacch.getRaw(buffer + 41U);
+	NETWORK network = NET_TO;
+	uint16_t srcId = 0U, dstId = 0U;
+	bool grp = true;
+	data.getNXDN(network, srcId, dstId, grp);
 
-	uint8_t message[22U];
-	m_layer3.setMessageType(NXDN_MESSAGE_TYPE_TX_REL);
-	m_layer3.getData(message);
+	if (grp)
+		buffer[47U] = 0x20U;
 
-	CNXDNFACCH1 facch;
-	facch.setData(message);
-	facch.getRaw(buffer + 45U + 0U);
-	facch.getRaw(buffer + 45U + 14U);
+	buffer[48U] = (srcId >> 8) & 0xFFU;
+	buffer[49U] = (srcId >> 0) & 0xFFU;
+
+	buffer[50U] = (dstId >> 8) & 0xFFU;
+	buffer[51U] = (dstId >> 0) & 0xFFU;
+
+	CNXDNCRC::encodeCRC12(buffer + 45U, 80U);
+
+	::memcpy(buffer + 59U, buffer + 45U, 12U);
 
 	m_seqNo = 0U;
 

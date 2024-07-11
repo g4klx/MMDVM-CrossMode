@@ -20,7 +20,6 @@
 #define	NXDNNetwork_H
 
 #include "Network.h"
-#include "NXDNLayer3.h"
 
 #include "RingBuffer.h"
 #include "UDPSocket.h"
@@ -60,7 +59,6 @@ private:
 	uint8_t*         m_audio;
 	uint8_t          m_audioCount;
 	uint8_t          m_maxAudio;
-	CNXDNLayer3      m_layer3;
 
 	bool writeHeader(CData& data);
 	bool writeBody(CData& data);

@@ -35,6 +35,9 @@ const uint8_t NXDN_FSW_BYTES[]      = {0xCDU, 0xF5U, 0x90U};
 const uint8_t NXDN_FSW_BYTES_MASK[] = {0xFFU, 0xFFU, 0xF0U};
 const unsigned int  NXDN_FSW_BYTES_LENGTH = 3U;
 
+const uint8_t HEADER_BYTES[]  = { 0x83U, 0x01U, 0x10U, 0x00U, 0x0FU, 0x01U, 0x00U, 0x20U };
+const uint8_t TRAILER_BYTES[] = { 0x83U, 0x01U, 0x10U, 0x00U, 0x0FU, 0x08U, 0x00U, 0x20U };
+
 const unsigned int NXDN_LICH_LENGTH_BITS = 16U;
 
 const unsigned int NXDN_SACCH_LENGTH_BITS  = 60U;
