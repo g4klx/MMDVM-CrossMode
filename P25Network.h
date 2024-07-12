@@ -54,10 +54,9 @@ private:
 	size_t           m_addrLen;
 	bool             m_debug;
 	CRingBuffer<uint8_t> m_buffer;
-	CP25Audio        m_audio;
-
-	bool writeLDU1(const uint8_t* ldu1, const CP25Data& control, const CP25LowSpeedData& lsd, bool end);
-	bool writeLDU2(const uint8_t* ldu2, const CP25Data& control, const CP25LowSpeedData& lsd, bool end);
+	uint32_t         m_srcId;
+	uint32_t         m_dstId;
+	uint8_t          m_n;
 };
 
 #endif

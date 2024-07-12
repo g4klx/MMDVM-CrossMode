@@ -237,7 +237,7 @@ void CData::setDStarYSFDests(const std::vector<std::pair<std::string, uint8_t>>&
 	m_dstarYSFDests = dests;
 }
 
-void CData::setDStarP25Dests(const std::vector<std::pair<std::string, uint16_t>>& dests)
+void CData::setDStarP25Dests(const std::vector<std::pair<std::string, uint32_t>>& dests)
 {
 	m_dstarP25Dests = dests;
 }
@@ -267,7 +267,7 @@ void CData::setDMRYSFTGs(const std::vector<std::tuple<uint8_t, uint32_t, uint8_t
 	m_dmrYSFTGs = tgs;
 }
 
-void CData::setDMRP25TGs(const std::vector<std::tuple<uint8_t, uint32_t, uint16_t>>& tgs)
+void CData::setDMRP25TGs(const std::vector<std::tuple<uint8_t, uint32_t, uint32_t>>& tgs)
 {
 	m_dmrP25TGs = tgs;
 }
@@ -297,7 +297,7 @@ void CData::setYSFDMRDGIds(const std::vector<std::tuple<uint8_t, uint8_t, uint32
 	m_ysfDMRDGIds = dgIds;
 }
 
-void CData::setYSFP25DGIds(const std::vector<std::pair<uint8_t, uint16_t>>& dgIds)
+void CData::setYSFP25DGIds(const std::vector<std::pair<uint8_t, uint32_t>>& dgIds)
 {
 	m_ysfP25DGIds = dgIds;
 }
@@ -317,32 +317,32 @@ void CData::setYSFM17DGIds(const std::vector<std::pair<uint8_t, std::string>>& d
 	m_ysfM17DGIds = dgIds;
 }
 
-void CData::setP25DStarTGs(const std::vector<std::pair<uint16_t, std::string>>& tgs)
+void CData::setP25DStarTGs(const std::vector<std::pair<uint32_t, std::string>>& tgs)
 {
 	m_p25DStarTGs = tgs;
 }
 
-void CData::setP25DMRTGs(const std::vector<std::tuple<uint16_t, uint8_t, uint32_t>>& tgs)
+void CData::setP25DMRTGs(const std::vector<std::tuple<uint32_t, uint8_t, uint32_t>>& tgs)
 {
 	m_p25DMRTGs = tgs;
 }
 
-void CData::setP25YSFTGs(const std::vector<std::pair<uint16_t, uint8_t>>& tgs)
+void CData::setP25YSFTGs(const std::vector<std::pair<uint32_t, uint8_t>>& tgs)
 {
 	m_p25YSFTGs = tgs;
 }
 
-void CData::setP25NXDNTGs(const std::vector<std::pair<uint16_t, uint16_t>>& tgs)
+void CData::setP25NXDNTGs(const std::vector<std::pair<uint32_t, uint16_t>>& tgs)
 {
 	m_p25NXDNTGs = tgs;
 }
 
-void CData::setP25FMTG(uint16_t tg)
+void CData::setP25FMTG(uint32_t tg)
 {
 	m_p25FMTG = tg;
 }
 
-void CData::setP25M17TGs(const std::vector<std::pair<uint16_t, std::string>>& tgs)
+void CData::setP25M17TGs(const std::vector<std::pair<uint32_t, std::string>>& tgs)
 {
 	m_p25M17TGs = tgs;
 }
@@ -362,7 +362,7 @@ void CData::setNXDNYSFTGs(const std::vector<std::pair<uint16_t, uint8_t>>& tgs)
 	m_nxdnYSFTGs = tgs;
 }
 
-void CData::setNXDNP25TGs(const std::vector<std::pair<uint16_t, uint16_t>>& tgs)
+void CData::setNXDNP25TGs(const std::vector<std::pair<uint16_t, uint32_t>>& tgs)
 {
 	m_nxdnP25TGs = tgs;
 }
@@ -392,7 +392,7 @@ void CData::setM17YSFDests(const std::vector<std::pair<std::string, uint8_t>>& d
 	m_m17YSFDests = dests;
 }
 
-void CData::setM17P25Dests(const std::vector<std::pair<std::string, uint16_t>>& dests)
+void CData::setM17P25Dests(const std::vector<std::pair<std::string, uint32_t>>& dests)
 {
 	m_m17P25Dests = dests;
 }
@@ -450,8 +450,8 @@ void CData::setDStar(NETWORK network, const uint8_t* source, const uint8_t* dest
 		}
 
 		if (m_toMode == DATA_MODE_NONE) {
-			uint16_t dstId = find(m_dstarP25Dests, dstCallsign);
-			if (dstId != NULL_ID16) {
+			uint32_t dstId = find(m_dstarP25Dests, dstCallsign);
+			if (dstId != NULL_ID32) {
 				uint32_t srcId = m_dmrLookup.lookup(srcCallsign);
 				if (srcId == NULL_ID32)
 					return;
@@ -538,8 +538,8 @@ void CData::setDStar(NETWORK network, const uint8_t* source, const uint8_t* dest
 		}
 
 		if (m_fromMode == DATA_MODE_P25) {
-			uint16_t tg = find(m_p25DStarTGs, dstCallsign);
-			if (tg != NULL_ID16) {
+			uint32_t tg = find(m_p25DStarTGs, dstCallsign);
+			if (tg != NULL_ID32) {
 				uint32_t id = m_dmrLookup.lookup(srcCallsign);
 				if (id != NULL_ID32) {
 					LogDebug("D-Star <= P25, %s>%s -> %u>TG%u", srcCallsign.c_str(), dstCallsign.c_str(), id, tg);
@@ -637,8 +637,8 @@ void CData::setDMR(NETWORK network, uint8_t slot, uint32_t source, uint32_t dest
 		}
 
 		if (m_toMode == DATA_MODE_NONE) {
-			uint16_t tg = find(m_dmrP25TGs, slot, destination);
-			if (tg != NULL_ID16) {
+			uint32_t tg = find(m_dmrP25TGs, slot, destination);
+			if (tg != NULL_ID32) {
 				LogDebug("DMR => P25, %u>%u:TG%u -> %u>TG%u", source, slot, destination, source, tg);
 
 				m_srcId  = source;
@@ -741,8 +741,8 @@ void CData::setDMR(NETWORK network, uint8_t slot, uint32_t source, uint32_t dest
 		}
 
 		else if (m_fromMode == DATA_MODE_P25) {
-			uint16_t tg = find(m_p25DMRTGs, slot, destination);
-			if (tg != NULL_ID16) {
+			uint32_t tg = find(m_p25DMRTGs, slot, destination);
+			if (tg != NULL_ID32) {
 				LogDebug("DMR <= P25, %u>%u:TG%u -> %u>TG%u", source, slot, destination, source, tg);
 
 				m_srcId  = source;
@@ -856,8 +856,8 @@ void CData::setYSF(NETWORK network, const uint8_t* source, uint8_t dgId)
 		}
 
 		if (m_toMode == DATA_MODE_NONE) {
-			uint16_t dstId = find(m_ysfP25DGIds, dgId);
-			if (dstId != NULL_ID16) {
+			uint32_t dstId = find(m_ysfP25DGIds, dgId);
+			if (dstId != NULL_ID32) {
 				uint32_t srcId = m_dmrLookup.lookup(srcCallsign);
 				if (srcId == NULL_ID32)
 					return;
@@ -944,8 +944,8 @@ void CData::setYSF(NETWORK network, const uint8_t* source, uint8_t dgId)
 		}
 
 		if (m_fromMode == DATA_MODE_P25) {
-			uint16_t tg = find(m_p25YSFTGs, dgId);
-			if (tg != NULL_ID16) {
+			uint32_t tg = find(m_p25YSFTGs, dgId);
+			if (tg != NULL_ID32) {
 				uint32_t id = m_dmrLookup.lookup(srcCallsign);
 				if (id != NULL_ID32) {
 					LogDebug("YSF <= P25, %s>%u -> %u>TG%u", srcCallsign.c_str(), dgId, id, tg);
@@ -1007,7 +1007,7 @@ void CData::setYSF(NETWORK network, const uint8_t* source, uint8_t dgId)
 	}
 }
 
-void CData::setP25(NETWORK network, uint32_t source, uint16_t destination, bool group)
+void CData::setP25(NETWORK network, uint32_t source, uint32_t destination, bool group)
 {
 	assert(source > 0U);
 	assert(destination > 0U);
@@ -1055,7 +1055,7 @@ void CData::setP25(NETWORK network, uint32_t source, uint16_t destination, bool 
 		}
 
 		if (m_toMode == DATA_MODE_NONE) {
-			uint16_t tg = find1(m_p25NXDNTGs, destination);
+			uint16_t tg = find(m_p25NXDNTGs, destination);
 			if (tg != NULL_ID16) {
 				std::string src = m_dmrLookup.lookup(source);
 				if (src != NULL_CALLSIGN) {
@@ -1149,7 +1149,7 @@ void CData::setP25(NETWORK network, uint32_t source, uint16_t destination, bool 
 		}
 
 		else if (m_fromMode == DATA_MODE_NXDN) {
-			uint16_t tg = find2(m_nxdnP25TGs, destination);
+			uint16_t tg = find(m_nxdnP25TGs, destination);
 			if (tg != NULL_ID16) {
 				std::string src = m_dmrLookup.lookup(source);
 				if (src != NULL_CALLSIGN) {
@@ -1253,8 +1253,8 @@ void CData::setNXDN(NETWORK network, uint16_t source, uint16_t destination, bool
 		}
 
 		if (m_toMode == DATA_MODE_NONE) {
-			uint16_t tg = find1(m_nxdnP25TGs, destination);
-			if (tg != NULL_ID16) {
+			uint32_t tg = find(m_nxdnP25TGs, destination);
+			if (tg != NULL_ID32) {
 				std::string src = m_nxdnLookup.lookup(source);
 				if (src != NULL_CALLSIGN) {
 					uint32_t id = m_dmrLookup.lookup(src);
@@ -1347,8 +1347,8 @@ void CData::setNXDN(NETWORK network, uint16_t source, uint16_t destination, bool
 		}
 
 		else if (m_fromMode == DATA_MODE_P25) {
-			uint16_t tg = find2(m_p25NXDNTGs, destination);
-			if (tg != NULL_ID16) {
+			uint32_t tg = find(m_p25NXDNTGs, destination);
+			if (tg != NULL_ID32) {
 				std::string src = m_nxdnLookup.lookup(source);
 				if (src != NULL_CALLSIGN) {
 					uint32_t id = m_dmrLookup.lookup(src);
@@ -1447,6 +1447,26 @@ void CData::setFM(NETWORK network)
 			}
 		}
 
+		else if (m_fromMode == DATA_MODE_P25) {
+			if (m_p25FMTG != NULL_ID32) {
+				LogDebug("P25 <= FM, %s>%u ->", m_defaultCallsign.c_str(), m_p25FMTG);
+
+				m_srcId  = m_defaultDMRId;
+				m_dstId  = m_p25FMTG;
+				m_toMode = DATA_MODE_FM;
+			}
+		}
+
+		else if (m_fromMode == DATA_MODE_NXDN) {
+			if (m_nxdnFMTG != NULL_ID16) {
+				LogDebug("NXDN <= FM, %s>%u ->", m_defaultCallsign.c_str(), m_nxdnFMTG);
+
+				m_srcId  = m_defaultNXDNId;
+				m_dstId  = m_nxdnFMTG;
+				m_toMode = DATA_MODE_FM;
+			}
+		}
+
 		else if (m_fromMode == DATA_MODE_M17) {
 			if (m_m17FMDest != NULL_CALLSIGN) {
 				LogDebug("M17 <= FM, %s>%s ->", m_defaultCallsign.c_str(), m_m17FMDest.c_str());
@@ -1510,8 +1530,8 @@ void CData::setM17(NETWORK network, const std::string& source, const std::string
 		}
 
 		if (m_toMode == DATA_MODE_NONE) {
-			uint16_t dstId = find(m_m17P25Dests, destination);
-			if (dstId != NULL_ID16) {
+			uint32_t dstId = find(m_m17P25Dests, destination);
+			if (dstId != NULL_ID32) {
 				uint32_t srcId = m_dmrLookup.lookup(source);
 				if (srcId == NULL_ID32)
 					return;
@@ -1701,7 +1721,7 @@ void CData::getYSF(NETWORK network, uint8_t* source, uint8_t* destination, uint8
 	dgId = m_dgId;
 }
 
-void CData::getP25(NETWORK network, uint32_t& source, uint16_t& destination, bool& group) const
+void CData::getP25(NETWORK network, uint32_t& source, uint32_t& destination, bool& group) const
 {
 	source      = m_srcId;
 	destination = m_dstId;
@@ -1796,6 +1816,7 @@ void CData::close()
 	m_transcoder.close();
 }
 
+// uint8_t <=> std::string
 uint8_t CData::find(const std::vector<std::pair<std::string, uint8_t>>& mapping, const std::string& dest) const
 {
 	for (const auto& it : mapping) {
@@ -1836,6 +1857,7 @@ std::string CData::find(const std::vector<std::pair<uint8_t, std::string>>& mapp
 	return NULL_CALLSIGN;
 }
 
+// uint16_t <=> std::string
 uint16_t CData::find(const std::vector<std::pair<std::string, uint16_t>>& mapping, const std::string& dest) const
 {
 	for (const auto& it : mapping) {
@@ -1876,6 +1898,48 @@ std::string CData::find(const std::vector<std::pair<uint16_t, std::string>>& map
 	return NULL_CALLSIGN;
 }
 
+// uint32_t <=> std::string
+uint32_t CData::find(const std::vector<std::pair<std::string, uint32_t>>& mapping, const std::string& dest) const
+{
+	for (const auto& it : mapping) {
+		if (it.first == dest)
+			return it.second;
+	}
+
+	return NULL_ID32;
+}
+
+std::string CData::find(const std::vector<std::pair<std::string, uint32_t>>& mapping, uint32_t tgId) const
+{
+	for (const auto& it : mapping) {
+		if (it.second == tgId)
+			return it.first;
+	}
+
+	return NULL_CALLSIGN;
+}
+
+uint32_t CData::find(const std::vector<std::pair<uint32_t, std::string>>& mapping, const std::string& dest) const
+{
+	for (const auto& it : mapping) {
+		if (it.second == dest)
+			return it.first;
+	}
+
+	return NULL_ID32;
+}
+
+std::string CData::find(const std::vector<std::pair<uint32_t, std::string>>& mapping, uint32_t tgId) const
+{
+	for (const auto& it : mapping) {
+		if (it.first == tgId)
+			return it.second;
+	}
+
+	return NULL_CALLSIGN;
+}
+
+// <uint8_t, uint32_t> <=> std::string
 std::pair<uint8_t, uint32_t> CData::find(const std::vector<std::tuple<std::string, uint8_t, uint32_t>>& mapping, const std::string& dest) const
 {
 	for (const auto& it : mapping) {
@@ -1916,6 +1980,7 @@ std::pair<uint8_t, uint32_t> CData::find(const std::vector<std::tuple<uint8_t, u
 	return std::make_pair(NULL_SLOT, NULL_ID32);
 }
 
+// <uint8_t, uint32_t> <=> uint16_t
 std::pair<uint8_t, uint32_t> CData::find(const std::vector<std::tuple<uint16_t, uint8_t, uint32_t>>& mapping, uint16_t tgId) const
 {
 	for (const auto& it : mapping) {
@@ -1956,6 +2021,48 @@ std::pair<uint8_t, uint32_t> CData::find(const std::vector<std::tuple<uint8_t, u
 	return std::make_pair(NULL_SLOT, NULL_ID32);
 }
 
+// <uint8_t, uint32_t> <=> uint32_t
+std::pair<uint8_t, uint32_t> CData::find(const std::vector<std::tuple<uint32_t, uint8_t, uint32_t>>& mapping, uint32_t tgId) const
+{
+	for (const auto& it : mapping) {
+		if (std::get<0>(it) == tgId)
+			return std::make_pair(std::get<1>(it), std::get<2>(it));
+	}
+
+	return std::make_pair(NULL_SLOT, NULL_ID32);
+}
+
+uint32_t CData::find(const std::vector<std::tuple<uint32_t, uint8_t, uint32_t>>& mapping, uint8_t slot, uint32_t tgId) const
+{
+	for (const auto& it : mapping) {
+		if ((std::get<1>(it) == slot) && (std::get<2>(it) == tgId))
+			return std::get<0>(it);
+	}
+
+	return NULL_ID32;
+}
+
+uint32_t CData::find(const std::vector<std::tuple<uint8_t, uint32_t, uint32_t>>& mapping, uint8_t slot, uint32_t tgid) const
+{
+	for (const auto& it : mapping) {
+		if ((std::get<0>(it) == slot) && (std::get<1>(it) == tgid))
+			return std::get<2>(it);
+	}
+
+	return NULL_ID32;
+}
+
+std::pair<uint8_t, uint32_t> CData::find(const std::vector<std::tuple<uint8_t, uint32_t, uint32_t>>& mapping, uint32_t tgId) const
+{
+	for (const auto& it : mapping) {
+		if (std::get<2>(it) == tgId)
+			return std::make_pair(std::get<0>(it), std::get<1>(it));
+	}
+
+	return std::make_pair(NULL_SLOT, NULL_ID32);
+}
+
+// uint8_t <=> uint16_t
 uint8_t CData::find(const std::vector<std::pair<uint8_t, uint16_t>>& mapping, uint16_t tgId) const
 {
 	for (const auto& it : mapping) {
@@ -1996,7 +2103,18 @@ uint16_t CData::find(const std::vector<std::pair<uint16_t, uint8_t>>& mapping, u
 	return NULL_ID16;
 }
 
-uint16_t CData::find1(const std::vector<std::pair<uint16_t, uint16_t>>& mapping, uint16_t tgId) const
+// uint32_t <=> uint16_t
+uint32_t CData::find(const std::vector<std::pair<uint32_t, uint16_t>>& mapping, uint16_t tgId) const
+{
+	for (const auto& it : mapping) {
+		if (it.second == tgId)
+			return it.first;
+	}
+
+	return NULL_ID32;
+}
+
+uint16_t CData::find(const std::vector<std::pair<uint32_t, uint16_t>>& mapping, uint32_t tgId) const
 {
 	for (const auto& it : mapping) {
 		if (it.first == tgId)
@@ -2006,7 +2124,17 @@ uint16_t CData::find1(const std::vector<std::pair<uint16_t, uint16_t>>& mapping,
 	return NULL_ID16;
 }
 
-uint16_t CData::find2(const std::vector<std::pair<uint16_t, uint16_t>>& mapping, uint16_t tgId) const
+uint32_t CData::find(const std::vector<std::pair<uint16_t, uint32_t>>& mapping, uint16_t tgId) const
+{
+	for (const auto& it : mapping) {
+		if (it.first == tgId)
+			return it.second;
+	}
+
+	return NULL_ID32;
+}
+
+uint16_t CData::find(const std::vector<std::pair<uint16_t, uint32_t>>& mapping, uint32_t tgId) const
 {
 	for (const auto& it : mapping) {
 		if (it.second == tgId)
@@ -2016,6 +2144,48 @@ uint16_t CData::find2(const std::vector<std::pair<uint16_t, uint16_t>>& mapping,
 	return NULL_ID16;
 }
 
+// uint32_t <=> uint8_t
+uint32_t CData::find(const std::vector<std::pair<uint32_t, uint8_t>>& mapping, uint8_t dgId) const
+{
+	for (const auto& it : mapping) {
+		if (it.second == dgId)
+			return it.first;
+	}
+
+	return NULL_ID32;
+}
+
+uint8_t CData::find(const std::vector<std::pair<uint32_t, uint8_t>>& mapping, uint32_t tgId) const
+{
+	for (const auto& it : mapping) {
+		if (it.first == tgId)
+			return it.second;
+	}
+
+	return NULL_DGID;
+}
+
+uint32_t CData::find(const std::vector<std::pair<uint8_t, uint32_t>>& mapping, uint8_t dgId) const
+{
+	for (const auto& it : mapping) {
+		if (it.first == dgId)
+			return it.second;
+	}
+
+	return NULL_ID32;
+}
+
+uint8_t CData::find(const std::vector<std::pair<uint8_t, uint32_t>>& mapping, uint32_t tgId) const
+{
+	for (const auto& it : mapping) {
+		if (it.second == tgId)
+			return it.first;
+	}
+
+	return NULL_DGID;
+}
+
+// <uint8_t, uint32_t> <=> uint32_t
 uint8_t CData::find(const std::vector<std::tuple<uint8_t, uint8_t, uint32_t>>& mapping, uint8_t slot, uint32_t tgId) const
 {
 	for (const auto& it : mapping) {
@@ -2036,6 +2206,7 @@ std::pair<uint8_t, uint32_t> CData::find(const std::vector<std::tuple<uint8_t, u
 	return std::make_pair(NULL_SLOT, NULL_ID32);
 }
 
+// <uint8_t, uint32_t> <=> uint8_t
 uint8_t CData::find(const std::vector<std::tuple<uint8_t, uint32_t, uint8_t>>& mapping, uint8_t slot, uint32_t tgid) const
 {
 	for (const auto& it : mapping) {

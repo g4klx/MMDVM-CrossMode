@@ -571,12 +571,12 @@ bool CConf::read()
 				if (dest.empty())
 					continue;
 
-				uint16_t tgid = uint16_t(::atoi(p + 1U));
+				uint32_t tgid = uint32_t(::atoi(p + 1U));
 
 #if defined(TRACE_CONFIG)
 				::fprintf(stdout, "D-Star => P25, mapping \"%s\" to TG%u\n", dest.c_str(), tgid);
 #endif
-				m_dstarP25Dests.push_back(std::pair<std::string, uint16_t>(dest, tgid));
+				m_dstarP25Dests.push_back(std::pair<std::string, uint32_t>(dest, tgid));
 			}
 		} else if (section == SECTION_DSTAR_NXDN) {
 			if (::strcmp(key, "Enable") == 0) {
@@ -682,12 +682,12 @@ bool CConf::read()
 				if ((slotTG.first == NULL_SLOT) || (slotTG.second == NULL_ID32))
 					continue;
 
-				uint16_t tgId = uint16_t(::atoi(p + 1U));
+				uint32_t tgId = uint32_t(::atoi(p + 1U));
 
 #if defined(TRACE_CONFIG)
 				::fprintf(stdout, "DMR => P25, mapping %u:TG%u to TG%u\n", slotTG.first, slotTG.second, tgId);
 #endif
-				m_dmrP25TGs.push_back(std::tuple<uint8_t, uint32_t, uint16_t>(slotTG.first, slotTG.second, tgId));
+				m_dmrP25TGs.push_back(std::tuple<uint8_t, uint32_t, uint32_t>(slotTG.first, slotTG.second, tgId));
 			}
 		} else if (section == SECTION_DMR_NXDN) {
 			if (::strcmp(key, "Enable") == 0) {
@@ -798,12 +798,12 @@ bool CConf::read()
 
 				uint8_t dgId = uint8_t(::atoi(value));
 
-				uint16_t tgid = uint16_t(::atoi(p + 1U));
+				uint32_t tgid = uint32_t(::atoi(p + 1U));
 
 #if defined(TRACE_CONFIG)
 				::fprintf(stdout, "YSF => P25, mapping %u to TG%u\n", dgId, tgid);
 #endif
-				m_ysfP25DGIds.push_back(std::pair<uint8_t, uint16_t>(dgId, tgid));
+				m_ysfP25DGIds.push_back(std::pair<uint8_t, uint32_t>(dgId, tgid));
 			}
 		} else if (section == SECTION_YSF_NXDN) {
 			if (::strcmp(key, "Enable") == 0) {
@@ -861,7 +861,7 @@ bool CConf::read()
 					continue;
 				*p = '\0';
 
-				uint16_t tg = uint16_t(::atoi(value));
+				uint32_t tg = uint32_t(::atoi(value));
 
 				std::string dest = getString(p + 1U);
 				if (dest.empty())
@@ -870,7 +870,7 @@ bool CConf::read()
 	#if defined(TRACE_CONFIG)
 				::fprintf(stdout, "P25 => D-Star, mapping TG%u to \"%s\"\n", tg, dest.c_str());
 	#endif
-				m_p25DStarTGs.push_back(std::pair<uint16_t, std::string>(tg, dest));
+				m_p25DStarTGs.push_back(std::pair<uint32_t, std::string>(tg, dest));
 			}
 		} else if (section == SECTION_P25_DMR) {
 			if (::strcmp(key, "Enable") == 0) {
@@ -881,7 +881,7 @@ bool CConf::read()
 					continue;
 				*p = '\0';
 
-				uint16_t tg = uint16_t(::atoi(value));
+				uint32_t tg = uint32_t(::atoi(value));
 
 				std::pair<uint8_t, uint32_t> slotTG = getSlotTG(p + 1U);
 				if ((slotTG.first == NULL_SLOT) || (slotTG.second == NULL_ID32))
@@ -890,7 +890,7 @@ bool CConf::read()
 #if defined(TRACE_CONFIG)
 				::fprintf(stdout, "P25 => DMR, mapping TG%u to %u:TG%u\n", tg, slotTG.first, slotTG.second);
 #endif
-				m_p25DMRTGs.push_back(std::tuple<uint16_t, uint8_t, uint32_t>(tg, slotTG.first, slotTG.second));
+				m_p25DMRTGs.push_back(std::tuple<uint32_t, uint8_t, uint32_t>(tg, slotTG.first, slotTG.second));
 			}
 		} else if (section == SECTION_P25_YSF) {
 			if (::strcmp(key, "Enable") == 0) {
@@ -901,14 +901,14 @@ bool CConf::read()
 					continue;
 				*p = '\0';
 
-				uint16_t tg = uint16_t(::atoi(value));
+				uint32_t tg = uint32_t(::atoi(value));
 
 				uint8_t dgId = uint8_t(::atoi(p + 1U));
 
 #if defined(TRACE_CONFIG)
 				::fprintf(stdout, "P25 => YSF, mapping TG%u to %u\n", tg, dgId);
 #endif
-				m_p25YSFTGs.push_back(std::pair<uint16_t, uint8_t>(tg, dgId));
+				m_p25YSFTGs.push_back(std::pair<uint32_t, uint8_t>(tg, dgId));
 			}
 		} else if (section == SECTION_P25_P25) {
 			if (::strcmp(key, "Enable") == 0)
@@ -922,20 +922,20 @@ bool CConf::read()
 					continue;
 				*p = '\0';
 
-				uint16_t tg1 = uint16_t(::atoi(value));
+				uint32_t tg1 = uint32_t(::atoi(value));
 
 				uint16_t tg2 = uint16_t(::atoi(p + 1U));
 
 #if defined(TRACE_CONFIG)
 				::fprintf(stdout, "P25 => NXDN, mapping TG%u to TG%u\n", tg1, tg2);
 #endif
-				m_p25NXDNTGs.push_back(std::pair<uint16_t, uint16_t>(tg1, tg2));
+				m_p25NXDNTGs.push_back(std::pair<uint32_t, uint16_t>(tg1, tg2));
 			}
 		} else if (section == SECTION_P25_FM) {
 			if (::strcmp(key, "Enable") == 0) {
 				m_p25FMEnable = ::atoi(value) == 1;
 			} else if (::strcmp(key, "TG") == 0) {
-				m_p25FMTG = uint16_t(::atoi(value));
+				m_p25FMTG = uint32_t(::atoi(value));
 #if defined(TRACE_CONFIG)
 				::fprintf(stdout, "P25 => FM, mapping TG%u\n", m_p25FMTG);
 #endif
@@ -949,7 +949,7 @@ bool CConf::read()
 					continue;
 				*p = '\0';
 
-				uint16_t tg = uint16_t(::atoi(value));
+				uint32_t tg = uint32_t(::atoi(value));
 
 				std::string dest = getString(p + 1U);
 				if (dest.empty())
@@ -958,7 +958,7 @@ bool CConf::read()
 #if defined(TRACE_CONFIG)
 				::fprintf(stdout, "P25 => M17, mapping TG%u to \"%s\"\n", tg, dest.c_str());
 #endif
-				m_p25M17TGs.push_back(std::pair<uint16_t, std::string>(tg, dest));
+				m_p25M17TGs.push_back(std::pair<uint32_t, std::string>(tg, dest));
 			}
 		} else if (section == SECTION_NXDN_DSTAR) {
 			if (::strcmp(key, "Enable") == 0) {
@@ -1029,12 +1029,12 @@ bool CConf::read()
 
 				uint16_t tg1 = uint16_t(::atoi(value));
 
-				uint16_t tg2 = uint16_t(::atoi(p + 1U));
+				uint32_t tg2 = uint32_t(::atoi(p + 1U));
 
 #if defined(TRACE_CONFIG)
 				::fprintf(stdout, "NXDN => P25, mapping TG%u to TG%u\n", tg1, tg2);
 #endif
-				m_nxdnP25TGs.push_back(std::pair<uint16_t, uint16_t>(tg1, tg2));
+				m_nxdnP25TGs.push_back(std::pair<uint16_t, uint32_t>(tg1, tg2));
 			}
 		} else if (section == SECTION_NXDN_NXDN) {
 			if (::strcmp(key, "Enable") == 0)
@@ -1156,12 +1156,12 @@ bool CConf::read()
 				if (dest.empty())
 					continue;
 
-				uint16_t tg = uint16_t(::atoi(p + 1U));
+				uint32_t tg = uint32_t(::atoi(p + 1U));
 
 #if defined(TRACE_CONFIG)
 				::fprintf(stdout, "M17 => P25, mapping \"%s\" to TG%u\n", dest.c_str(), tg);
 #endif
-				m_m17P25Dests.push_back(std::pair<std::string, uint16_t>(dest, tg));
+				m_m17P25Dests.push_back(std::pair<std::string, uint32_t>(dest, tg));
 			}
 		} else if (section == SECTION_M17_NXDN) {
 			if (::strcmp(key, "Enable") == 0) {
@@ -1485,7 +1485,7 @@ bool CConf::getDStarP25Enable() const
 	return m_dstarP25Enable;
 }
 
-std::vector<std::pair<std::string, uint16_t>> CConf::getDStarP25Dests() const
+std::vector<std::pair<std::string, uint32_t>> CConf::getDStarP25Dests() const
 {
 	return m_dstarP25Dests;
 }
@@ -1555,7 +1555,7 @@ bool CConf::getDMRP25Enable() const
 	return m_dmrP25Enable;
 }
 
-std::vector<std::tuple<uint8_t, uint32_t, uint16_t>> CConf::getDMRP25TGs() const
+std::vector<std::tuple<uint8_t, uint32_t, uint32_t>> CConf::getDMRP25TGs() const
 {
 	return m_dmrP25TGs;
 }
@@ -1620,7 +1620,7 @@ bool CConf::getYSFP25Enable() const
 	return m_ysfP25Enable;
 }
 
-std::vector<std::pair<uint8_t, uint16_t>> CConf::getYSFP25DGIds() const
+std::vector<std::pair<uint8_t, uint32_t>> CConf::getYSFP25DGIds() const
 {
 	return m_ysfP25DGIds;
 }
@@ -1660,7 +1660,7 @@ bool CConf::getP25DStarEnable() const
 	return m_p25DStarEnable;
 }
 
-std::vector<std::pair<uint16_t, std::string>> CConf::getP25DStarTGs() const
+std::vector<std::pair<uint32_t, std::string>> CConf::getP25DStarTGs() const
 {
 	return m_p25DStarTGs;
 }
@@ -1670,7 +1670,7 @@ bool CConf::getP25DMREnable() const
 	return m_p25DMREnable;
 }
 
-std::vector<std::tuple<uint16_t, uint8_t, uint32_t>> CConf::getP25DMRTGs() const
+std::vector<std::tuple<uint32_t, uint8_t, uint32_t>> CConf::getP25DMRTGs() const
 {
 	return m_p25DMRTGs;
 }
@@ -1680,7 +1680,7 @@ bool CConf::getP25YSFEnable() const
 	return m_p25YSFEnable;
 }
 
-std::vector<std::pair<uint16_t, uint8_t>> CConf::getP25YSFTGs() const
+std::vector<std::pair<uint32_t, uint8_t>> CConf::getP25YSFTGs() const
 {
 	return m_p25YSFTGs;
 }
@@ -1695,7 +1695,7 @@ bool CConf::getP25NXDNEnable() const
 	return m_p25NXDNEnable;
 }
 
-std::vector<std::pair<uint16_t, uint16_t>> CConf::getP25NXDNTGs() const
+std::vector<std::pair<uint32_t, uint16_t>> CConf::getP25NXDNTGs() const
 {
 	return m_p25NXDNTGs;
 }
@@ -1705,7 +1705,7 @@ bool CConf::getP25FMEnable() const
 	return m_p25FMEnable;
 }
 
-uint16_t CConf::getP25FMTG() const
+uint32_t CConf::getP25FMTG() const
 {
 	return m_p25FMTG;
 }
@@ -1715,7 +1715,7 @@ bool CConf::getP25M17Enable() const
 	return m_p25M17Enable;
 }
 
-std::vector<std::pair<uint16_t, std::string>> CConf::getP25M17TGs() const
+std::vector<std::pair<uint32_t, std::string>> CConf::getP25M17TGs() const
 {
 	return m_p25M17TGs;
 }
@@ -1755,7 +1755,7 @@ bool CConf::getNXDNP25Enable() const
 	return m_nxdnP25Enable;
 }
 
-std::vector<std::pair<uint16_t, uint16_t>> CConf::getNXDNP25TGs() const
+std::vector<std::pair<uint16_t, uint32_t>> CConf::getNXDNP25TGs() const
 {
 	return m_nxdnP25TGs;
 }
@@ -1855,7 +1855,7 @@ bool CConf::getM17P25Enable() const
 	return m_m17P25Enable;
 }
 
-std::vector<std::pair<std::string, uint16_t>> CConf::getM17P25Dests() const
+std::vector<std::pair<std::string, uint32_t>> CConf::getM17P25Dests() const
 {
 	return m_m17P25Dests;
 }

@@ -423,9 +423,9 @@ bool CNXDNNetwork::read(CData& data)
 		switch (option) {
 		case NXDN_LICH_STEAL_NONE:
 			::memcpy(m_audio + 0U,                                                                 buffer + 45U + 0U,  DMR_NXDN_DATA_LENGTH);
-			::memcpy(m_audio + DMR_NXDN_DATA_LENGTH,                                               buffer + 45U + 14U, DMR_NXDN_DATA_LENGTH);
+			::memcpy(m_audio + DMR_NXDN_DATA_LENGTH,                                               buffer + 45U + 9U,  DMR_NXDN_DATA_LENGTH);
 			::memcpy(m_audio + DMR_NXDN_DATA_LENGTH + DMR_NXDN_DATA_LENGTH,                        buffer + 45U + 18U, DMR_NXDN_DATA_LENGTH);
-			::memcpy(m_audio + DMR_NXDN_DATA_LENGTH + DMR_NXDN_DATA_LENGTH + DMR_NXDN_DATA_LENGTH, buffer + 45U + 32U, DMR_NXDN_DATA_LENGTH);
+			::memcpy(m_audio + DMR_NXDN_DATA_LENGTH + DMR_NXDN_DATA_LENGTH + DMR_NXDN_DATA_LENGTH, buffer + 45U + 27U, DMR_NXDN_DATA_LENGTH);
 			data.setData(m_audio + 0U);
 			m_audioCount = 1U;
 			m_maxAudio   = 4U;
@@ -439,7 +439,7 @@ bool CNXDNNetwork::read(CData& data)
 			break;
 		case NXDN_LICH_STEAL_FACCH1_2:
 			::memcpy(m_audio + 0U,                   buffer + 45U + 0U, DMR_NXDN_DATA_LENGTH);
-			::memcpy(m_audio + DMR_NXDN_DATA_LENGTH, buffer + 45U + 14U, DMR_NXDN_DATA_LENGTH);
+			::memcpy(m_audio + DMR_NXDN_DATA_LENGTH, buffer + 45U + 9U, DMR_NXDN_DATA_LENGTH);
 			data.setData(m_audio + 0U);
 			m_audioCount = 1U;
 			m_maxAudio   = 2U;

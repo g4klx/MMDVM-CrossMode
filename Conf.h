@@ -77,7 +77,7 @@ public:
 
 	// The D-Star to P25 section
 	bool         getDStarP25Enable() const;
-	std::vector<std::pair<std::string, uint16_t>> getDStarP25Dests() const;
+	std::vector<std::pair<std::string, uint32_t>> getDStarP25Dests() const;
 
 	// The D-Star to NXDN section
 	bool         getDStarNXDNEnable() const;
@@ -105,7 +105,7 @@ public:
 
 	// The DMR to P25 section
 	bool         getDMRP25Enable() const;
-	std::vector<std::tuple<uint8_t, uint32_t, uint16_t>> getDMRP25TGs() const;
+	std::vector<std::tuple<uint8_t, uint32_t, uint32_t>> getDMRP25TGs() const;
 
 	// The DMR to NXDN section
 	bool         getDMRNXDNEnable() const;
@@ -132,7 +132,7 @@ public:
 
 	// The YSF to P25 section
 	bool         getYSFP25Enable() const;
-	std::vector<std::pair<uint8_t, uint16_t>> getYSFP25DGIds() const;
+	std::vector<std::pair<uint8_t, uint32_t>> getYSFP25DGIds() const;
 
 	// The YSF to NXDN section
 	bool         getYSFNXDNEnable() const;
@@ -148,30 +148,30 @@ public:
 
 	// The P25 to D-Star section
 	bool         getP25DStarEnable() const;
-	std::vector<std::pair<uint16_t, std::string>> getP25DStarTGs() const;
+	std::vector<std::pair<uint32_t, std::string>> getP25DStarTGs() const;
 
 	// The P25 to YSF section
 	bool         getP25YSFEnable() const;
-	std::vector<std::pair<uint16_t, uint8_t>> getP25YSFTGs() const;
+	std::vector<std::pair<uint32_t, uint8_t>> getP25YSFTGs() const;
 
 	// The P25 to DMR section
 	bool         getP25DMREnable() const;
-	std::vector<std::tuple<uint16_t, uint8_t, uint32_t>> getP25DMRTGs() const;
+	std::vector<std::tuple<uint32_t, uint8_t, uint32_t>> getP25DMRTGs() const;
 
 	// The P25 to P25 section
 	bool         getP25P25Enable() const;
 
 	// The P25 to NXDN section
 	bool         getP25NXDNEnable() const;
-	std::vector<std::pair<uint16_t, uint16_t>> getP25NXDNTGs() const;
+	std::vector<std::pair<uint32_t, uint16_t>> getP25NXDNTGs() const;
 
 	// The P25 to FM section
 	bool         getP25FMEnable() const;
-	uint16_t     getP25FMTG() const;
+	uint32_t     getP25FMTG() const;
 
 	// The P25 to M17 section
 	bool         getP25M17Enable() const;
-	std::vector<std::pair<uint16_t, std::string>> getP25M17TGs() const;
+	std::vector<std::pair<uint32_t, std::string>> getP25M17TGs() const;
 
 	// The NXDN to D-Star section
 	bool         getNXDNDStarEnable() const;
@@ -187,7 +187,7 @@ public:
 
 	// The NXDN to P25 section
 	bool         getNXDNP25Enable() const;
-	std::vector<std::pair<uint16_t, uint16_t>> getNXDNP25TGs() const;
+	std::vector<std::pair<uint16_t, uint32_t>> getNXDNP25TGs() const;
 
 	// The NXDN to NXDN section
 	bool         getNXDNNXDNEnable() const;
@@ -235,7 +235,7 @@ public:
 
 	// The M17 to P25 section
 	bool         getM17P25Enable() const;
-	std::vector<std::pair<std::string, uint16_t>> getM17P25Dests() const;
+	std::vector<std::pair<std::string, uint32_t>> getM17P25Dests() const;
 
 	// The M17 to NXDN section
 	bool         getM17NXDNEnable() const;
@@ -384,7 +384,7 @@ private:
 	std::vector<std::pair<std::string, uint8_t>> m_dstarYSFDests;
 
 	bool         m_dstarP25Enable;
-	std::vector<std::pair<std::string, uint16_t>> m_dstarP25Dests;
+	std::vector<std::pair<std::string, uint32_t>> m_dstarP25Dests;
 
 	bool         m_dstarNXDNEnable;
 	std::vector<std::pair<std::string, uint16_t>> m_dstarNXDNDests;
@@ -405,7 +405,7 @@ private:
 	std::vector<std::tuple<uint8_t, uint32_t, uint8_t>> m_dmrYSFTGs;
 
 	bool         m_dmrP25Enable;
-	std::vector<std::tuple<uint8_t, uint32_t, uint16_t>> m_dmrP25TGs;
+	std::vector<std::tuple<uint8_t, uint32_t, uint32_t>> m_dmrP25TGs;
 
 	bool         m_dmrNXDNEnable;
 	std::vector<std::tuple<uint8_t, uint32_t, uint16_t>> m_dmrNXDNTGs;
@@ -425,7 +425,7 @@ private:
 	bool         m_ysfYSFEnable;
 
 	bool         m_ysfP25Enable;
-	std::vector<std::pair<uint8_t, uint16_t>> m_ysfP25DGIds;
+	std::vector<std::pair<uint8_t, uint32_t>> m_ysfP25DGIds;
 
 	bool         m_ysfNXDNEnable;
 	std::vector<std::pair<uint8_t, uint16_t>> m_ysfNXDNDGIds;
@@ -437,24 +437,24 @@ private:
 	std::vector<std::pair<uint8_t, std::string>> m_ysfM17DGIds;
 
 	bool         m_p25DStarEnable;
-	std::vector<std::pair<uint16_t, std::string>> m_p25DStarTGs;
+	std::vector<std::pair<uint32_t, std::string>> m_p25DStarTGs;
 
 	bool         m_p25DMREnable;
-	std::vector<std::tuple<uint16_t, uint8_t, uint32_t>> m_p25DMRTGs;
+	std::vector<std::tuple<uint32_t, uint8_t, uint32_t>> m_p25DMRTGs;
 
 	bool         m_p25YSFEnable;
-	std::vector<std::pair<uint16_t, uint8_t>> m_p25YSFTGs;
+	std::vector<std::pair<uint32_t, uint8_t>> m_p25YSFTGs;
 
 	bool         m_p25P25Enable;
 
 	bool         m_p25NXDNEnable;
-	std::vector<std::pair<uint16_t, uint16_t>> m_p25NXDNTGs;
+	std::vector<std::pair<uint32_t, uint16_t>> m_p25NXDNTGs;
 
 	bool         m_p25FMEnable;
-	uint16_t     m_p25FMTG;
+	uint32_t     m_p25FMTG;
 
 	bool         m_p25M17Enable;
-	std::vector<std::pair<uint16_t, std::string>> m_p25M17TGs;
+	std::vector<std::pair<uint32_t, std::string>> m_p25M17TGs;
 
 	bool         m_nxdnDStarEnable;
 	std::vector<std::pair<uint16_t, std::string>> m_nxdnDStarTGs;
@@ -466,7 +466,7 @@ private:
 	std::vector<std::pair<uint16_t, uint8_t>> m_nxdnYSFTGs;
 
 	bool         m_nxdnP25Enable;
-	std::vector<std::pair<uint16_t, uint16_t>> m_nxdnP25TGs;
+	std::vector<std::pair<uint16_t, uint32_t>> m_nxdnP25TGs;
 
 	bool         m_nxdnNXDNEnable;
 
@@ -500,7 +500,7 @@ private:
 	std::vector<std::pair<std::string, uint8_t>> m_m17YSFDests;
 
 	bool         m_m17P25Enable;
-	std::vector<std::pair<std::string, uint16_t>> m_m17P25Dests;
+	std::vector<std::pair<std::string, uint32_t>> m_m17P25Dests;
 
 	bool         m_m17NXDNEnable;
 	std::vector<std::pair<std::string, uint16_t>> m_m17NXDNDests;
