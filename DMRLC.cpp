@@ -25,6 +25,7 @@
 
 #include "Utils.h"
 
+#include <cstring>
 #include <cstdio>
 #include <cassert>
 
