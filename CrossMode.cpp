@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2024 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2024,2026 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -20,11 +20,14 @@
 
 #include "MQTTConnection.h"
 #include "DStarNetwork.h"
+#include "NXDNNetwork.h"
+#include "P25Network.h"
 #include "YSFNetwork.h"
-#include "M17Network.h"
+#include "DMRNetwork.h"
 #include "FMNetwork.h"
 #include "StopWatch.h"
 #include "Version.h"
+#include "Defines.h"
 #include "Thread.h"
 #include "Timer.h"
 #include "Log.h"
@@ -33,17 +36,13 @@
 #include <cstring>
 #include <cassert>
 
+#include <vector>
+
 #if !defined(_WIN32) && !defined(_WIN64)
 #include <sys/types.h>
 #include <signal.h>
 #include <pwd.h>
 #endif
-
-enum DIRECTION {
-	DIR_NONE,
-	DIR_FROM_TO,
-	DIR_TO_FROM
-};
 
 #if defined(_WIN32) || defined(_WIN64)
 const char* DEFAULT_INI_FILE = "CrossMode.ini";
@@ -71,51 +70,19 @@ static void sigHandler2(int signum)
 }
 #endif
 
-DATA_MODE convertMode(const char* text)
-{
-	if (::strcmp(text, "dstar") == 0)
-		return DATA_MODE_DSTAR;
-	else if (::strcmp(text, "dmr") == 0)
-		return DATA_MODE_DMR;
-	else if (::strcmp(text, "ysf") == 0)
-		return DATA_MODE_YSFDN;
-	else if (::strcmp(text, "p25") == 0)
-		return DATA_MODE_P25;
-	else if (::strcmp(text, "nxdn") == 0)
-		return DATA_MODE_NXDN;
-	else if (::strcmp(text, "fm") == 0)
-		return DATA_MODE_FM;
-	else if (::strcmp(text, "m17") == 0)
-		return DATA_MODE_M17;
-	else
-		return DATA_MODE_NONE;
-}
-
 int main(int argc, char** argv)
 {
 	std::string iniFile = DEFAULT_INI_FILE;
-	DATA_MODE fromMode  = DATA_MODE_DSTAR;
-	DATA_MODE toMode    = DATA_MODE_M17;
 
 	if ((argc == 2) && ((::strcmp(argv[1U], "-v") == 0) || (::strcmp(argv[1U], "--version") == 0))) {
 		::fprintf(stdout, "CrossMode version %s git #%.7s\n", VERSION, gitversion);
 		return 0;
 	}
 
-	printf("%s %s %s\n", argv[1], argv[2], argv[3]);
-
-	if (argc == 4) {
+	if (argc == 2) {
 		iniFile  = std::string(argv[1U]);
-		fromMode = convertMode(argv[2U]);
-		toMode   = convertMode(argv[3U]);
 	} else {
-		::fprintf(stderr, "Usage: CrossMode [-v|--version] [<filename> <from> <to>]\n");
-		return 1;
-	}
-
-	if ((fromMode == DATA_MODE_NONE) || (toMode == DATA_MODE_NONE)) {
-		::fprintf(stderr, "CrossMode: <from> and <to> must be one of:\n");
-		::fprintf(stderr, "\tdstar, dmr, ysf, p25, nxdn, fm, m17\n");
+		::fprintf(stderr, "Usage: CrossMode [-v|--version] [filename]\n");
 		return 1;
 	}
 
@@ -131,7 +98,7 @@ int main(int argc, char** argv)
 	do {
 		m_signal = 0;
 
-		CCrossMode* host = new CCrossMode(iniFile, fromMode, toMode);
+		CCrossMode* host = new CCrossMode(iniFile);
 		ret = host->run();
 
 		delete host;
@@ -160,13 +127,10 @@ int main(int argc, char** argv)
 	return ret;
 }
 
-CCrossMode::CCrossMode(const std::string& fileName, DATA_MODE fromMode, DATA_MODE toMode) :
+CCrossMode::CCrossMode(const std::string& fileName) :
 m_conf(fileName),
-m_fromMode(fromMode),
-m_toMode(toMode),
 m_fromNetwork(nullptr),
-m_toNetwork(nullptr),
-m_throughNetwork(nullptr)
+m_toNetworks()
 {
 	assert(!fileName.empty());
 }
@@ -254,47 +218,55 @@ int CCrossMode::run()
 	}
 #endif
 
+	DATA_MODE fromMode = getFromMode();
+	if (fromMode == DATA_MODE::NONE) {
+		LogError("Unknown FromMode entered - \"%s\"", m_conf.getFromMode().c_str());
+		return 1;
+	}
+
 	CUDPSocket::startup();
 
-	ret = createFromNetwork();
+	ret = createFromNetwork(fromMode);
 	if (!ret)
 		return 1;
 
-	ret = createToNetwork();
-	if (!ret) {
-		m_fromNetwork->close();
-		delete m_fromNetwork;
-		return 1;
-	}
-
-	ret = createThroughNetwork();
-	if (!ret) {
-		m_fromNetwork->close();
-		m_toNetwork->close();
-		delete m_fromNetwork;
-		delete m_toNetwork;
-		return 1;
-	}
-
-	CData data(m_conf.getTranscoderPort(), m_conf.getTranscoderSpeed(), m_conf.getTranscoderDebug(), m_conf.getDefaultCallsign(), m_conf.getDefaultDMRId(), m_conf.getDefaultNXDNId());
+	CData data(m_conf.getTranscoderPort(), m_conf.getTranscoderSpeed(), m_conf.getTranscoderDebug(), m_conf.getCallsign(), m_conf.getDMRId(), m_conf.getNXDNId());
 	ret = data.open();
 	if (!ret) {
 		m_fromNetwork->close();
-		m_toNetwork->close();
-		m_throughNetwork->close();
 		delete m_fromNetwork;
-		delete m_toNetwork;
-		delete m_throughNetwork;
+		closeToNetworks();
 		return 1;
 	}
 
-	data.setYSFM17Mapping(m_conf.getYSFM17Mapping());
-	data.setM17YSFMapping(m_conf.getM17YSFMapping());
+	data.setFromMode(fromMode);
+	data.setDirection(DIRECTION::NONE);
+
+	ret = createToNetworks(fromMode, data);
+	if (!ret) {
+		m_fromNetwork->close();
+		delete m_fromNetwork;
+		return 1;
+	}
+
+	loadModeTranslationTables(fromMode, data);
+
+	ret = loadIdLookupTables(data);
+	if (!ret) {
+		closeToNetworks();
+		m_fromNetwork->close();
+		delete m_fromNetwork;
+		return 1;
+	}
 
 	CStopWatch stopwatch;
 	CTimer watchdog(1000U, 0U, 500U);
 
-	DIRECTION direction = DIR_NONE;
+	DIRECTION direction = DIRECTION::NONE;
+	DATA_MODE toMode = DATA_MODE::NONE;
+
+	CTimer rfTimer(1000U, m_conf.getRFModeHang());
+	CTimer netTimer(1000U, m_conf.getNetModeHang());
 
 	LogMessage("CrossMode-%s is starting", VERSION);
 	LogMessage("Built %s %s (GitID #%.7s)", __TIME__, __DATE__, gitversion);
@@ -303,74 +275,75 @@ int CCrossMode::run()
 		stopwatch.start();
 
 		switch (direction) {
-		case DIR_FROM_TO:
+		case DIRECTION::FROM_TO:
 			ret = m_fromNetwork->read(data);
-			if (ret)
+			if (ret) {
+				rfTimer.start();
 				watchdog.start();
+			}
 
 			if (data.isTranscode()) {
 				if (data.hasData() || data.isEnd())
-					m_toNetwork->writeData(data);
+					writeToNetworkData(toMode, data);
 			} else {
 				if (data.hasRaw())
-					m_throughNetwork->writeRaw(data);
+					writeToNetworkRaw(toMode, data);
 			}
+
 			break;
 
-		case DIR_TO_FROM:
-			ret = m_toNetwork->read(data);
-			if (ret)
+		case DIRECTION::TO_FROM:
+			ret = readToNetwork(toMode, data);
+			if (ret) {
+				netTimer.start();
 				watchdog.start();
+			}
 
 			if (data.isTranscode()) {
 				if (data.hasData() || data.isEnd())
 					m_fromNetwork->writeData(data);
-			}
-
-			ret = m_throughNetwork->read(data);
-			if (ret)
-				watchdog.start();
-
-			if (!data.isTranscode()) {
+			} else {
 				if (data.hasRaw())
 					m_fromNetwork->writeRaw(data);
 			}
+
 			break;
 
 		default:
 			ret = m_fromNetwork->hasData();
 			if (ret) {
+				::LogMessage("Swicthed by RF activity");
+				rfTimer.start();
 				watchdog.start();
-
-				ret = data.setModes(m_fromMode, m_toMode);
-				if (!ret)
-					break;
-
-				direction = DIR_FROM_TO;
+				toMode = data.getToMode();
+				direction = DIRECTION::FROM_TO;
+				data.setDirection(DIRECTION::FROM_TO);
 				break;
 			}
 
-			ret = m_toNetwork->hasData();
-			if (ret) {
+			toMode = hasToNetworkGotData();
+			if (toMode != DATA_MODE::NONE) {
+				::LogMessage("Swicthed by Net activity");
+				netTimer.start();
 				watchdog.start();
-
-				ret = data.setModes(m_toMode, m_fromMode);
-				if (!ret)
-					break;
-
-				direction = DIR_TO_FROM;
+				direction = DIRECTION::TO_FROM;
+				data.setToMode(toMode);
+				data.setDirection(DIRECTION::TO_FROM);
 				break;
 			}
+
 			break;
 		}
 
 		if (data.isEnd()) {
 			m_fromNetwork->reset();
-			m_toNetwork->reset();
-			m_throughNetwork->reset();
+			resetToNetworks();
 			data.reset();
-			direction = DIR_NONE;
+			direction = DIRECTION::NONE;
+			data.setDirection(DIRECTION::NONE);
 			watchdog.stop();
+			netTimer.stop();
+			rfTimer.stop();
 		}
 
 		CThread::sleep(5U);
@@ -378,20 +351,39 @@ int CCrossMode::run()
 		unsigned int elapsed = stopwatch.elapsed();
 
 		m_fromNetwork->clock(elapsed);
-		m_toNetwork->clock(elapsed);
-		m_throughNetwork->clock(elapsed);
+		clockToNetworks(elapsed);
 		data.clock(elapsed);
+
+		rfTimer.clock(elapsed);
+		if (rfTimer.isRunning() && rfTimer.hasExpired()) {
+			::LogMessage("Swictched back to Idle");
+			m_fromNetwork->reset();
+			resetToNetworks();
+			data.reset();
+			direction = DIRECTION::NONE;
+			data.setDirection(DIRECTION::NONE);
+			rfTimer.stop();
+		}
+
+		netTimer.clock(elapsed);
+		if (netTimer.isRunning() && netTimer.hasExpired()) {
+			::LogMessage("Swictched back to Idle");
+			m_fromNetwork->reset();
+			resetToNetworks();
+			data.reset();
+			direction = DIRECTION::NONE;
+			data.setDirection(DIRECTION::NONE);
+			netTimer.stop();
+		}
 
 		watchdog.clock(elapsed);
 		if (watchdog.isRunning() && watchdog.hasExpired()) {
 			::LogMessage("The watchdog timer has exprired");
-
 			m_fromNetwork->reset();
-			m_toNetwork->reset();
-			m_throughNetwork->reset();
+			resetToNetworks();
 			data.reset();
-			direction = DIR_NONE;
-
+			direction = DIRECTION::NONE;
+			data.setDirection(DIRECTION::NONE);
 			watchdog.stop();
 		}
 	}
@@ -401,69 +393,75 @@ int CCrossMode::run()
 	data.close();
 
 	m_fromNetwork->close();
-	m_toNetwork->close();
-	m_throughNetwork->close();
-
 	delete m_fromNetwork;
-	delete m_toNetwork;
-	delete m_throughNetwork;
+
+	closeToNetworks();
 
 	CUDPSocket::shutdown();
 
 	return 0;
 }
 
-bool CCrossMode::createFromNetwork()
+bool CCrossMode::createFromNetwork(DATA_MODE mode)
 {
-	const std::string callsign1 = m_conf.getDefaultCallsign();
-	const std::string callsign2 = m_conf.getDStarCallsign();
-	std::string localAddress;
-	uint16_t    localPort;
-	std::string remoteAddress;
-	uint16_t    remotePort;
-	bool        debug;
+	std::string callsign = m_conf.getCallsign();
 
-	switch (m_fromMode) {
-	case DATA_MODE_DSTAR:
-		remoteAddress = m_conf.getDStarFromRemoteAddress();
-		localAddress  = m_conf.getDStarFromLocalAddress();
-		remotePort    = m_conf.getDStarFromRemotePort();
-		localPort     = m_conf.getDStarFromLocalPort();
-		debug         = m_conf.getDStarFromDebug();
-		m_fromNetwork = new CDStarNetwork(callsign2, localAddress, localPort, remoteAddress, remotePort, debug);
-		break;
-	case DATA_MODE_YSFDN:
-		remoteAddress = m_conf.getYSFFromRemoteAddress();
-		localAddress  = m_conf.getYSFFromLocalAddress();
-		remotePort    = m_conf.getYSFFromRemotePort();
-		localPort     = m_conf.getYSFFromLocalPort();
-		debug         = m_conf.getYSFFromDebug();
-		m_fromNetwork = new CYSFNetwork(callsign1, localAddress, localPort, remoteAddress, remotePort, debug);
-		break;
-	case DATA_MODE_FM:
-		remoteAddress = m_conf.getFMFromRemoteAddress();
-		localAddress  = m_conf.getFMFromLocalAddress();
-		remotePort    = m_conf.getFMFromRemotePort();
-		localPort     = m_conf.getFMFromLocalPort();
-		debug         = m_conf.getFMFromDebug();
-		m_fromNetwork = new CFMNetwork(localAddress, localPort, remoteAddress, remotePort, debug);
-		break;
-	case DATA_MODE_M17:
-		remoteAddress = m_conf.getM17FromRemoteAddress();
-		localAddress  = m_conf.getM17FromLocalAddress();
-		remotePort    = m_conf.getM17FromRemotePort();
-		localPort     = m_conf.getM17FromLocalPort();
-		debug         = m_conf.getM17FromDebug();
-		m_fromNetwork = new CM17Network(localAddress, localPort, remoteAddress, remotePort, debug);
-		break;
-	default:
+	if (mode == DATA_MODE::DSTAR) {
+		std::string dstarCallsign = callsign + "        ";
+		dstarCallsign = dstarCallsign.substr(0U, DSTAR_LONG_CALLSIGN_LENGTH - 1U) + m_conf.getDStarModule();
+		dstarCallsign = dstarCallsign.substr(0U, DSTAR_LONG_CALLSIGN_LENGTH);
+
+		std::string remoteAddress = m_conf.getDStarFromRemoteAddress();
+		std::string localAddress  = m_conf.getDStarFromLocalAddress();
+		uint16_t remotePort       = m_conf.getDStarFromRemotePort();
+		uint16_t localPort        = m_conf.getDStarFromLocalPort();
+		bool debug                = m_conf.getDStarFromDebug();
+		m_fromNetwork = new CDStarNetwork(NETWORK::FROM, dstarCallsign, localAddress, localPort, remoteAddress, remotePort, debug);
+	} else if (mode == DATA_MODE::DMR) {
+		uint32_t id = m_conf.getDMRId();
+
+		std::string remoteAddress = m_conf.getDMRFromRemoteAddress();
+		std::string localAddress  = m_conf.getDMRFromLocalAddress();
+		uint16_t remotePort       = m_conf.getDMRFromRemotePort();
+		uint16_t localPort        = m_conf.getDMRFromLocalPort();
+		bool debug                = m_conf.getDMRFromDebug();
+		m_fromNetwork = new CDMRNetwork(NETWORK::FROM, id, localAddress, localPort, remoteAddress, remotePort, debug);
+	} else if (mode == DATA_MODE::YSF) {
+		std::string remoteAddress = m_conf.getYSFFromRemoteAddress();
+		std::string localAddress  = m_conf.getYSFFromLocalAddress();
+		uint16_t remotePort       = m_conf.getYSFFromRemotePort();
+		uint16_t localPort        = m_conf.getYSFFromLocalPort();
+		bool debug                = m_conf.getYSFFromDebug();
+		m_fromNetwork = new CYSFNetwork(NETWORK::FROM, callsign, localAddress, localPort, remoteAddress, remotePort, debug);
+	} else if (mode == DATA_MODE::P25) {
+		std::string remoteAddress = m_conf.getP25FromRemoteAddress();
+		std::string localAddress  = m_conf.getP25FromLocalAddress();
+		uint16_t remotePort       = m_conf.getP25FromRemotePort();
+		uint16_t localPort        = m_conf.getP25FromLocalPort();
+		bool debug                = m_conf.getP25FromDebug();
+		m_fromNetwork = new CP25Network(NETWORK::FROM, localAddress, localPort, remoteAddress, remotePort, debug);
+	} else if (mode == DATA_MODE::NXDN) {
+		std::string remoteAddress = m_conf.getNXDNFromRemoteAddress();
+		std::string localAddress  = m_conf.getNXDNFromLocalAddress();
+		uint16_t remotePort       = m_conf.getNXDNFromRemotePort();
+		uint16_t localPort        = m_conf.getNXDNFromLocalPort();
+		bool debug                = m_conf.getNXDNFromDebug();
+		m_fromNetwork = new CNXDNNetwork(NETWORK::FROM, localAddress, localPort, remoteAddress, remotePort, debug);
+	} else if (mode == DATA_MODE::FM) {
+		std::string remoteAddress = m_conf.getFMFromRemoteAddress();
+		std::string localAddress  = m_conf.getFMFromLocalAddress();
+		uint16_t remotePort       = m_conf.getFMFromRemotePort();
+		uint16_t localPort        = m_conf.getFMFromLocalPort();
+		bool debug                = m_conf.getFMFromDebug();
+		m_fromNetwork = new CFMNetwork(NETWORK::FROM, callsign, localAddress, localPort, remoteAddress, remotePort, debug);
+	} else {
 		::LogError("Unknown from mode specified");
 		return false;
 	}
 
 	bool ret = m_fromNetwork->open();
 	if (!ret) {
-		::LogError("Unable to open the from network interface");
+		::LogError("Unable to open the From network interface");
 		delete m_fromNetwork;
 		return false;
 	}
@@ -471,118 +469,368 @@ bool CCrossMode::createFromNetwork()
 	return true;
 }
 
-bool CCrossMode::createToNetwork()
+bool CCrossMode::createToNetworks(DATA_MODE fromMode, CData& data)
 {
-	const std::string callsign1 = m_conf.getDefaultCallsign();
-	const std::string callsign2 = m_conf.getDStarCallsign();
-	std::string localAddress;
-	uint16_t    localPort;
-	std::string remoteAddress;
-	uint16_t    remotePort;
-	bool        debug;
+	closeToNetworks();
 
-	switch (m_toMode) {
-	case DATA_MODE_DSTAR:
-		remoteAddress = m_conf.getDStarToRemoteAddress();
-		localAddress  = m_conf.getDStarToLocalAddress();
-		remotePort    = m_conf.getDStarToRemotePort();
-		localPort     = m_conf.getDStarToLocalPort();
-		debug         = m_conf.getDStarToDebug();
-		m_toNetwork = new CDStarNetwork(callsign2, localAddress, localPort, remoteAddress, remotePort, debug);
-		break;
-	case DATA_MODE_YSFDN:
-		remoteAddress = m_conf.getYSFToRemoteAddress();
-		localAddress  = m_conf.getYSFToLocalAddress();
-		remotePort    = m_conf.getYSFToRemotePort();
-		localPort     = m_conf.getYSFToLocalPort();
-		debug         = m_conf.getYSFToDebug();
-		m_toNetwork = new CYSFNetwork(callsign1, localAddress, localPort, remoteAddress, remotePort, debug);
-		break;
-	case DATA_MODE_FM:
-		remoteAddress = m_conf.getFMToRemoteAddress();
-		localAddress  = m_conf.getFMToLocalAddress();
-		remotePort    = m_conf.getFMToRemotePort();
-		localPort     = m_conf.getFMToLocalPort();
-		debug         = m_conf.getFMToDebug();
-		m_toNetwork = new CFMNetwork(localAddress, localPort, remoteAddress, remotePort, debug);
-		break;
-	case DATA_MODE_M17:
-		remoteAddress = m_conf.getM17ToRemoteAddress();
-		localAddress  = m_conf.getM17ToLocalAddress();
-		remotePort    = m_conf.getM17ToRemotePort();
-		localPort     = m_conf.getM17ToLocalPort();
-		debug         = m_conf.getM17ToDebug();
-		m_toNetwork = new CM17Network(localAddress, localPort, remoteAddress, remotePort, debug);
-		break;
-	default:
-		::LogError("Unknown to mode specified");
-		return false;
+	std::string callsign = m_conf.getCallsign();
+
+	bool toDStar = false;
+	bool toDMR   = false;
+	bool toYSF   = false;
+	bool toP25   = false;
+	bool toNXDN  = false;
+	bool toFM    = false;
+	bool toM17   = false;
+
+	if (((fromMode == DATA_MODE::DSTAR) && m_conf.getDStarDStarEnable()) ||
+		((fromMode == DATA_MODE::DMR)   && m_conf.getDMRDStarEnable())   ||
+		((fromMode == DATA_MODE::YSF)   && m_conf.getYSFDStarEnable())   ||
+		((fromMode == DATA_MODE::P25)   && m_conf.getP25DStarEnable())   ||
+		((fromMode == DATA_MODE::NXDN)  && m_conf.getNXDNDStarEnable())  ||
+		((fromMode == DATA_MODE::FM)    && m_conf.getFMDStarEnable())) {
+		toDStar = true;
 	}
 
-	bool ret = m_toNetwork->open();
-	if (!ret) {
-		::LogError("Unable to open the to network interface");
-		delete m_toNetwork;
-		return false;
+	if (toDStar) {
+		std::string dstarCallsign = callsign + "        ";
+		dstarCallsign = dstarCallsign.substr(0U, DSTAR_LONG_CALLSIGN_LENGTH - 1U) + m_conf.getDStarModule();
+		dstarCallsign = dstarCallsign.substr(0U, DSTAR_LONG_CALLSIGN_LENGTH);
+
+		std::string remoteAddress = m_conf.getDStarToRemoteAddress();
+		std::string localAddress  = m_conf.getDStarToLocalAddress();
+		uint16_t remotePort       = m_conf.getDStarToRemotePort();
+		uint16_t localPort        = m_conf.getDStarToLocalPort();
+		bool debug                = m_conf.getDStarToDebug();
+
+		CDStarNetwork* network = new CDStarNetwork(NETWORK::TO, dstarCallsign, localAddress, localPort, remoteAddress, remotePort, debug);
+
+		bool ret = network->open();
+		if (!ret) {
+			LogError("Unable to open the D-Star To network interface");
+			closeToNetworks();
+			return false;
+		}
+
+		m_toNetworks.insert(std::pair<DATA_MODE, INetwork*>(DATA_MODE::DSTAR, network));
 	}
+
+	if (((fromMode == DATA_MODE::DSTAR) && m_conf.getDStarDMREnable()) ||
+		((fromMode == DATA_MODE::DMR)   && m_conf.getDMRDMREnable1())  ||
+		((fromMode == DATA_MODE::DMR)   && m_conf.getDMRDMREnable2())  ||
+		((fromMode == DATA_MODE::YSF)   && m_conf.getYSFDMREnable())   ||
+		((fromMode == DATA_MODE::P25)   && m_conf.getP25DMREnable())   ||
+		((fromMode == DATA_MODE::NXDN)  && m_conf.getNXDNDMREnable())  ||
+		((fromMode == DATA_MODE::FM)    && m_conf.getFMDMREnable())) {
+		toDMR = true;
+	}
+
+	if (toDMR) {
+		uint32_t id = m_conf.getDMRId();
+
+		std::string remoteAddress = m_conf.getDMRToRemoteAddress();
+		std::string localAddress  = m_conf.getDMRToLocalAddress();
+		uint16_t remotePort       = m_conf.getDMRToRemotePort();
+		uint16_t localPort        = m_conf.getDMRToLocalPort();
+		bool debug                = m_conf.getDMRToDebug();
+
+		CDMRNetwork* network = new CDMRNetwork(NETWORK::TO, id, localAddress, localPort, remoteAddress, remotePort, debug);
+
+		bool ret = network->open();
+		if (!ret) {
+			LogError("Unable to open the DMR To network interface");
+			closeToNetworks();
+			return false;
+		}
+
+		m_toNetworks.insert(std::pair<DATA_MODE, INetwork*>(DATA_MODE::DMR, network));
+	}
+
+	if (((fromMode == DATA_MODE::DSTAR) && m_conf.getDStarYSFEnable()) ||
+		((fromMode == DATA_MODE::DMR)   && m_conf.getDMRYSFEnable())   ||
+		((fromMode == DATA_MODE::YSF)   && m_conf.getYSFYSFEnable())   ||
+		((fromMode == DATA_MODE::P25)   && m_conf.getP25YSFEnable())   ||
+		((fromMode == DATA_MODE::NXDN)  && m_conf.getNXDNYSFEnable())  ||
+		((fromMode == DATA_MODE::FM)    && m_conf.getFMYSFEnable())) {
+		toYSF = true;
+	}
+
+	if (toYSF) {
+		std::string remoteAddress = m_conf.getYSFToRemoteAddress();
+		std::string localAddress  = m_conf.getYSFToLocalAddress();
+		uint16_t remotePort       = m_conf.getYSFToRemotePort();
+		uint16_t localPort        = m_conf.getYSFToLocalPort();
+		bool debug                = m_conf.getYSFToDebug();
+
+		CYSFNetwork* network = new CYSFNetwork(NETWORK::TO, callsign, localAddress, localPort, remoteAddress, remotePort, debug);
+
+		bool ret = network->open();
+		if (!ret) {
+			LogError("Unable to open the System Fusion To network interface");
+			closeToNetworks();
+			return false;
+		}
+
+		m_toNetworks.insert(std::pair<DATA_MODE, INetwork*>(DATA_MODE::YSF, network));
+	}
+
+	if (((fromMode == DATA_MODE::DSTAR) && m_conf.getDStarP25Enable()) ||
+		((fromMode == DATA_MODE::DMR)   && m_conf.getDMRP25Enable())   ||
+		((fromMode == DATA_MODE::YSF)   && m_conf.getYSFP25Enable())   ||
+		((fromMode == DATA_MODE::P25)   && m_conf.getP25P25Enable())   ||
+		((fromMode == DATA_MODE::NXDN)  && m_conf.getNXDNP25Enable())  ||
+		((fromMode == DATA_MODE::FM)    && m_conf.getFMP25Enable())) {
+		toP25 = true;
+	}
+
+	if (toP25) {
+		std::string remoteAddress = m_conf.getP25ToRemoteAddress();
+		std::string localAddress  = m_conf.getP25ToLocalAddress();
+		uint16_t remotePort       = m_conf.getP25ToRemotePort();
+		uint16_t localPort        = m_conf.getP25ToLocalPort();
+		bool debug                = m_conf.getP25ToDebug();
+
+		CP25Network* network = new CP25Network(NETWORK::TO, localAddress, localPort, remoteAddress, remotePort, debug);
+
+		bool ret = network->open();
+		if (!ret) {
+			LogError("Unable to open the P25 To network interface");
+			closeToNetworks();
+			return false;
+		}
+
+		m_toNetworks.insert(std::pair<DATA_MODE, INetwork*>(DATA_MODE::P25, network));
+	}
+
+	if (((fromMode == DATA_MODE::DSTAR) && m_conf.getDStarNXDNEnable()) ||
+		((fromMode == DATA_MODE::DMR)   && m_conf.getDMRNXDNEnable())   ||
+		((fromMode == DATA_MODE::YSF)   && m_conf.getYSFNXDNEnable())   ||
+		((fromMode == DATA_MODE::P25)   && m_conf.getP25NXDNEnable())   ||
+		((fromMode == DATA_MODE::NXDN)  && m_conf.getNXDNNXDNEnable())  ||
+		((fromMode == DATA_MODE::FM)    && m_conf.getFMNXDNEnable())) {
+		toNXDN = true;
+	}
+
+	if (toNXDN) {
+		std::string remoteAddress = m_conf.getNXDNToRemoteAddress();
+		std::string localAddress  = m_conf.getNXDNToLocalAddress();
+		uint16_t remotePort       = m_conf.getNXDNToRemotePort();
+		uint16_t localPort        = m_conf.getNXDNToLocalPort();
+		bool debug                = m_conf.getNXDNToDebug();
+
+		CNXDNNetwork* network = new CNXDNNetwork(NETWORK::TO, localAddress, localPort, remoteAddress, remotePort, debug);
+
+		bool ret = network->open();
+		if (!ret) {
+			LogError("Unable to open the NXDN To network interface");
+			closeToNetworks();
+			return false;
+		}
+
+		m_toNetworks.insert(std::pair<DATA_MODE, INetwork*>(DATA_MODE::NXDN, network));
+	}
+
+	if (((fromMode == DATA_MODE::DSTAR) && m_conf.getDStarFMEnable()) ||
+		((fromMode == DATA_MODE::DMR)   && m_conf.getDMRFMEnable())   ||
+		((fromMode == DATA_MODE::YSF)   && m_conf.getYSFFMEnable())   ||
+		((fromMode == DATA_MODE::P25)   && m_conf.getP25FMEnable())   ||
+		((fromMode == DATA_MODE::NXDN)  && m_conf.getNXDNFMEnable())  ||
+		((fromMode == DATA_MODE::FM)    && m_conf.getFMFMEnable())) {
+		toFM = true;
+	}
+
+	if (toFM) {
+		std::string remoteAddress = m_conf.getFMToRemoteAddress();
+		std::string localAddress  = m_conf.getFMToLocalAddress();
+		uint16_t remotePort       = m_conf.getFMToRemotePort();
+		uint16_t localPort        = m_conf.getFMToLocalPort();
+		bool debug                = m_conf.getFMToDebug();
+
+		CFMNetwork* network = new CFMNetwork(NETWORK::TO, callsign, localAddress, localPort, remoteAddress, remotePort, debug);
+
+		bool ret = network->open();
+		if (!ret) {
+			LogError("Unable to open the FM To network interface");
+			closeToNetworks();
+			return false;
+		}
+
+		m_toNetworks.insert(std::pair<DATA_MODE, INetwork*>(DATA_MODE::FM, network));
+	}
+
+	data.setThroughModes(m_conf.getDStarDStarEnable(),
+						 m_conf.getDMRDMREnable1(),
+						 m_conf.getDMRDMREnable2(),
+						 m_conf.getYSFYSFEnable(),
+						 m_conf.getP25P25Enable(),
+						 m_conf.getNXDNNXDNEnable(),
+						 m_conf.getFMFMEnable());
 
 	return true;
 }
 
-bool CCrossMode::createThroughNetwork()
+DATA_MODE CCrossMode::hasToNetworkGotData() const
 {
-	const std::string callsign1 = m_conf.getDefaultCallsign();
-	const std::string callsign2 = m_conf.getDStarCallsign();
-	std::string localAddress;
-	uint16_t    localPort;
-	std::string remoteAddress;
-	uint16_t    remotePort;
-	bool        debug;
-
-	switch (m_fromMode) {
-	case DATA_MODE_DSTAR:
-		remoteAddress = m_conf.getDStarToRemoteAddress();
-		localAddress  = m_conf.getDStarToLocalAddress();
-		remotePort    = m_conf.getDStarToRemotePort();
-		localPort     = m_conf.getDStarToLocalPort();
-		debug         = m_conf.getDStarToDebug();
-		m_throughNetwork = new CDStarNetwork(callsign2, localAddress, localPort, remoteAddress, remotePort, debug);
-		break;
-	case DATA_MODE_YSFDN:
-		remoteAddress = m_conf.getYSFToRemoteAddress();
-		localAddress  = m_conf.getYSFToLocalAddress();
-		remotePort    = m_conf.getYSFToRemotePort();
-		localPort     = m_conf.getYSFToLocalPort();
-		debug         = m_conf.getYSFToDebug();
-		m_throughNetwork = new CYSFNetwork(callsign1, localAddress, localPort, remoteAddress, remotePort, debug);
-		break;
-	case DATA_MODE_FM:
-		remoteAddress = m_conf.getFMToRemoteAddress();
-		localAddress  = m_conf.getFMToLocalAddress();
-		remotePort    = m_conf.getFMToRemotePort();
-		localPort     = m_conf.getFMToLocalPort();
-		debug         = m_conf.getFMToDebug();
-		m_throughNetwork = new CFMNetwork(localAddress, localPort, remoteAddress, remotePort, debug);
-		break;
-	case DATA_MODE_M17:
-		remoteAddress = m_conf.getM17ToRemoteAddress();
-		localAddress  = m_conf.getM17ToLocalAddress();
-		remotePort    = m_conf.getM17ToRemotePort();
-		localPort     = m_conf.getM17ToLocalPort();
-		debug         = m_conf.getM17ToDebug();
-		m_throughNetwork = new CM17Network(localAddress, localPort, remoteAddress, remotePort, debug);
-		break;
-	default:
-		::LogError("Unknown through mode specified");
-		return false;
+	for (const auto& it : m_toNetworks) {
+		bool ret = it.second->hasData();
+		if (ret)
+			return it.first;
 	}
 
-	bool ret = m_throughNetwork->open();
-	if (!ret) {
-		::LogError("Unable to open the through network interface");
-		delete m_throughNetwork;
-		return false;
+	return DATA_MODE::NONE;
+}
+
+bool CCrossMode::readToNetwork(DATA_MODE mode, CData& data)
+{
+	bool ret = false;
+
+	for (const auto& it : m_toNetworks) {
+		if (mode == it.first)
+			ret = it.second->read(data);
+		else
+			it.second->read();
 	}
 
-	return true;
+	return ret;
+}
+
+bool CCrossMode::writeToNetworkData(DATA_MODE mode, CData& data)
+{
+	const auto& it = m_toNetworks.find(mode);
+	if (it == m_toNetworks.end())
+		return false;
+
+	return it->second->writeData(data);
+}
+
+bool CCrossMode::writeToNetworkRaw(DATA_MODE mode, CData& data)
+{
+	const auto& it = m_toNetworks.find(mode);
+	if (it == m_toNetworks.end())
+		return false;
+
+	return it->second->writeRaw(data);
+}
+
+void CCrossMode::resetToNetworks()
+{
+	for (auto& it : m_toNetworks)
+		it.second->reset();
+}
+
+void CCrossMode::clockToNetworks(unsigned int ms)
+{
+	for (auto& it : m_toNetworks)
+		it.second->clock(ms);
+}
+
+void CCrossMode::closeToNetworks()
+{
+	for (auto& it : m_toNetworks) {
+		it.second->close();
+		delete it.second;
+	}
+
+	m_toNetworks.clear();
+}
+
+DATA_MODE CCrossMode::getFromMode() const
+{
+	std::string mode = m_conf.getFromMode();
+
+	if (mode == "D-Star")
+		return DATA_MODE::DSTAR;
+	else if (mode == "DMR")
+		return DATA_MODE::DMR;
+	else if (mode == "System Fusion")
+		return DATA_MODE::YSF;
+	else if (mode == "P25")
+		return DATA_MODE::P25;
+	else if (mode == "NXDN")
+		return DATA_MODE::NXDN;
+	else if (mode == "FM")
+		return DATA_MODE::FM;
+	else
+		return DATA_MODE::NONE;
+}
+
+void CCrossMode::loadModeTranslationTables(DATA_MODE fromMode, CData& data)
+{
+	if (fromMode == DATA_MODE::DSTAR) {
+		if (m_conf.getDStarDMREnable())
+			data.setDStarDMRDests(m_conf.getDStarDMRDests());
+		if (m_conf.getDStarYSFEnable())
+			data.setDStarYSFDests(m_conf.getDStarYSFDests());
+		if (m_conf.getDStarP25Enable())
+			data.setDStarP25Dests(m_conf.getDStarP25Dests());
+		if (m_conf.getDStarNXDNEnable())
+			data.setDStarNXDNDests(m_conf.getDStarNXDNDests());
+		if (m_conf.getDStarFMEnable())
+			data.setDStarFMDest(m_conf.getDStarFMDest());
+	}
+
+	if (fromMode == DATA_MODE::DMR) {
+		if (m_conf.getDMRDStarEnable())
+			data.setDMRDStarTGs(m_conf.getDMRDStarTGs());
+		if (m_conf.getDMRYSFEnable())
+			data.setDMRYSFTGs(m_conf.getDMRYSFTGs());
+		if (m_conf.getDMRP25Enable())
+			data.setDMRP25TGs(m_conf.getDMRP25TGs());
+		if (m_conf.getDMRNXDNEnable())
+			data.setDMRNXDNTGs(m_conf.getDMRNXDNTGs());
+		if (m_conf.getDMRFMEnable())
+			data.setDMRFMTG(m_conf.getDMRFMTG());
+	}
+
+	if (fromMode == DATA_MODE::YSF) {
+		if (m_conf.getYSFDStarEnable())
+			data.setYSFDStarDGIds(m_conf.getYSFDStarDGIds());
+		if (m_conf.getYSFDMREnable())
+			data.setYSFDMRDGIds(m_conf.getYSFDMRDGIds());
+		if (m_conf.getYSFP25Enable())
+			data.setYSFP25DGIds(m_conf.getYSFP25DGIds());
+		if (m_conf.getYSFNXDNEnable())
+			data.setYSFNXDNDGIds(m_conf.getYSFNXDNDGIds());
+		if (m_conf.getYSFFMEnable())
+			data.setYSFFMDGId(m_conf.getYSFFMDGId());
+	}
+
+	if (fromMode == DATA_MODE::P25) {
+		if (m_conf.getP25DStarEnable())
+			data.setP25DStarTGs(m_conf.getP25DStarTGs());
+		if (m_conf.getP25DMREnable())
+			data.setP25DMRTGs(m_conf.getP25DMRTGs());
+		if (m_conf.getP25YSFEnable())
+			data.setP25YSFTGs(m_conf.getP25YSFTGs());
+		if (m_conf.getP25NXDNEnable())
+			data.setP25NXDNTGs(m_conf.getP25NXDNTGs());
+		if (m_conf.getP25FMEnable())
+			data.setP25FMTG(m_conf.getP25FMTG());
+	}
+
+	if (fromMode == DATA_MODE::NXDN) {
+		if (m_conf.getNXDNDStarEnable())
+			data.setNXDNDStarTGs(m_conf.getNXDNDStarTGs());
+		if (m_conf.getNXDNDMREnable())
+			data.setNXDNDMRTGs(m_conf.getNXDNDMRTGs());
+		if (m_conf.getNXDNYSFEnable())
+			data.setNXDNYSFTGs(m_conf.getNXDNYSFTGs());
+		if (m_conf.getNXDNP25Enable())
+			data.setNXDNP25TGs(m_conf.getNXDNP25TGs());
+		if (m_conf.getNXDNFMEnable())
+			data.setNXDNFMTG(m_conf.getNXDNFMTG());
+	}
+}
+
+bool CCrossMode::loadIdLookupTables(CData& data)
+{
+	std::string dmrFileName  = m_conf.getDMRLookupFile();
+	std::string nxdnFileName = m_conf.getNXDNLookupFile();
+	unsigned int reloadTime  = m_conf.getReloadTime();
+
+	bool ret = data.setDMRLookup(dmrFileName, reloadTime);
+	if (!ret)
+		return false;
+
+	return data.setNXDNLookup(nxdnFileName, reloadTime);
 }

@@ -30,7 +30,8 @@
 
 const unsigned int BUFFER_LENGTH = 200U;
 
-CYSFNetwork::CYSFNetwork(const std::string& callsign, const std::string& localAddress, unsigned short localPort, const std::string& gatewayAddress, unsigned short gatewayPort, bool debug) :
+CYSFNetwork::CYSFNetwork(NETWORK network, const std::string& callsign, const std::string& localAddress, unsigned short localPort, const std::string& gatewayAddress, unsigned short gatewayPort, bool debug) :
+m_network(network),
 m_socket(localAddress, localPort),
 m_addr(),
 m_addrLen(0U),
@@ -43,10 +44,6 @@ m_seqNo(0U),
 m_audio(nullptr),
 m_audioCount(0U),
 m_fn(0U)
-#if defined(DUMP_M17)
-, m_fpIn(nullptr),
-m_fpOut(nullptr)
-#endif
 {
 	m_callsign = callsign;
 	m_callsign.resize(YSF_CALLSIGN_LENGTH, ' ');
@@ -76,11 +73,6 @@ bool CYSFNetwork::open()
 	LogMessage("Opening YSF network connection");
 
 	m_pollTimer.start();
-
-#if defined(DUMP_YSF)
-	m_fpIn  = ::fopen("dump_in.ysf", "wb");
-	m_fpOut = ::fopen("dump_out.ysf", "wb");
-#endif
 
 	return m_socket.open(m_addr);
 }
@@ -195,7 +187,7 @@ bool CYSFNetwork::writeHeader(CData& data)
 	uint8_t source[YSF_CALLSIGN_LENGTH];
 	uint8_t destination[YSF_CALLSIGN_LENGTH];
 	uint8_t dgId = 0U;
-	data.getYSF(source, destination, dgId);
+	data.getYSF(m_network, source, destination, dgId);
 
 	::memcpy(buffer + 14U, source,      YSF_CALLSIGN_LENGTH);
 	::memcpy(buffer + 24U, destination, YSF_CALLSIGN_LENGTH);
@@ -225,8 +217,6 @@ bool CYSFNetwork::writeHeader(CData& data)
 	m_seqNo++;
 	m_fn = 0U;
 
-	LogMessage("To YSF: src=%10.10s dgId=%u", source, dgId);
-
 	if (m_debug)
 		CUtils::dump(1U, "YSF Network Data Sent", buffer, 155U);
 
@@ -248,7 +238,7 @@ bool CYSFNetwork::writeCommunication(CData& data)
 	uint8_t source[YSF_CALLSIGN_LENGTH];
 	uint8_t destination[YSF_CALLSIGN_LENGTH];
 	uint8_t dgId = 0U;
-	data.getYSF(source, destination, dgId);
+	data.getYSF(m_network, source, destination, dgId);
 
 	::memcpy(buffer + 14U, source,      YSF_CALLSIGN_LENGTH);
 	::memcpy(buffer + 24U, destination, YSF_CALLSIGN_LENGTH);
@@ -322,7 +312,7 @@ bool CYSFNetwork::writeTerminator(CData& data)
 	uint8_t source[YSF_CALLSIGN_LENGTH];
 	uint8_t destination[YSF_CALLSIGN_LENGTH];
 	uint8_t dgId = 0U;
-	data.getYSF(source, destination, dgId);
+	data.getYSF(m_network, source, destination, dgId);
 
 	::memcpy(buffer + 14U, source,      YSF_CALLSIGN_LENGTH);
 	::memcpy(buffer + 24U, destination, YSF_CALLSIGN_LENGTH);
@@ -467,16 +457,20 @@ bool CYSFNetwork::read(CData& data)
 	CYSFPayload payload;
 	payload.processVDMode2Audio(buffer + 35U, m_audio);
 
-#if defined(DUMP_YSF)
-	if (m_fpIn != nullptr) {
-		::fwrite(m_audio, 1U, YSFDN_DATA_LENGTH * 5U, m_fpIn);
-		::fflush(m_fpIn);
-	}
-#endif
-
 	data.setData(m_audio + 0U);
 
 	m_audioCount = 1U;
+
+	return true;
+}
+
+bool CYSFNetwork::read()
+{
+	if (m_buffer.empty())
+		return false;
+
+	uint8_t buffer[155U];
+	m_buffer.get(buffer, 155U);
 
 	return true;
 }
@@ -493,7 +487,7 @@ void CYSFNetwork::processHeader(const uint8_t* buffer, CData& data, uint8_t dgId
 	CYSFPayload payload;
 	payload.processHeaderData(buffer + 35U, source, destination, uplink, downlink);
 
-	data.setYSF(source, dgId);
+	data.setYSF(m_network, source, dgId);
 }
 
 void CYSFNetwork::reset()
@@ -513,18 +507,6 @@ bool CYSFNetwork::hasData()
 void CYSFNetwork::close()
 {
 	m_socket.close();
-
-#if defined(DUMP_YSF)
-	if (m_fpIn != nullptr) {
-		::fclose(m_fpIn);
-		m_fpIn = nullptr;
-	}
-
-	if (m_fpOut != nullptr) {
-		::fclose(m_fpOut);
-		m_fpOut = nullptr;
-	}
-#endif
 
 	LogMessage("Closing YSF network connection");
 }

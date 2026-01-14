@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2020,2024 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2009-2014,2016,2018,2020,2024 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -19,40 +19,50 @@
 #ifndef	NXDNNetwork_H
 #define	NXDNNetwork_H
 
-#include "NXDNDefines.h"
+#include "Network.h"
+
+#include "RingBuffer.h"
+#include "UDPSocket.h"
 
 #include <cstdint>
+#include <string>
 
-enum NXDN_NETWORK_MESSAGE_TYPE {
-	NNMT_VOICE_HEADER,
-	NNMT_VOICE_BODY,
-	NNMT_VOICE_TRAILER,
-	NNMT_DATA_HEADER,
-	NNMT_DATA_BODY,
-	NNMT_DATA_TRAILER
-};
-
-class INXDNNetwork {
+class CNXDNNetwork : public INetwork {
 public:
-	virtual ~INXDNNetwork() = 0;
+	CNXDNNetwork(NETWORK network, const std::string& localAddress, uint16_t localPort, const std::string& remoteAddress, uint16_t remotePort, bool debug);
+	virtual ~CNXDNNetwork();
 
-	virtual bool open() = 0;
+	virtual bool open();
 
-	virtual void enable(bool enabled) = 0;
+	virtual bool writeRaw(CData& data);
+	virtual bool writeData(CData& data);
 
-	virtual bool write(const uint8_t* data, NXDN_NETWORK_MESSAGE_TYPE type) = 0;
+	virtual bool read(CData& data);
+	virtual bool read();
 
-	virtual bool read(uint8_t* data) = 0;
+	virtual bool hasData();
 
-	virtual void reset() = 0;
+	virtual void reset();
 
-	virtual bool isConnected() const = 0;
+	virtual void close();
 
-	virtual void close() = 0;
-
-	virtual void clock(unsigned int ms) = 0;
+    virtual void clock(unsigned int ms);
 
 private:
+	NETWORK          m_network;
+	CUDPSocket       m_socket;
+	sockaddr_storage m_addr;
+	size_t           m_addrLen;
+	bool             m_debug;
+	CRingBuffer<uint8_t> m_buffer;
+	uint16_t         m_seqNo;
+	uint8_t*         m_audio;
+	uint8_t          m_audioCount;
+	uint8_t          m_maxAudio;
+
+	bool writeHeader(CData& data);
+	bool writeBody(CData& data);
+	bool writeTrailer(CData& data);
 };
 
 #endif

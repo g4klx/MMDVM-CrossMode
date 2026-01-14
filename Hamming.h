@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2024 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2015,2016 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -16,32 +16,28 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#if !defined(Network_H)
-#define	Network_H
+#ifndef	Hamming_H
+#define	Hamming_H
 
-#include "Data.h"
-
-class INetwork {
+class CHamming {
 public:
-	virtual ~INetwork() = 0;
+	static void encode15113_1(bool* d);
+	static bool decode15113_1(bool* d);
 
-	virtual bool open() = 0;
+	static void encode15113_2(bool* d);
+	static bool decode15113_2(bool* d);
 
-	virtual bool writeRaw(CData& data) = 0;
-	virtual bool writeData(CData& data) = 0;
+	static void encode1393(bool* d);
+	static bool decode1393(bool* d);
 
-	virtual bool read(CData& data) = 0;
-	virtual bool read() = 0;
+	static void encode1063(bool* d);
+	static bool decode1063(bool* d);
 
-	virtual bool hasData() = 0;
+	static void encode16114(bool* d);
+	static bool decode16114(bool* d);
 
-	virtual void reset() = 0;
-
-	virtual void close() = 0;
-
-	virtual void clock(unsigned int ms) = 0;
-
-private:
+	static void encode17123(bool* d);
+	static bool decode17123(bool* d);
 };
 
 #endif

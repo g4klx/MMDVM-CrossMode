@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2024 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2018,2024 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -16,32 +16,39 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#if !defined(Network_H)
-#define	Network_H
+#if !defined(NXDNLICH_H)
+#define  NXDNLICH_H
 
-#include "Data.h"
+#include <cstdint>
 
-class INetwork {
+class CNXDNLICH {
 public:
-	virtual ~INetwork() = 0;
+	CNXDNLICH(const CNXDNLICH& lich);
+	CNXDNLICH();
+	~CNXDNLICH();
 
-	virtual bool open() = 0;
+	bool decode(const uint8_t* bytes);
 
-	virtual bool writeRaw(CData& data) = 0;
-	virtual bool writeData(CData& data) = 0;
+	void encode(uint8_t* bytes);
 
-	virtual bool read(CData& data) = 0;
-	virtual bool read() = 0;
+	uint8_t getRFCT() const;
+	uint8_t getFCT() const;
+	uint8_t getOption() const;
+	uint8_t getDirection() const;
+	uint8_t getRaw() const;
+	
+	void setRFCT(uint8_t rfct);
+	void setFCT(uint8_t usc);
+	void setOption(uint8_t option);
+	void setDirection(uint8_t direction);
+	void setRaw(uint8_t lich);
 
-	virtual bool hasData() = 0;
-
-	virtual void reset() = 0;
-
-	virtual void close() = 0;
-
-	virtual void clock(unsigned int ms) = 0;
+	CNXDNLICH& operator=(const CNXDNLICH& lich);
 
 private:
+	uint8_t* m_lich;
+
+	bool getParity() const;
 };
 
 #endif

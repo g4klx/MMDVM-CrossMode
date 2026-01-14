@@ -19,69 +19,62 @@
 #if !defined(DMRNetwork_H)
 #define	DMRNetwork_H
 
+#include "Network.h"
+#include "Defines.h"
 #include "UDPSocket.h"
 #include "Timer.h"
 #include "RingBuffer.h"
-#include "DMRData.h"
+#include "DMRLC.h"
+#include "Data.h"
 
 #include <string>
 #include <cstdint>
 #include <random>
 
-class CDMRNetwork
+class CDMRNetwork : public INetwork
 {
 public:
-	CDMRNetwork(const std::string& remoteAddress, unsigned short remotePort, const std::string& localAddress, unsigned short localPort, unsigned int id, bool duplex, const char* version, bool slot1, bool slot2, HW_TYPE hwType, bool debug);
-	~CDMRNetwork();
+	CDMRNetwork(NETWORK network, uint32_t id, const std::string& localAddress, uint16_t localPort, const std::string& remoteAddress, uint16_t remotePort, bool debug);
+	virtual ~CDMRNetwork();
 
-	void setOptions(const std::string& options);
+	virtual bool open();
 
-	void setConfig(const std::string& callsign, unsigned int rxFrequency, unsigned int txFrequency, unsigned int power, unsigned int colorCode, float latitude, float longitude, int height, const std::string& location, const std::string& description, const std::string& url);
+	virtual bool writeRaw(CData& data);
+	virtual bool writeData(CData& data);
 
-	bool open();
+	virtual bool read(CData& data);
+	virtual bool read();
 
-	bool read(CDMRData& data);
+	virtual bool hasData();
 
-	bool write(const CDMRData& data);
+	virtual void reset();
 
-	bool writeRadioPosition(unsigned int id, const uint8_t* data);
+	virtual void clock(unsigned int ms);
 
-	bool writeTalkerAlias(unsigned int id, uint8_t type, const uint8_t* data);
+	virtual void close();
 
-	bool wantsBeacon();
-
-	void clock(unsigned int ms);
-
-	void close();
-
-private: 
-	std::string      m_addressStr;
-	sockaddr_storage m_addr;
-	unsigned int     m_addrLen;
-	unsigned short   m_port;
-	uint8_t*         m_id;
-	bool             m_duplex;
-	const char*      m_version;
-	bool             m_debug;
+private:
+	NETWORK          m_network;
 	CUDPSocket       m_socket;
-	bool             m_slot1;
-	bool             m_slot2;
-	HW_TYPE          m_hwType;
+	sockaddr_storage m_addr;
+	size_t           m_addrLen;
+	uint8_t*         m_id;
+	bool             m_debug;
 	uint8_t*         m_buffer;
-	uint32_t*        m_streamId;
+	uint32_t         m_streamId;
 	CRingBuffer<uint8_t> m_rxData;
-	bool             m_beacon;
 	std::mt19937     m_random;
-	std::string      m_callsign;
-	unsigned int     m_rxFrequency;
-	unsigned int     m_txFrequency;
-	unsigned int     m_power;
-	unsigned int     m_colorCode;
 	CTimer           m_pingTimer;
+	uint8_t*         m_audio;
+	uint8_t          m_audioCount;
+	CDMRLC           m_lc;
+	uint16_t         m_seqNo;
+	uint8_t          m_N;
 
-	bool writeConfig();
-
-	bool write(const uint8_t* data, unsigned int length);
+	bool writeHeader(CData& data);
+	bool writeAudio(CData& data);
+	bool writeTrailer(CData& data);
+	bool writePing();
 };
 
 #endif

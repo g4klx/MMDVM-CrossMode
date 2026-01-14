@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2024 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2015,2016,2019,2021,2022,2024 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -16,32 +16,42 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#if !defined(Network_H)
-#define	Network_H
+#if !defined(DMRLC_H)
+#define DMRLC_H
 
-#include "Data.h"
+#include "BPTC19696.h"
+#include "DMRDefines.h"
 
-class INetwork {
+#include <cstdint>
+
+class CDMRLC
+{
 public:
-	virtual ~INetwork() = 0;
+	CDMRLC();
+	~CDMRLC();
 
-	virtual bool open() = 0;
+	void setParameters(FLCO flco, uint32_t srcId, uint32_t dstId);
 
-	virtual bool writeRaw(CData& data) = 0;
-	virtual bool writeData(CData& data) = 0;
+	void encode(uint8_t* data, uint8_t type);
 
-	virtual bool read(CData& data) = 0;
-	virtual bool read() = 0;
-
-	virtual bool hasData() = 0;
-
-	virtual void reset() = 0;
-
-	virtual void close() = 0;
-
-	virtual void clock(unsigned int ms) = 0;
+	void getData(uint8_t* data, uint8_t n) const;
 
 private:
+	bool       m_PF;
+	bool       m_R;
+	FLCO       m_FLCO;
+	uint8_t    m_FID;
+	uint8_t    m_options;
+	uint32_t   m_srcId;
+	uint32_t   m_dstId;
+	CBPTC19696 m_bptc;
+	bool*      m_raw;
+
+	void getData(uint8_t* bytes) const;
+	void getData(bool* bits) const;
+
+	void encodeEmbeddedData();
 };
 
 #endif
+

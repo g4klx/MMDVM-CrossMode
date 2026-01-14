@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2024 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2015,2024 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -16,32 +16,17 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#if !defined(Network_H)
-#define	Network_H
+#if !defined(RS129_H)
+#define	RS129_H
 
-#include "Data.h"
+#include <cstdint>
 
-class INetwork {
+class CRS129
+{
 public:
-	virtual ~INetwork() = 0;
+	static bool check(const uint8_t* in);
 
-	virtual bool open() = 0;
-
-	virtual bool writeRaw(CData& data) = 0;
-	virtual bool writeData(CData& data) = 0;
-
-	virtual bool read(CData& data) = 0;
-	virtual bool read() = 0;
-
-	virtual bool hasData() = 0;
-
-	virtual void reset() = 0;
-
-	virtual void close() = 0;
-
-	virtual void clock(unsigned int ms) = 0;
-
-private:
+	static void encode(const uint8_t* msg, uint16_t nbytes, uint8_t* parity);
 };
 
 #endif

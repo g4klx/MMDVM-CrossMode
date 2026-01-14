@@ -64,7 +64,8 @@ const uint16_t CCITT16_TABLE[] = {
 
 const unsigned int BUFFER_LENGTH = 100U;
 
-CDStarNetwork::CDStarNetwork(const std::string& callsign, const std::string& localAddress, uint16_t localPort, const std::string& remoteAddress, uint16_t remotePort, bool debug) :
+CDStarNetwork::CDStarNetwork(NETWORK network, const std::string& callsign, const std::string& localAddress, uint16_t localPort, const std::string& remoteAddress, uint16_t remotePort, bool debug) :
+m_network(network),
 m_callsign(callsign),
 m_socket(localAddress, localPort),
 m_addr(),
@@ -77,10 +78,6 @@ m_buffer(1000U, "D-Star Network"),
 m_pollTimer(1000U, 60U),
 m_random(),
 m_header(nullptr)
-#if defined(DUMP_DSTAR)
-, m_fpIn(nullptr),
-m_fpOut(nullptr)
-#endif
 {
 	assert(!callsign.empty());
 	assert(remotePort > 0U);
@@ -110,14 +107,6 @@ bool CDStarNetwork::open()
 	LogMessage("Opening D-Star network connection");
 
 	m_pollTimer.start();
-
-#if defined(DUMP_DSTAR)
-	m_fpIn  = ::fopen("dump_in.dstar", "wb");
-	m_fpOut = ::fopen("dump_out.dstar", "wb");
-
-	::fwrite("AMBE", 1U, 4U, m_fpIn);
-	::fwrite("AMBE", 1U, 4U, m_fpOut);
-#endif
 
 	return m_socket.open(m_addr);
 }
@@ -218,13 +207,6 @@ bool CDStarNetwork::writeBody(CData& data)
 
 	addSlowData(buffer + 18U);
 
-#if defined(DUMP_DSTAR)
-	if (m_fpOut != nullptr) {
-		::fwrite(buffer + 9U, 1U, DSTAR_VOICE_FRAME_LENGTH_BYTES, m_fpOut);
-		::fflush(m_fpOut);
-	}
-#endif
-
 	const unsigned int length = 9U + DSTAR_VOICE_FRAME_LENGTH_BYTES + DSTAR_DATA_FRAME_LENGTH_BYTES;
 
 	if (m_debug)
@@ -323,7 +305,7 @@ bool CDStarNetwork::read(CData& data)
 		return false;
 
 	uint16_t length = 0U;
-	m_buffer.add((uint8_t*)&length, sizeof(uint16_t));
+	m_buffer.get((uint8_t*)&length, sizeof(uint16_t));
 
 	uint8_t buffer[100U];
 	m_buffer.get(buffer, length);
@@ -345,7 +327,7 @@ bool CDStarNetwork::read(CData& data)
 
 			m_inId = buffer[5] * 256U + buffer[6];
 
-			data.setDStar(buffer + 35U, buffer + 27U);
+			data.setDStar(m_network, buffer + 35U, buffer + 27U);
 		}
 		break;
 
@@ -362,12 +344,6 @@ bool CDStarNetwork::read(CData& data)
 				m_inId = 0U;
 				data.setEnd();
 			} else {
-#if defined(DUMP_DSTAR)
-				if (m_fpIn != nullptr) {
-					::fwrite(buffer + 10U, 1U, DSTAR_VOICE_FRAME_LENGTH_BYTES, m_fpIn);
-					::fflush(m_fpIn);
-				}
-#endif
 				data.setData(buffer + 10U);
 			}
 		}
@@ -377,6 +353,20 @@ bool CDStarNetwork::read(CData& data)
 	default:
 		break;
 	}
+
+	return true;
+}
+
+bool CDStarNetwork::read()
+{
+	if (m_buffer.empty())
+		return false;
+
+	uint16_t length = 0U;
+	m_buffer.add((uint8_t*)&length, sizeof(uint16_t));
+
+	uint8_t buffer[100U];
+	m_buffer.get(buffer, length);
 
 	return true;
 }
@@ -397,18 +387,6 @@ void CDStarNetwork::close()
 {
 	m_socket.close();
 
-#if defined(DUMP_DSTAR)
-	if (m_fpIn != nullptr) {
-		::fclose(m_fpIn);
-		m_fpIn = nullptr;
-	}
-
-	if (m_fpOut != nullptr) {
-		::fclose(m_fpOut);
-		m_fpOut = nullptr;
-	}
-#endif
-
 	LogMessage("Closing D-Star network connection");
 }
 
@@ -421,7 +399,7 @@ void CDStarNetwork::createHeader(const CData& data)
 	m_header[2U] = 0x00U;
 
 	uint8_t src[DSTAR_LONG_CALLSIGN_LENGTH], dst[DSTAR_LONG_CALLSIGN_LENGTH];
-	data.getDStar(src, dst);
+	data.getDStar(m_network, src, dst);
 
 	if (::memcmp(dst, "ALL     ", DSTAR_LONG_CALLSIGN_LENGTH) == 0)
 		::memcpy(m_header + 19U, "CQCQCQ  ", DSTAR_LONG_CALLSIGN_LENGTH);

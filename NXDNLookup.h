@@ -16,32 +16,34 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#if !defined(Network_H)
-#define	Network_H
+#if !defined(NXDNLOOKUP_H)
+#define	NXDNLOOKUP_H
 
-#include "Data.h"
+#include "Timer.h"
 
-class INetwork {
+#include <string>
+#include <vector>
+
+#include <cstdint>
+
+class CNXDNLookup {
 public:
-	virtual ~INetwork() = 0;
+	CNXDNLookup();
+	~CNXDNLookup();
 
-	virtual bool open() = 0;
+	bool load(const std::string& filename, unsigned int reloadTime);
 
-	virtual bool writeRaw(CData& data) = 0;
-	virtual bool writeData(CData& data) = 0;
+	std::string lookup(uint16_t id) const;
+	uint16_t lookup(const std::string& callsign) const;
 
-	virtual bool read(CData& data) = 0;
-	virtual bool read() = 0;
-
-	virtual bool hasData() = 0;
-
-	virtual void reset() = 0;
-
-	virtual void close() = 0;
-
-	virtual void clock(unsigned int ms) = 0;
+	void clock(unsigned int ms);
 
 private:
+	std::string                                   m_filename;
+	std::vector<std::pair<uint16_t, std::string>> m_data;
+	CTimer                                        m_timer;
+
+	bool load();
 };
 
 #endif

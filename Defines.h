@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2024 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2024,2026 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -21,16 +21,25 @@
 
 #include <cstdint>
 
-enum DATA_MODE {
-	DATA_MODE_NONE,
-	DATA_MODE_DSTAR,
-	DATA_MODE_DMR,
-	DATA_MODE_YSFDN,
-	DATA_MODE_YSFVW,
-	DATA_MODE_P25,
-	DATA_MODE_NXDN,
-	DATA_MODE_FM,
-	DATA_MODE_M17
+enum class DATA_MODE {
+	NONE,
+	DSTAR,
+	DMR,
+	YSF,
+	P25,
+	NXDN,
+	FM
+};
+
+enum class DIRECTION {
+	NONE,
+	FROM_TO,
+	TO_FROM
+};
+
+enum class NETWORK {
+	FROM,
+	TO
 };
 
 const uint8_t TAG_HEADER = 0U;

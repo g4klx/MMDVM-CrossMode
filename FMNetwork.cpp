@@ -30,7 +30,9 @@
 
 const unsigned int BUFFER_LENGTH = 1500U;
 
-CFMNetwork::CFMNetwork(const std::string& localAddress, unsigned short localPort, const std::string& gatewayAddress, unsigned short gatewayPort, bool debug) :
+CFMNetwork::CFMNetwork(NETWORK network, const std::string& callsign, const std::string& localAddress, unsigned short localPort, const std::string& gatewayAddress, unsigned short gatewayPort, bool debug) :
+m_network(network),
+m_callsign(callsign),
 m_socket(localAddress, localPort),
 m_addr(),
 m_addrLen(0U),
@@ -148,6 +150,8 @@ bool CFMNetwork::read(CData& data)
 	uint8_t buffer[BUFFER_LENGTH];
 	m_buffer.get(buffer, length);
 
+	data.setFM(m_network);
+
 	data.setRaw(buffer, length);
 
 	if (::memcmp(buffer + 0U, "FMD", 3U) == 0)
@@ -156,6 +160,20 @@ bool CFMNetwork::read(CData& data)
 		data.setEnd();
 	else if (::memcmp(buffer + 0U, "FMS", 3U) == 0)
 		data.setFM(buffer + 3U);
+
+	return true;
+}
+
+bool CFMNetwork::read()
+{
+	if (m_buffer.empty())
+		return false;
+
+	uint16_t length = 0U;
+	m_buffer.get((uint8_t*)&length, sizeof(uint16_t));
+
+	uint8_t buffer[BUFFER_LENGTH];
+	m_buffer.get(buffer, length);
 
 	return true;
 }
@@ -189,7 +207,7 @@ bool CFMNetwork::writeStart(CData& data)
 
 	data.getFM(buffer + 3U);
 
-	uint16_t length = ::strlen((char*)buffer);
+	uint16_t length = uint16_t(::strlen((char*)buffer));
 
 	if (m_debug)
 		CUtils::dump(1U, "FM Network Data Sent", buffer, length + 1U);

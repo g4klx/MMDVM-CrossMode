@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2024 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2015,2016,2018,2021,2024 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -16,32 +16,31 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#if !defined(Network_H)
-#define	Network_H
+#if !defined(NXDNConvolution_H)
+#define  NXDNConvolution_H
 
-#include "Data.h"
+#include <cstdint>
 
-class INetwork {
+class CNXDNConvolution {
 public:
-	virtual ~INetwork() = 0;
+	CNXDNConvolution();
+	~CNXDNConvolution();
 
-	virtual bool open() = 0;
+	void start();
+	void decode(uint8_t s0, uint8_t s1);
 
-	virtual bool writeRaw(CData& data) = 0;
-	virtual bool writeData(CData& data) = 0;
+	unsigned int chainback(uint8_t* out, unsigned int nBits);
 
-	virtual bool read(CData& data) = 0;
-	virtual bool read() = 0;
-
-	virtual bool hasData() = 0;
-
-	virtual void reset() = 0;
-
-	virtual void close() = 0;
-
-	virtual void clock(unsigned int ms) = 0;
+	void encode(const uint8_t* in, uint8_t* out, unsigned int nBits) const;
 
 private:
+	uint16_t* m_metrics1;
+	uint16_t* m_metrics2;
+	uint16_t* m_oldMetrics;
+	uint16_t* m_newMetrics;
+	uint64_t* m_decisions;
+	uint64_t* m_dp;
 };
 
 #endif
+

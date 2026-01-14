@@ -17,6 +17,8 @@
  */
 
 #include "P25Network.h"
+
+#include "TranscoderDefines.h"
 #include "P25Defines.h"
 #include "Utils.h"
 #include "Log.h"
@@ -25,76 +27,24 @@
 #include <cassert>
 #include <cstring>
 
-const uint8_t REC62[] = {
-	0x62U, 0x02U, 0x02U, 0x0CU, 0x0BU, 0x12U, 0x64U, 0x00U, 0x00U, 0x80U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U,
-	0x00U, 0x00U, 0x00U, 0x00U, 0x00U};
+const unsigned int BUFFER_LENGTH = 1500U;
 
-const uint8_t REC63[] = {
-	0x63U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x02U};
-
-const uint8_t REC64[] = {
-	0x64U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x02U};
-
-const uint8_t REC65[] = {
-	0x65U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x02U};
-
-const uint8_t REC66[] = {
-	0x66U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x02U};
-
-const uint8_t REC67[] = {
-	0x67U, 0xF0U, 0x9DU, 0x6AU, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x02U};
-
-const uint8_t REC68[] = {
-	0x68U, 0x19U, 0xD4U, 0x26U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x02U};
-
-const uint8_t REC69[] = {
-	0x69U, 0xE0U, 0xEBU, 0x7BU, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x02U};
-
-const uint8_t REC6A[] = {
-	0x6AU, 0x00U, 0x00U, 0x02U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U};
-
-const uint8_t REC6B[] = {
-	0x6BU, 0x02U, 0x02U, 0x0CU, 0x0BU, 0x12U, 0x64U, 0x00U, 0x00U, 0x80U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U,
-	0x00U, 0x00U, 0x00U, 0x00U, 0x00U};
-
-const uint8_t REC6C[] = {
-	0x6CU, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x02U};
-
-const uint8_t REC6D[] = {
-	0x6DU, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x02U};
-
-const uint8_t REC6E[] = {
-	0x6EU, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x02U};
-
-const uint8_t REC6F[] = {
-	0x6FU, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x02U};
-
-const uint8_t REC70[] = {
-	0x70U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x02U};
-
-const uint8_t REC71[] = {
-	0x71U, 0xACU, 0xB8U, 0xA4U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x02U};
-
-const uint8_t REC72[] = {
-	0x72U, 0x9BU, 0xDCU, 0x75U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x02U};
-
-const uint8_t REC73[] = {
-	0x73U, 0x00U, 0x00U, 0x02U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U};
-
-const uint8_t REC80[] = {
-	0x80U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U};
-
-const unsigned int BUFFER_LENGTH = 100U;
-
-CP25Network::CP25Network(const std::string& gatewayAddress, unsigned short gatewayPort, const std::string& localAddress, unsigned short localPort, bool debug) :
+CP25Network::CP25Network(NETWORK network, const std::string& localAddress, uint16_t localPort, const std::string& remoteAddress, uint16_t remotePort, bool debug) :
+m_network(network),
 m_socket(localAddress, localPort),
 m_addr(),
 m_addrLen(0U),
 m_debug(debug),
 m_buffer(1000U, "P25 Network"),
-m_audio()
+m_srcId(0U),
+m_dstId(0U),
+m_n(0x62U)
 {
-	if (CUDPSocket::lookup(gatewayAddress, gatewayPort, m_addr, m_addrLen) != 0)
+	assert(localPort > 0U);
+	assert(!remoteAddress.empty());
+	assert(remotePort > 0U);
+
+	if (CUDPSocket::lookup(remoteAddress, remotePort, m_addr, m_addrLen) != 0)
 		m_addrLen = 0U;
 }
 
@@ -114,263 +64,202 @@ bool CP25Network::open()
 	return m_socket.open(m_addr);
 }
 
-bool CP25Network::writeLDU1(const uint8_t* ldu1, const CP25Data& control, const CP25LowSpeedData& lsd, bool end)
+bool CP25Network::writeRaw(CData& data)
 {
-	assert(ldu1 != NULL);
-
-	uint8_t buffer[22U];
-
-	// The '62' record
-	::memcpy(buffer, REC62, 22U);
-	m_audio.decode(ldu1, buffer + 10U, 0U);
-
-	if (m_debug)
-		CUtils::dump(1U, "P25 Network LDU1 Sent", buffer, 22U);
-
-	bool ret = m_socket.write(buffer, 22U, m_addr, m_addrLen);
-	if (!ret)
+	if (m_addrLen == 0U)
 		return false;
 
-	// The '63' record
-	::memcpy(buffer, REC63, 14U);
-	m_audio.decode(ldu1, buffer + 1U, 1U);
+	uint8_t buffer[100U];
+	uint16_t length = data.getRaw(buffer);
+
+	if (length == 0U)
+		return true;
 
 	if (m_debug)
-		CUtils::dump(1U, "P25 Network LDU1 Sent", buffer, 14U);
+		CUtils::dump(1U, "P25 Network Raw Sent", buffer, length);
 
-	ret = m_socket.write(buffer, 14U, m_addr, m_addrLen);
-	if (!ret)
+	return m_socket.write(buffer, length, m_addr, m_addrLen);
+}
+
+bool CP25Network::writeData(CData& data)
+{
+	if (m_addrLen == 0U)
 		return false;
 
-	// The '64' record
-	::memcpy(buffer, REC64, 17U);
-	buffer[1U] = control.getLCF();
-	buffer[2U] = control.getMFId();
-	m_audio.decode(ldu1, buffer + 5U, 2U);
+	uint8_t buffer[50U];
+	uint16_t len = 0U;
 
-	if (m_debug)
-		CUtils::dump(1U, "P25 Network LDU1 Sent", buffer, 17U);
+	if (data.hasData()) {
+		switch (m_n) {
+		case 0x62U:
+			::memcpy(buffer, REC62, 22U);
+			data.getData(buffer + 10U);
+			len = 22U;
+			m_n = 0x63U;
+			break;
 
-	ret = m_socket.write(buffer, 17U, m_addr, m_addrLen);
-	if (!ret)
-		return false;
+		case 0x63U:
+			::memcpy(buffer, REC63, 14U);
+			data.getData(buffer + 1U);
+			len = 14U;
+			m_n = 0x64U;
+			break;
 
-	// The '65' record
-	::memcpy(buffer, REC65, 17U);
-	unsigned int id = control.getDstId();
-	buffer[1U] = (id >> 16) & 0xFFU;
-	buffer[2U] = (id >> 8) & 0xFFU;
-	buffer[3U] = (id >> 0) & 0xFFU;
-	m_audio.decode(ldu1, buffer + 5U, 3U);
+		case 0x64U:
+			::memcpy(buffer, REC64, 17U);
+			data.getData(buffer + 5U);
+			len = 17U;
+			m_n = 0x65U;
+			break;
 
-	if (m_debug)
-		CUtils::dump(1U, "P25 Network LDU1 Sent", buffer, 17U);
+		case 0x65U: {
+				NETWORK network = NETWORK::TO;
+				uint32_t srcId = 0U, dstId = 0U;
+				bool grp = true;
+				data.getP25(network, srcId, dstId, grp);
 
-	ret = m_socket.write(buffer, 17U, m_addr, m_addrLen);
-	if (!ret)
-		return false;
+				::memcpy(buffer, REC65, 17U);
 
-	// The '66' record
-	::memcpy(buffer, REC66, 17U);
-	id = control.getSrcId();
-	buffer[1U] = (id >> 16) & 0xFFU;
-	buffer[2U] = (id >> 8) & 0xFFU;
-	buffer[3U] = (id >> 0) & 0xFFU;
-	m_audio.decode(ldu1, buffer + 5U, 4U);
+				buffer[1U] = (dstId >> 16) & 0xFFU;
+				buffer[2U] = (dstId >> 8)  & 0xFFU;
+				buffer[3U] = (dstId >> 0)  & 0xFFU;
 
-	if (m_debug)
-		CUtils::dump(1U, "P25 Network LDU1 Sent", buffer, 17U);
+				data.getData(buffer + 5U);
 
-	ret = m_socket.write(buffer, 17U, m_addr, m_addrLen);
-	if (!ret)
-		return false;
+				len = 17U;
+				m_n = 0x66U;
+			}
+			break;
 
-	// The '67' record
-	::memcpy(buffer, REC67, 17U);
-	m_audio.decode(ldu1, buffer + 5U, 5U);
+		case 0x66U: {
+				NETWORK network = NETWORK::TO;
+				uint32_t srcId = 0U, dstId = 0U;
+				bool grp = true;
+				data.getP25(network, srcId, dstId, grp);
 
-	if (m_debug)
-		CUtils::dump(1U, "P25 Network LDU1 Sent", buffer, 17U);
+				::memcpy(buffer, REC66, 17U);
 
-	ret = m_socket.write(buffer, 17U, m_addr, m_addrLen);
-	if (!ret)
-		return false;
+				buffer[1U] = (srcId >> 16) & 0xFFU;
+				buffer[2U] = (srcId >> 8)  & 0xFFU;
+				buffer[3U] = (srcId >> 0)  & 0xFFU;
 
-	// The '68' record
-	::memcpy(buffer, REC68, 17U);
-	m_audio.decode(ldu1, buffer + 5U, 6U);
+				data.getData(buffer + 5U);
 
-	if (m_debug)
-		CUtils::dump(1U, "P25 Network LDU1 Sent", buffer, 17U);
+				len = 17U;
+				m_n = 0x67U;
+			}
+			break;
 
-	ret = m_socket.write(buffer, 17U, m_addr, m_addrLen);
-	if (!ret)
-		return false;
+		case 0x67U:
+			::memcpy(buffer, REC67, 17U);
+			data.getData(buffer + 5U);
+			len = 17U;
+			m_n = 0x68U;
+			break;
 
-	// The '69' record
-	::memcpy(buffer, REC69, 17U);
-	m_audio.decode(ldu1, buffer + 5U, 7U);
+		case 0x68U:
+			::memcpy(buffer, REC68, 17U);
+			data.getData(buffer + 5U);
+			len = 17U;
+			m_n = 0x69U;
+			break;
 
-	if (m_debug)
-		CUtils::dump(1U, "P25 Network LDU1 Sent", buffer, 17U);
+		case 0x69U:
+			::memcpy(buffer, REC69, 17U);
+			data.getData(buffer + 5U);
+			len = 17U;
+			m_n = 0x6AU;
+			break;
 
-	ret = m_socket.write(buffer, 17U, m_addr, m_addrLen);
-	if (!ret)
-		return false;
+		case 0x6AU:
+			::memcpy(buffer, REC6A, 16U);
+			data.getData(buffer + 4U);
+			len = 16U;
+			m_n = 0x6BU;
+			break;
 
-	// The '6A' record
-	::memcpy(buffer, REC6A, 16U);
-	buffer[1U] = lsd.getLSD1();
-	buffer[2U] = lsd.getLSD2();
-	m_audio.decode(ldu1, buffer + 4U, 8U);
+		case 0x6BU:
+			::memcpy(buffer, REC6B, 22U);
+			data.getData(buffer + 10U);
+			len = 22U;
+			m_n = 0x6CU;
+			break;
 
-	if (m_debug)
-		CUtils::dump(1U, "P25 Network LDU1 Sent", buffer, 16U);
+		case 0x6CU:
+			::memcpy(buffer, REC6C, 14U);
+			data.getData(buffer + 1U);
+			len = 14U;
+			m_n = 0x6DU;
+			break;
 
-	ret = m_socket.write(buffer, 16U, m_addr, m_addrLen);
-	if (!ret)
-		return false;
+		case 0x6DU:
+			::memcpy(buffer, REC6D, 17U);
+			data.getData(buffer + 5U);
+			len = 17U;
+			m_n = 0x6EU;
+			break;
 
-	if (end) {
+		case 0x6EU:
+			::memcpy(buffer, REC6E, 17U);
+			data.getData(buffer + 5U);
+			len = 17U;
+			m_n = 0x6FU;
+			break;
+
+		case 0x6FU:
+			::memcpy(buffer, REC6F, 17U);
+			data.getData(buffer + 5U);
+			len = 17U;
+			m_n = 0x70U;
+			break;
+
+		case 0x70U:
+			::memcpy(buffer, REC70, 17U);
+			data.getData(buffer + 5U);
+			len = 17U;
+			m_n = 0x71U;
+			break;
+
+		case 0x71U:
+			::memcpy(buffer, REC71, 17U);
+			data.getData(buffer + 5U);
+			len = 17U;
+			m_n = 0x72U;
+			break;
+
+		case 0x72U:
+			::memcpy(buffer, REC72, 17U);
+			data.getData(buffer + 5U);
+			len = 17U;
+			m_n = 0x73U;
+			break;
+
+		case 0x73U:
+			::memcpy(buffer, REC73, 16U);
+			data.getData(buffer + 4U);
+			len = 16U;
+			m_n = 0x62U;
+			break;
+
+		default:
+			break;
+		}
+
 		if (m_debug)
-			CUtils::dump(1U, "P25 Network END Sent", REC80, 17U);
+			CUtils::dump(1U, "P25 Network Data Sent", buffer, len);
 
-		ret = m_socket.write(REC80, 17U, m_addr, m_addrLen);
+		bool ret = m_socket.write(buffer, len, m_addr, m_addrLen);
 		if (!ret)
 			return false;
 	}
 
-	return true;
-}
+	if (!data.hasData() && data.isEnd()) {
+		::memcpy(buffer, REC80, 17U);
 
-bool CP25Network::writeLDU2(const uint8_t* ldu2, const CP25Data& control, const CP25LowSpeedData& lsd, bool end)
-{
-	assert(ldu2 != NULL);
-
-	uint8_t buffer[22U];
-
-	// The '6B' record
-	::memcpy(buffer, REC6B, 22U);
-	m_audio.decode(ldu2, buffer + 10U, 0U);
-
-	if (m_debug)
-		CUtils::dump(1U, "P25 Network LDU2 Sent", buffer, 22U);
-
-	bool ret = m_socket.write(buffer, 22U, m_addr, m_addrLen);
-	if (!ret)
-		return false;
-
-	// The '6C' record
-	::memcpy(buffer, REC6C, 14U);
-	m_audio.decode(ldu2, buffer + 1U, 1U);
-
-	if (m_debug)
-		CUtils::dump(1U, "P25 Network LDU2 Sent", buffer, 14U);
-
-	ret = m_socket.write(buffer, 14U, m_addr, m_addrLen);
-	if (!ret)
-		return false;
-
-	uint8_t mi[P25_MI_LENGTH_BYTES];
-	control.getMI(mi);
-
-	// The '6D' record
-	::memcpy(buffer, REC6D, 17U);
-	buffer[1U] = mi[0U];
-	buffer[2U] = mi[1U];
-	buffer[3U] = mi[2U];
-	m_audio.decode(ldu2, buffer + 5U, 2U);
-
-	if (m_debug)
-		CUtils::dump(1U, "P25 Network LDU2 Sent", buffer, 17U);
-
-	ret = m_socket.write(buffer, 17U, m_addr, m_addrLen);
-	if (!ret)
-		return false;
-
-	// The '6E' record
-	::memcpy(buffer, REC6E, 17U);
-	buffer[1U] = mi[3U];
-	buffer[2U] = mi[4U];
-	buffer[3U] = mi[5U];
-	m_audio.decode(ldu2, buffer + 5U, 3U);
-
-	if (m_debug)
-		CUtils::dump(1U, "P25 Network LDU2 Sent", buffer, 17U);
-
-	ret = m_socket.write(buffer, 17U, m_addr, m_addrLen);
-	if (!ret)
-		return false;
-
-	// The '6F' record
-	::memcpy(buffer, REC6F, 17U);
-	buffer[1U] = mi[6U];
-	buffer[2U] = mi[7U];
-	buffer[3U] = mi[8U];
-	m_audio.decode(ldu2, buffer + 5U, 4U);
-
-	if (m_debug)
-		CUtils::dump(1U, "P25 Network LDU2 Sent", buffer, 17U);
-
-	ret = m_socket.write(buffer, 17U, m_addr, m_addrLen);
-	if (!ret)
-		return false;
-
-	// The '70' record
-	::memcpy(buffer, REC70, 17U);
-	buffer[1U] = control.getAlgId();
-	unsigned int id = control.getKId();
-	buffer[2U] = (id >> 8) & 0xFFU;
-	buffer[3U] = (id >> 0) & 0xFFU;
-	m_audio.decode(ldu2, buffer + 5U, 5U);
-
-	if (m_debug)
-		CUtils::dump(1U, "P25 Network LDU2 Sent", buffer, 17U);
-
-	ret = m_socket.write(buffer, 17U, m_addr, m_addrLen);
-	if (!ret)
-		return false;
-
-	// The '71' record
-	::memcpy(buffer, REC71, 17U);
-	m_audio.decode(ldu2, buffer + 5U, 6U);
-
-	if (m_debug)
-		CUtils::dump(1U, "P25 Network LDU2 Sent", buffer, 17U);
-
-	ret = m_socket.write(buffer, 17U, m_addr, m_addrLen);
-	if (!ret)
-		return false;
-
-	// The '72' record
-	::memcpy(buffer, REC72, 17U);
-	m_audio.decode(ldu2, buffer + 5U, 7U);
-
-	if (m_debug)
-		CUtils::dump(1U, "P25 Network LDU2 Sent", buffer, 17U);
-
-	ret = m_socket.write(buffer, 17U, m_addr, m_addrLen);
-	if (!ret)
-		return false;
-
-	// The '73' record
-	::memcpy(buffer, REC73, 16U);
-	buffer[1U] = lsd.getLSD1();
-	buffer[2U] = lsd.getLSD2();
-	m_audio.decode(ldu2, buffer + 4U, 8U);
-
-	if (m_debug)
-		CUtils::dump(1U, "P25 Network LDU2 Sent", buffer, 16U);
-
-	ret = m_socket.write(buffer, 16U, m_addr, m_addrLen);
-	if (!ret)
-		return false;
-
-	if (end) {
 		if (m_debug)
-			CUtils::dump(1U, "P25 Network END Sent", REC80, 17U);
+			CUtils::dump(1U, "P25 Network Data Sent", buffer, 17U);
 
-		ret = m_socket.write(REC80, 17U, m_addr, m_addrLen);
+		bool ret = m_socket.write(buffer, 17U, m_addr, m_addrLen);
 		if (!ret)
 			return false;
 	}
@@ -383,12 +272,12 @@ void CP25Network::clock(unsigned int ms)
 	uint8_t buffer[BUFFER_LENGTH];
 
 	sockaddr_storage address;
-	unsigned int addrLen;
+	size_t addrLen;
 	int length = m_socket.read(buffer, BUFFER_LENGTH, address, addrLen);
 	if (length <= 0)
 		return;
 
-	if (!CUDPSocket::match(m_addr, address)) {
+	if (!CUDPSocket::match(m_addr, address, IMT_ADDRESS_AND_PORT)) {
 		LogMessage("P25, packet received from an invalid source");
 		return;
 	}
@@ -397,26 +286,128 @@ void CP25Network::clock(unsigned int ms)
 		CUtils::dump(1U, "P25 Network Data Received", buffer, length);
 
 	uint8_t c = length;
-	m_buffer.addData(&c, 1U);
+	m_buffer.add(&c, 1U);
 
-	m_buffer.addData(buffer, length);
+	m_buffer.add(buffer, length);
 }
 
-unsigned int CP25Network::read(uint8_t* data, unsigned int length)
+bool CP25Network::read(CData& data)
 {
-	assert(data != NULL);
+	if (m_buffer.empty())
+		return false;
 
-	if (m_buffer.isEmpty())
-		return 0U;
+	uint8_t length = 0U;
+	m_buffer.get(&length, 1U);
 
-	uint8_t c = 0U;
-	m_buffer.getData(&c, 1U);
+	uint8_t buffer[BUFFER_LENGTH];
+	m_buffer.get(buffer, length);
 
-	assert(c <= length);
+	data.setRaw(buffer, length);
 
-	m_buffer.getData(data, c);
+	switch (buffer[0U]) {
+	case 0x62U:
+		data.setData(buffer + 10U);
+		break;
+	case 0x63U:
+		data.setData(buffer + 1U);
+		break;
+	case 0x64U:
+		data.setData(buffer + 5U);
+		break;
+	case 0x65U:
+		if (m_dstId == 0U) {
+			m_dstId |= buffer[1U] << 16;
+			m_dstId |= buffer[2U] << 8;
+			m_dstId |= buffer[3U] << 0;
+			if (m_srcId > 0U)
+				data.setP25(m_network, m_srcId, m_dstId, true);
+		}
+		data.setData(buffer + 5U);
+		break;
+	case 0x66U:
+		if (m_srcId == 0U) {
+			m_srcId |= buffer[1U] << 16;
+			m_srcId |= buffer[2U] << 8;
+			m_srcId |= buffer[3U] << 0;
+			if (m_dstId > 0U)
+				data.setP25(m_network, m_srcId, m_dstId, true);
+		}
+		data.setData(buffer + 5U);
+		break;
+	case 0x67U:
+		data.setData(buffer + 5U);
+		break;
+	case 0x68U:
+		data.setData(buffer + 5U);
+		break;
+	case 0x69U:
+		data.setData(buffer + 5U);
+		break;
+	case 0x6AU:
+		data.setData(buffer + 4U);
+		break;
+	case 0x6BU:
+		data.setData(buffer + 10U);
+		break;
+	case 0x6CU:
+		data.setData(buffer + 1U);
+		break;
+	case 0x6DU:
+		data.setData(buffer + 5U);
+		break;
+	case 0x6EU:
+		data.setData(buffer + 5U);
+		break;
+	case 0x6FU:
+		data.setData(buffer + 5U);
+		break;
+	case 0x70U:
+		data.setData(buffer + 5U);
+		break;
+	case 0x71U:
+		data.setData(buffer + 5U);
+		break;
+	case 0x72U:
+		data.setData(buffer + 5U);
+		break;
+	case 0x73U:
+		data.setData(buffer + 4U);
+		break;
+	case 0x80U:
+		data.setEnd();
+		break;
+	default:
+		break;
+	}
 
-	return c;
+	return true;
+}
+
+bool CP25Network::read()
+{
+	if (m_buffer.empty())
+		return false;
+
+	uint8_t length = 0U;
+	m_buffer.get(&length, 1U);
+
+	uint8_t buffer[BUFFER_LENGTH];
+	m_buffer.get(buffer, length);
+
+	return true;
+}
+
+void CP25Network::reset()
+{
+	m_srcId = 0U;
+	m_dstId = 0U;
+	m_buffer.clear();
+	m_n = 0x62U;
+}
+
+bool CP25Network::hasData()
+{
+	return m_buffer.hasData();
 }
 
 void CP25Network::close()

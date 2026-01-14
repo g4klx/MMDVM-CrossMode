@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2024 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2015,2024 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -16,32 +16,34 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#if !defined(Network_H)
-#define	Network_H
+#if !defined(BPTC19696_H)
+#define	BPTC19696_H
 
-#include "Data.h"
+#include <cstdint>
 
-class INetwork {
+class CBPTC19696
+{
 public:
-	virtual ~INetwork() = 0;
+	CBPTC19696();
+	~CBPTC19696();
 
-	virtual bool open() = 0;
+	void decode(const uint8_t* in, uint8_t* out);
 
-	virtual bool writeRaw(CData& data) = 0;
-	virtual bool writeData(CData& data) = 0;
-
-	virtual bool read(CData& data) = 0;
-	virtual bool read() = 0;
-
-	virtual bool hasData() = 0;
-
-	virtual void reset() = 0;
-
-	virtual void close() = 0;
-
-	virtual void clock(unsigned int ms) = 0;
+	void encode(const uint8_t* in, uint8_t* out);
 
 private:
+	bool* m_rawData;
+	bool* m_deInterData;
+
+	void decodeExtractBinary(const uint8_t* in);
+	void decodeErrorCheck();
+	void decodeDeInterleave();
+	void decodeExtractData(uint8_t* data) const;
+
+	void encodeExtractData(const uint8_t* in) const;
+	void encodeInterleave();
+	void encodeErrorCheck();
+	void encodeExtractBinary(uint8_t* data);
 };
 
 #endif

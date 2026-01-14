@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2024 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2018,2024 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -16,32 +16,27 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#if !defined(Network_H)
-#define	Network_H
+#if !defined(NXDNCRC_H)
+#define	NXDNCRC_H
 
-#include "Data.h"
+#include <cstdint>
 
-class INetwork {
+class CNXDNCRC
+{
 public:
-	virtual ~INetwork() = 0;
+	static bool checkCRC6(const uint8_t* in, unsigned int length);
+	static void encodeCRC6(uint8_t* in, unsigned int length);
 
-	virtual bool open() = 0;
+	static bool checkCRC12(const uint8_t* in, unsigned int length);
+	static void encodeCRC12(uint8_t* in, unsigned int length);
 
-	virtual bool writeRaw(CData& data) = 0;
-	virtual bool writeData(CData& data) = 0;
-
-	virtual bool read(CData& data) = 0;
-	virtual bool read() = 0;
-
-	virtual bool hasData() = 0;
-
-	virtual void reset() = 0;
-
-	virtual void close() = 0;
-
-	virtual void clock(unsigned int ms) = 0;
+	static bool checkCRC15(const uint8_t* in, unsigned int length);
+	static void encodeCRC15(uint8_t* in, unsigned int length);
 
 private:
+	static uint8_t  createCRC6(const uint8_t* in, unsigned int length);
+	static uint16_t createCRC12(const uint8_t* in, unsigned int length);
+	static uint16_t createCRC15(const uint8_t* in, unsigned int length);
 };
 
 #endif

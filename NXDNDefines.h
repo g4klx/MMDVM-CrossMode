@@ -35,6 +35,9 @@ const uint8_t NXDN_FSW_BYTES[]      = {0xCDU, 0xF5U, 0x90U};
 const uint8_t NXDN_FSW_BYTES_MASK[] = {0xFFU, 0xFFU, 0xF0U};
 const unsigned int  NXDN_FSW_BYTES_LENGTH = 3U;
 
+const uint8_t HEADER_BYTES[]  = { 0x83U, 0x01U, 0x10U, 0x00U, 0x0FU, 0x01U, 0x00U, 0x20U };
+const uint8_t TRAILER_BYTES[] = { 0x83U, 0x01U, 0x10U, 0x00U, 0x0FU, 0x08U, 0x00U, 0x20U };
+
 const unsigned int NXDN_LICH_LENGTH_BITS = 16U;
 
 const unsigned int NXDN_SACCH_LENGTH_BITS  = 60U;
@@ -100,5 +103,7 @@ const uint8_t NXDN_DATA_CALL_OPTION_4800 = 0x00U;
 const uint8_t NXDN_DATA_CALL_OPTION_9600 = 0x02U;
 
 const uint8_t SACCH_IDLE[] = { NXDN_MESSAGE_TYPE_IDLE, 0x00U, 0x00U };
+
+const uint8_t NXDN_SILENCE[] = { 0xB9U, 0xE8U, 0x81U, 0x52U, 0x61U, 0x73U, 0x00U, 0x2AU, 0x6BU };
 
 #endif

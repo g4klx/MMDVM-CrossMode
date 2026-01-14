@@ -4,9 +4,10 @@ CFLAGS  = -g -O3 -Wall
 LIBS    = -lmosquitto
 LDFLAGS = -g
 
-OBJECTS =	CRC.o Conf.o CrossMode.o Data.o DStarNetwork.o FMNetwork.o Golay24128.o Log.o M17Network.o MQTTConnection.o Network.o \
-		StopWatch.o Thread.o Timer.o Transcoder.o UARTController.o UDPSocket.o Utils.o YSFConvolution.o YSFFICH.o YSFNetwork.o \
-		YSFPayload.o
+OBJECTS =	BPTC19696.o CRC.o Conf.o CrossMode.o Data.o DMRLC.o DMRLookup.o DStarNetwork.o Data.o FMNetwork.o Golay24128.o Hamming.o Log.o \
+			MQTTConnection.o NXDNCRC.o NXDNConvolution.o NXDNFACCH1.o NXDNLICH.o NXDNLayer3.o NXDNLookup.o NXDNNetwork.o Network.o P25Network.o \
+			RS129.o StopWatch.o Thread.o Timer.o Transcoder.o UARTController.o UDPSocket.o Utils.o YSFConvolution.o YSFFICH.o YSFNetwork.o \
+			YSFPayload.o
 
 all:		CrossMode
 
