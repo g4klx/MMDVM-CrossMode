@@ -162,8 +162,6 @@
     <ClInclude Include="Hamming.h" />
     <ClInclude Include="Log.h" />
     <ClInclude Include="DMRLookup.h" />
-    <ClInclude Include="M17Defines.h" />
-    <ClInclude Include="M17Network.h" />
     <ClInclude Include="Network.h" />
     <ClInclude Include="NXDNConvolution.h" />
     <ClInclude Include="NXDNCRC.h" />
@@ -206,7 +204,6 @@
     <ClCompile Include="Hamming.cpp" />
     <ClCompile Include="Log.cpp" />
     <ClCompile Include="DMRLookup.cpp" />
-    <ClCompile Include="M17Network.cpp" />
     <ClCompile Include="Network.cpp" />
     <ClCompile Include="NXDNConvolution.cpp" />
     <ClCompile Include="NXDNCRC.cpp" />

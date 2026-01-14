@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2024 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2024,2026 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -28,8 +28,7 @@ enum DATA_MODE {
 	DATA_MODE_YSF,
 	DATA_MODE_P25,
 	DATA_MODE_NXDN,
-	DATA_MODE_FM,
-	DATA_MODE_M17
+	DATA_MODE_FM
 };
 
 enum DIRECTION {

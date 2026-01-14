@@ -10,9 +10,8 @@ The final version will transcode between all of the following digital and non-di
 - P25 phase 1
 - NXDN
 - FM
-- M17
 
-The initial version only allows for D-Star, DMR, YSF DN, M17, and FM being possible.
+The initial version only allows for D-Star, DMR, YSF DN, and FM being possible.
 
 It builds on 32-bit and 64-bit Linux as well as on Windows using Visual Studio
 2019 on x86 and x64. It can optionally control various Displays. Currently

@@ -1,5 +1,5 @@
 /*
- *	 Copyright (C) 2015,2016,2017,2024 by Jonathan Naylor G4KLX
+ *	 Copyright (C) 2015,2016,2017,2024,2026 by Jonathan Naylor G4KLX
  *
  *	 This program is free software; you can redistribute it and/or modify
  *	 it under the terms of the GNU General Public License as published by
@@ -49,49 +49,36 @@ enum SECTION {
 	SECTION_DSTAR_P25,
 	SECTION_DSTAR_NXDN,
 	SECTION_DSTAR_FM,
-	SECTION_DSTAR_M17,
 	SECTION_DMR_DSTAR,
 	SECTION_DMR_DMR,
 	SECTION_DMR_YSF,
 	SECTION_DMR_P25,
 	SECTION_DMR_NXDN,
 	SECTION_DMR_FM,
-	SECTION_DMR_M17,
 	SECTION_YSF_DSTAR,
 	SECTION_YSF_DMR,
 	SECTION_YSF_YSF,
 	SECTION_YSF_P25,
 	SECTION_YSF_NXDN,
 	SECTION_YSF_FM,
-	SECTION_YSF_M17,
 	SECTION_P25_DSTAR,
 	SECTION_P25_DMR,
 	SECTION_P25_YSF,
 	SECTION_P25_P25,
 	SECTION_P25_NXDN,
 	SECTION_P25_FM,
-	SECTION_P25_M17,
 	SECTION_NXDN_DSTAR,
 	SECTION_NXDN_DMR,
 	SECTION_NXDN_YSF,
 	SECTION_NXDN_P25,
 	SECTION_NXDN_NXDN,
 	SECTION_NXDN_FM,
-	SECTION_NXDN_M17,
 	SECTION_FM_DSTAR,
 	SECTION_FM_DMR,
 	SECTION_FM_YSF,
 	SECTION_FM_P25,
 	SECTION_FM_NXDN,
 	SECTION_FM_FM,
-	SECTION_FM_M17,
-	SECTION_M17_DSTAR,
-	SECTION_M17_DMR,
-	SECTION_M17_YSF,
-	SECTION_M17_P25,
-	SECTION_M17_NXDN,
-	SECTION_M17_FM,
-	SECTION_M17_M17,
 	SECTION_DSTAR_NETWORK_FROM,
 	SECTION_DSTAR_NETWORK_TO,
 	SECTION_DMR_NETWORK_FROM,
@@ -103,9 +90,7 @@ enum SECTION {
 	SECTION_NXDN_NETWORK_FROM,
 	SECTION_NXDN_NETWORK_TO,
 	SECTION_FM_NETWORK_FROM,
-	SECTION_FM_NETWORK_TO,
-	SECTION_M17_NETWORK_FROM,
-	SECTION_M17_NETWORK_TO
+	SECTION_FM_NETWORK_TO
 };
 
 CConf::CConf(const std::string& file) :
@@ -139,8 +124,6 @@ m_dstarP25Dests(),
 m_dstarNXDNEnable(false),
 m_dstarNXDNDests(),
 m_dstarFMEnable(false),
-m_dstarM17Enable(false),
-m_dstarM17Dests(),
 m_dmrDStarEnable(false),
 m_dmrDStarTGs(),
 m_dmrDMREnable1(false),
@@ -153,8 +136,6 @@ m_dmrNXDNEnable(false),
 m_dmrNXDNTGs(),
 m_dmrFMEnable(false),
 m_dmrFMTG(),
-m_dmrM17Enable(false),
-m_dmrM17TGs(),
 m_ysfDStarEnable(false),
 m_ysfDStarDGIds(),
 m_ysfDMREnable(false),
@@ -166,8 +147,6 @@ m_ysfNXDNEnable(false),
 m_ysfNXDNDGIds(),
 m_ysfFMEnable(false),
 m_ysfFMDGId(0U),
-m_ysfM17Enable(false),
-m_ysfM17DGIds(),
 m_p25DStarEnable(false),
 m_p25DStarTGs(),
 m_p25DMREnable(false),
@@ -179,8 +158,6 @@ m_p25NXDNEnable(false),
 m_p25NXDNTGs(),
 m_p25FMEnable(false),
 m_p25FMTG(0U),
-m_p25M17Enable(false),
-m_p25M17TGs(),
 m_nxdnDStarEnable(false),
 m_nxdnDStarTGs(),
 m_nxdnDMREnable(false),
@@ -192,28 +169,12 @@ m_nxdnP25TGs(),
 m_nxdnNXDNEnable(false),
 m_nxdnFMEnable(false),
 m_nxdnFMTG(0U),
-m_nxdnM17Enable(false),
-m_nxdnM17TGs(),
 m_fmDStarEnable(false),
 m_fmDMREnable(false),
 m_fmYSFEnable(false),
 m_fmP25Enable(false),
 m_fmNXDNEnable(false),
 m_fmFMEnable(false),
-m_fmM17Enable(false),
-m_m17DStarEnable(false),
-m_m17DStarDests(),
-m_m17DMREnable(false),
-m_m17DMRDests(),
-m_m17YSFEnable(false),
-m_m17YSFDests(),
-m_m17P25Enable(false),
-m_m17P25Dests(),
-m_m17NXDNEnable(false),
-m_m17NXDNDests(),
-m_m17FMEnable(false),
-m_m17FMDest(),
-m_m17M17Enable(false),
 m_dStarFromRemoteAddress("127.0.0.1"),
 m_dStarFromRemotePort(20011U),
 m_dStarFromLocalAddress("127.0.0.1"),
@@ -273,17 +234,7 @@ m_fmToRemoteAddress("127.0.0.1"),
 m_fmToRemotePort(20011U),
 m_fmToLocalAddress("127.0.0.1"),
 m_fmToLocalPort(20010U),
-m_fmToDebug(false),
-m_m17FromRemoteAddress("127.0.0.1"),
-m_m17FromRemotePort(17011U),
-m_m17FromLocalAddress("127.0.0.1"),
-m_m17FromLocalPort(17010U),
-m_m17FromDebug(false),
-m_m17ToRemoteAddress("127.0.0.1"),
-m_m17ToRemotePort(17011U),
-m_m17ToLocalAddress("127.0.0.1"),
-m_m17ToLocalPort(17010U),
-m_m17ToDebug(false)
+m_fmToDebug(false)
 {
 }
 
@@ -333,8 +284,6 @@ bool CConf::read()
 				section = SECTION_DSTAR_NXDN;
 			else if (::strncmp(buffer, "[D-Star to FM]", 14U) == 0)
 				section = SECTION_DSTAR_FM;
-			else if (::strncmp(buffer, "[D-Star to M17]", 15U) == 0)
-				section = SECTION_DSTAR_M17;
 			else if (::strncmp(buffer, "[DMR to D-Star]", 15U) == 0)
 				section = SECTION_DMR_DSTAR;
 			else if (::strncmp(buffer, "[DMR to DMR]", 12U) == 0)
@@ -347,8 +296,6 @@ bool CConf::read()
 				section = SECTION_DMR_NXDN;
 			else if (::strncmp(buffer, "[DMR to FM]", 11U) == 0)
 				section = SECTION_DMR_FM;
-			else if (::strncmp(buffer, "[DMR to M17]", 12U) == 0)
-				section = SECTION_DMR_M17;
 			else if (::strncmp(buffer, "[System Fusion to D-Star]", 25U) == 0)
 				section = SECTION_YSF_DSTAR;
 			else if (::strncmp(buffer, "[System Fusion to DMR]", 22U) == 0)
@@ -361,8 +308,6 @@ bool CConf::read()
 				section = SECTION_YSF_NXDN;
 			else if (::strncmp(buffer, "[System Fusion to FM]", 21U) == 0)
 				section = SECTION_YSF_FM;
-			else if (::strncmp(buffer, "[System Fusion to M17]", 22U) == 0)
-				section = SECTION_YSF_M17;
 			else if (::strncmp(buffer, "[P25 to D-Star]", 15U) == 0)
 				section = SECTION_P25_DSTAR;
 			else if (::strncmp(buffer, "[P25 to DMR]", 12U) == 0)
@@ -375,8 +320,6 @@ bool CConf::read()
 				section = SECTION_P25_NXDN;
 			else if (::strncmp(buffer, "[P25 to FM]", 11U) == 0)
 				section = SECTION_P25_FM;
-			else if (::strncmp(buffer, "[P25 to M17]", 12U) == 0)
-				section = SECTION_P25_M17;
 			else if (::strncmp(buffer, "[NXDN to D-Star]", 16U) == 0)
 				section = SECTION_NXDN_DSTAR;
 			else if (::strncmp(buffer, "[NXDN to DMR]", 13U) == 0)
@@ -389,8 +332,6 @@ bool CConf::read()
 				section = SECTION_NXDN_NXDN;
 			else if (::strncmp(buffer, "[NXDN to FM]", 12U) == 0)
 				section = SECTION_NXDN_FM;
-			else if (::strncmp(buffer, "[NXDN to M17]", 13U) == 0)
-				section = SECTION_NXDN_M17;
 			else if (::strncmp(buffer, "[FM to D-Star]", 14U) == 0)
 				section = SECTION_FM_DSTAR;
 			else if (::strncmp(buffer, "[FM to DMR]", 11U) == 0)
@@ -403,22 +344,6 @@ bool CConf::read()
 				section = SECTION_FM_NXDN;
 			else if (::strncmp(buffer, "[FM to FM]", 10U) == 0)
 				section = SECTION_FM_FM;
-			else if (::strncmp(buffer, "[FM to M17]", 11U) == 0)
-				section = SECTION_FM_M17;
-			else if (::strncmp(buffer, "[M17 to D-Star]", 15U) == 0)
-				section = SECTION_M17_DSTAR;
-			else if (::strncmp(buffer, "[M17 to DMR]", 12U) == 0)
-				section = SECTION_M17_DMR;
-			else if (::strncmp(buffer, "[M17 to System Fusion]", 22U) == 0)
-				section = SECTION_M17_YSF;
-			else if (::strncmp(buffer, "[M17 to P25]", 12U) == 0)
-				section = SECTION_M17_P25;
-			else if (::strncmp(buffer, "[M17 to NXDN]", 13U) == 0)
-				section = SECTION_M17_NXDN;
-			else if (::strncmp(buffer, "[M17 to FM]", 11U) == 0)
-				section = SECTION_M17_FM;
-			else if (::strncmp(buffer, "[M17 to M17]", 12U) == 0)
-				section = SECTION_M17_M17;
 			else if (::strncmp(buffer, "[D-Star Network From]", 21U) == 0)
 				section = SECTION_DSTAR_NETWORK_FROM;
 			else if (::strncmp(buffer, "[D-Star Network To]", 19U) == 0)
@@ -443,10 +368,6 @@ bool CConf::read()
 				section = SECTION_FM_NETWORK_FROM;
 			else if (::strncmp(buffer, "[FM Network To]", 15U) == 0)
 				section = SECTION_FM_NETWORK_TO;
-			else if (::strncmp(buffer, "[M17 Network From]", 18U) == 0)
-				section = SECTION_M17_NETWORK_FROM;
-			else if (::strncmp(buffer, "[M17 Network To]", 16U) == 0)
-				section = SECTION_M17_NETWORK_TO;
 			else
 				section = SECTION_NONE;
 
@@ -610,18 +531,6 @@ bool CConf::read()
 #endif
 				m_dstarFMDest = dest;
 			}
-		} else if (section == SECTION_DSTAR_M17) {
-			if (::strcmp(key, "Enable") == 0) {
-				m_dstarM17Enable = ::atoi(value) == 1;
-			} else if (::strcmp(key, "Dest") == 0) {
-				std::string dest = getString(value);
-				if (dest.empty())
-					continue;
-#if defined(TRACE_CONFIG)
-				::fprintf(stdout, "D-Star => M17, mapping \"%s\"\n", dest.c_str());
-#endif
-				m_dstarM17Dests.push_back(dest);
-			}
 		} else if (section == SECTION_DMR_DSTAR) {
 			if (::strcmp(key, "Enable") == 0) {
 				m_dmrDStarEnable = ::atoi(value) == 1;
@@ -722,28 +631,6 @@ bool CConf::read()
 #endif
 				m_dmrFMTG = std::make_pair(slotTG.first, slotTG.second);
 			}
-		} else if (section == SECTION_DMR_M17) {
-			if (::strcmp(key, "Enable") == 0) {
-				m_dmrM17Enable = ::atoi(value) == 1;
-			} else if (::strcmp(key, "TG") == 0) {
-				char* p = ::strchr(value, '=');
-				if (p == nullptr)
-					continue;
-				*p = '\0';
-
-				std::pair<uint8_t, uint32_t> slotTG = getSlotTG(value);
-				if ((slotTG.first == NULL_SLOT) || (slotTG.second == NULL_ID32))
-					continue;
-
-				std::string dest = getString(p + 1U);
-				if (dest.empty())
-					continue;
-
-#if defined(TRACE_CONFIG)
-				::fprintf(stdout, "DMR => M17, mapping %u:TG%u to \"%s\"\n", slotTG.first, slotTG.second, dest.c_str());
-#endif
-				m_dmrM17TGs.push_back(std::tuple<uint8_t, uint32_t, std::string>(slotTG.first, slotTG.second, dest));
-			}
 		} else if (section == SECTION_YSF_DSTAR) {
 			if (::strcmp(key, "Enable") == 0) {
 				m_ysfDStarEnable = ::atoi(value) == 1;
@@ -831,26 +718,6 @@ bool CConf::read()
 #if defined(TRACE_CONFIG)
 				::fprintf(stdout, "YSF => FM, mapping %u\n", m_ysfFMDGId);
 #endif
-			}
-		} else if (section == SECTION_YSF_M17) {
-			if (::strcmp(key, "Enable") == 0) {
-				m_ysfM17Enable = ::atoi(value) == 1;
-			} else if (::strcmp(key, "DGId") == 0) {
-				char* p = ::strchr(value, '=');
-				if (p == nullptr)
-					continue;
-				*p = '\0';
-
-				uint8_t dgId = uint8_t(::atoi(value));
-
-				std::string dest = getString(p + 1U);
-				if (dest.empty())
-					continue;
-
-#if defined(TRACE_CONFIG)
-				::fprintf(stdout, "YSF => M17, mapping %u to \"%s\"\n", dgId, dest.c_str());
-#endif
-				m_ysfM17DGIds.push_back(std::pair<uint8_t, std::string>(dgId, dest));
 			}
 		} else if (section == SECTION_P25_DSTAR) {
 			if (::strcmp(key, "Enable") == 0) {
@@ -940,26 +807,6 @@ bool CConf::read()
 				::fprintf(stdout, "P25 => FM, mapping TG%u\n", m_p25FMTG);
 #endif
 			}
-		} else if (section == SECTION_P25_M17) {
-			if (::strcmp(key, "Enable") == 0) {
-				m_p25M17Enable = ::atoi(value) == 1;
-			} else if (::strcmp(key, "TG") == 0) {
-				char* p = ::strchr(value, '=');
-				if (p == nullptr)
-					continue;
-				*p = '\0';
-
-				uint32_t tg = uint32_t(::atoi(value));
-
-				std::string dest = getString(p + 1U);
-				if (dest.empty())
-					continue;
-
-#if defined(TRACE_CONFIG)
-				::fprintf(stdout, "P25 => M17, mapping TG%u to \"%s\"\n", tg, dest.c_str());
-#endif
-				m_p25M17TGs.push_back(std::pair<uint32_t, std::string>(tg, dest));
-			}
 		} else if (section == SECTION_NXDN_DSTAR) {
 			if (::strcmp(key, "Enable") == 0) {
 				m_nxdnDStarEnable = ::atoi(value) == 1;
@@ -1048,26 +895,6 @@ bool CConf::read()
 				::fprintf(stdout, "NXDN => FM, mapping TG%u\n", m_nxdnFMTG);
 #endif
 			}
-		} else if (section == SECTION_NXDN_M17) {
-			if (::strcmp(key, "Enable") == 0) {
-				m_nxdnM17Enable = ::atoi(value) == 1;
-			} else if (::strcmp(key, "TG") == 0) {
-				char* p = ::strchr(value, '=');
-				if (p == nullptr)
-					continue;
-				*p = '\0';
-
-				uint16_t tg = uint16_t(::atoi(value));
-
-				std::string dest = getString(p + 1U);
-				if (dest.empty())
-					continue;
-
-#if defined(TRACE_CONFIG)
-				::fprintf(stdout, "NXDN => M17, mapping TG%u to \"%s\"\n", tg, dest.c_str());
-#endif
-				m_nxdnM17TGs.push_back(std::pair<uint16_t, std::string>(tg, dest));
-			}
 		} else if (section == SECTION_FM_DSTAR) {
 			if (::strcmp(key, "Enable") == 0)
 				m_fmDStarEnable = ::atoi(value) == 1;
@@ -1086,118 +913,6 @@ bool CConf::read()
 		} else if (section == SECTION_FM_FM) {
 			if (::strcmp(key, "Enable") == 0)
 				m_fmFMEnable = ::atoi(value) == 1;
-		} else if (section == SECTION_FM_M17) {
-			if (::strcmp(key, "Enable") == 0)
-				m_fmM17Enable = ::atoi(value) == 1;
-		} else if (section == SECTION_M17_DSTAR) {
-			if (::strcmp(key, "Enable") == 0) {
-				m_m17DStarEnable = ::atoi(value) == 1;
-			} else if (::strcmp(key, "Dest") == 0) {
-				std::string dest = getString(value);
-				if (dest.empty())
-					continue;
-#if defined(TRACE_CONFIG)
-				::fprintf(stdout, "M17 => D-Star, mapping \"%s\"\n", dest.c_str());
-#endif
-				m_m17DStarDests.push_back(dest);
-			}
-		} else if (section == SECTION_M17_DMR) {
-			if (::strcmp(key, "Enable") == 0) {
-				m_m17DMREnable = ::atoi(value) == 1;
-			} else if (::strcmp(key, "Dest") == 0) {
-				char* p = ::strchr(value, '=');
-				if (p == nullptr)
-					continue;
-				*p = '\0';
-
-				std::string dest = getString(value);
-				if (dest.empty())
-					continue;
-
-				std::pair<uint8_t, uint32_t> slotTG = getSlotTG(p + 1U);
-				if ((slotTG.first == NULL_SLOT) || (slotTG.second == NULL_ID32))
-					continue;
-
-#if defined(TRACE_CONFIG)
-				::fprintf(stdout, "M17 => DMR, mapping \"%s\" to %u:TG%u\n", dest.c_str(), slotTG.first, slotTG.second);
-#endif
-				m_m17DMRDests.push_back(std::tuple<std::string, uint8_t, uint32_t>(dest, slotTG.first, slotTG.second));
-			}
-		} else if (section == SECTION_M17_YSF) {
-			if (::strcmp(key, "Enable") == 0) {
-				m_m17YSFEnable = ::atoi(value) == 1;
-			} else if (::strcmp(key, "Dest") == 0) {
-				char* p = ::strchr(value, '=');
-				if (p == nullptr)
-					continue;
-				*p = '\0';
-
-				std::string dest = getString(value);
-				if (dest.empty())
-					continue;
-
-				uint8_t dgid = uint8_t(::atoi(p + 1U));
-
-#if defined(TRACE_CONFIG)
-				::fprintf(stdout, "M17 => YSF, mapping \"%s\" to %u\n", dest.c_str(), dgid);
-#endif
-				m_m17YSFDests.push_back(std::pair<std::string, uint8_t>(dest, dgid));
-			}
-		} else if (section == SECTION_M17_P25) {
-			if (::strcmp(key, "Enable") == 0) {
-				m_m17P25Enable = ::atoi(value) == 1;
-			} else if (::strcmp(key, "Dest") == 0) {
-				char* p = ::strchr(value, '=');
-				if (p == nullptr)
-					continue;
-				*p = '\0';
-
-				std::string dest = getString(value);
-				if (dest.empty())
-					continue;
-
-				uint32_t tg = uint32_t(::atoi(p + 1U));
-
-#if defined(TRACE_CONFIG)
-				::fprintf(stdout, "M17 => P25, mapping \"%s\" to TG%u\n", dest.c_str(), tg);
-#endif
-				m_m17P25Dests.push_back(std::pair<std::string, uint32_t>(dest, tg));
-			}
-		} else if (section == SECTION_M17_NXDN) {
-			if (::strcmp(key, "Enable") == 0) {
-				m_m17NXDNEnable = ::atoi(value) == 1;
-			} else if (::strcmp(key, "Dest") == 0) {
-				char* p = ::strchr(value, '=');
-				if (p == nullptr)
-					continue;
-				*p = '\0';
-
-				std::string dest = getString(value);
-				if (dest.empty())
-					continue;
-
-				uint16_t tg = uint16_t(::atoi(p + 1U));
-
-#if defined(TRACE_CONFIG)
-				::fprintf(stdout, "M17 => NXDN, mapping \"%s\" to TG%u\n", dest.c_str(), tg);
-#endif
-				m_m17NXDNDests.push_back(std::pair<std::string, uint16_t>(dest, tg));
-			}
-		} else if (section == SECTION_M17_FM) {
-			if (::strcmp(key, "Enable") == 0) {
-				m_m17FMEnable = ::atoi(value) == 1;
-			} else if (::strcmp(key, "Dest") == 0) {
-				std::string dest = getString(value);
-				if (dest.empty())
-					continue;
-#if defined(TRACE_CONFIG)
-				::fprintf(stdout, "M17 => FM, mapping \"%s\"\n", dest.c_str());
-#endif
-				m_m17FMDest = dest;
-			}
-		} else if (section == SECTION_M17_M17) {
-			if (::strcmp(key, "Enable") == 0)
-				m_m17M17Enable = ::atoi(value) == 1;
 		} else if (section == SECTION_DSTAR_NETWORK_FROM) {
 			if (::strcmp(key, "RemoteAddress") == 0)
 				m_dStarFromRemoteAddress = value;
@@ -1330,28 +1045,6 @@ bool CConf::read()
 				m_fmToLocalPort = uint16_t(::atoi(value));
 			else if (::strcmp(key, "Debug") == 0)
 				m_fmToDebug = ::atoi(value) == 1;
-		} else if (section == SECTION_M17_NETWORK_FROM) {
-			if (::strcmp(key, "RemoteAddress") == 0)
-				m_m17FromRemoteAddress = value;
-			else if (::strcmp(key, "RemotePort") == 0)
-				m_m17FromRemotePort = uint16_t(::atoi(value));
-			else if (::strcmp(key, "LocalAddress") == 0)
-				m_m17FromLocalAddress = value;
-			else if (::strcmp(key, "LocalPort") == 0)
-				m_m17FromLocalPort = uint16_t(::atoi(value));
-			else if (::strcmp(key, "Debug") == 0)
-				m_m17FromDebug = ::atoi(value) == 1;
-		} else if (section == SECTION_M17_NETWORK_TO) {
-			if (::strcmp(key, "RemoteAddress") == 0)
-				m_m17ToRemoteAddress = value;
-			else if (::strcmp(key, "RemotePort") == 0)
-				m_m17ToRemotePort = uint16_t(::atoi(value));
-			else if (::strcmp(key, "LocalAddress") == 0)
-				m_m17ToLocalAddress = value;
-			else if (::strcmp(key, "LocalPort") == 0)
-				m_m17ToLocalPort = uint16_t(::atoi(value));
-			else if (::strcmp(key, "Debug") == 0)
-				m_m17ToDebug = ::atoi(value) == 1;
 		}
 	}
 
@@ -1510,16 +1203,6 @@ std::string CConf::getDStarFMDest() const
 	return m_dstarFMDest;
 }
 
-bool CConf::getDStarM17Enable() const
-{
-	return m_dstarM17Enable;
-}
-
-std::vector<std::string> CConf::getDStarM17Dests() const
-{
-	return m_dstarM17Dests;
-}
-
 bool CConf::getDMRDStarEnable() const
 {
 	return m_dmrDStarEnable;
@@ -1580,16 +1263,6 @@ std::pair<uint8_t, uint32_t> CConf::getDMRFMTG() const
 	return m_dmrFMTG;
 }
 
-bool CConf::getDMRM17Enable() const
-{
-	return m_dmrM17Enable;
-}
-
-std::vector<std::tuple<uint8_t, uint32_t, std::string>> CConf::getDMRM17TGs() const
-{
-	return m_dmrM17TGs;
-}
-
 bool CConf::getYSFDStarEnable() const
 {
 	return m_ysfDStarEnable;
@@ -1643,16 +1316,6 @@ bool CConf::getYSFFMEnable() const
 uint8_t CConf::getYSFFMDGId() const
 {
 	return m_ysfFMDGId;
-}
-
-bool CConf::getYSFM17Enable() const
-{
-	return m_ysfM17Enable;
-}
-
-std::vector<std::pair<uint8_t, std::string>> CConf::getYSFM17DGIds() const
-{
-	return m_ysfM17DGIds;
 }
 
 bool CConf::getP25DStarEnable() const
@@ -1710,16 +1373,6 @@ uint32_t CConf::getP25FMTG() const
 	return m_p25FMTG;
 }
 
-bool CConf::getP25M17Enable() const
-{
-	return m_p25M17Enable;
-}
-
-std::vector<std::pair<uint32_t, std::string>> CConf::getP25M17TGs() const
-{
-	return m_p25M17TGs;
-}
-
 bool CConf::getNXDNDStarEnable() const
 {
 	return m_nxdnDStarEnable;
@@ -1775,16 +1428,6 @@ uint16_t CConf::getNXDNFMTG() const
 	return m_nxdnFMTG;
 }
 
-bool CConf::getNXDNM17Enable() const
-{
-	return m_nxdnM17Enable;
-}
-
-std::vector<std::pair<uint16_t, std::string>> CConf::getNXDNM17TGs() const
-{
-	return m_nxdnM17TGs;
-}
-
 bool CConf::getFMDStarEnable() const
 {
 	return m_fmDStarEnable;
@@ -1813,76 +1456,6 @@ bool CConf::getFMNXDNEnable() const
 bool CConf::getFMFMEnable() const
 {
 	return m_fmFMEnable;
-}
-
-bool CConf::getFMM17Enable() const
-{
-	return m_fmM17Enable;
-}
-
-bool CConf::getM17DStarEnable() const
-{
-	return m_m17DStarEnable;
-}
-
-std::vector<std::string> CConf::getM17DStarDests() const
-{
-	return m_m17DStarDests;
-}
-
-bool CConf::getM17DMREnable() const
-{
-	return m_m17DMREnable;
-}
-
-std::vector<std::tuple<std::string, uint8_t, uint32_t>> CConf::getM17DMRDests() const
-{
-	return m_m17DMRDests;
-}
-
-bool CConf::getM17YSFEnable() const
-{
-	return m_m17YSFEnable;
-}
-
-std::vector<std::pair<std::string, uint8_t>> CConf::getM17YSFDests() const
-{
-	return m_m17YSFDests;
-}
-
-bool CConf::getM17P25Enable() const
-{
-	return m_m17P25Enable;
-}
-
-std::vector<std::pair<std::string, uint32_t>> CConf::getM17P25Dests() const
-{
-	return m_m17P25Dests;
-}
-
-bool CConf::getM17NXDNEnable() const
-{
-	return m_m17NXDNEnable;
-}
-
-std::vector<std::pair<std::string, uint16_t>> CConf::getM17NXDNDests() const
-{
-	return m_m17NXDNDests;
-}
-
-bool CConf::getM17FMEnable() const
-{
-	return m_m17FMEnable;
-}
-
-std::string CConf::getM17FMDest() const
-{
-	return m_m17FMDest;
-}
-
-bool CConf::getM17M17Enable() const
-{
-	return m_m17M17Enable;
 }
 
 std::string CConf::getDStarFromRemoteAddress() const
@@ -2183,56 +1756,6 @@ uint16_t CConf::getFMToLocalPort() const
 bool CConf::getFMToDebug() const
 {
 	return m_fmToDebug;
-}
-
-std::string CConf::getM17FromRemoteAddress() const
-{
-	return m_m17FromRemoteAddress;
-}
-
-uint16_t CConf::getM17FromRemotePort() const
-{
-	return m_m17FromRemotePort;
-}
-
-std::string CConf::getM17FromLocalAddress() const
-{
-	return m_m17FromLocalAddress;
-}
-
-uint16_t CConf::getM17FromLocalPort() const
-{
-	return m_m17FromLocalPort;
-}
-
-bool CConf::getM17FromDebug() const
-{
-	return m_m17FromDebug;
-}
-
-std::string CConf::getM17ToRemoteAddress() const
-{
-	return m_m17ToRemoteAddress;
-}
-
-uint16_t CConf::getM17ToRemotePort() const
-{
-	return m_m17ToRemotePort;
-}
-
-std::string CConf::getM17ToLocalAddress() const
-{
-	return m_m17ToLocalAddress;
-}
-
-uint16_t CConf::getM17ToLocalPort() const
-{
-	return m_m17ToLocalPort;
-}
-
-bool CConf::getM17ToDebug() const
-{
-	return m_m17ToDebug;
 }
 
 std::string CConf::getString(const char* text) const

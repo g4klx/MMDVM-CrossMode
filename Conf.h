@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2015,2016,2017,2024 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2015,2016,2017,2024,2026 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -87,10 +87,6 @@ public:
 	bool         getDStarFMEnable() const;
 	std::string  getDStarFMDest() const;
 
-	// The D-Star to M17 section
-	bool         getDStarM17Enable() const;
-	std::vector<std::string> getDStarM17Dests() const;
-
 	// The DMR to D-Star section
 	bool         getDMRDStarEnable() const;
 	std::vector<std::tuple<uint8_t, uint32_t, std::string>> getDMRDStarTGs() const;
@@ -115,10 +111,6 @@ public:
 	bool         getDMRFMEnable() const;
 	std::pair<uint8_t, uint32_t> getDMRFMTG() const;
 
-	// The DMR to M17 section
-	bool         getDMRM17Enable() const;
-	std::vector<std::tuple<uint8_t, uint32_t, std::string>> getDMRM17TGs() const;
-
 	// The YSF to D-Star section
 	bool         getYSFDStarEnable() const;
 	std::vector<std::pair<uint8_t, std::string>> getYSFDStarDGIds() const;
@@ -141,10 +133,6 @@ public:
 	// The YSF to FM section
 	bool         getYSFFMEnable() const;
 	uint8_t      getYSFFMDGId() const;
-
-	// The YSF to M17 section
-	bool         getYSFM17Enable() const;
-	std::vector<std::pair<uint8_t, std::string>> getYSFM17DGIds() const;
 
 	// The P25 to D-Star section
 	bool         getP25DStarEnable() const;
@@ -169,10 +157,6 @@ public:
 	bool         getP25FMEnable() const;
 	uint32_t     getP25FMTG() const;
 
-	// The P25 to M17 section
-	bool         getP25M17Enable() const;
-	std::vector<std::pair<uint32_t, std::string>> getP25M17TGs() const;
-
 	// The NXDN to D-Star section
 	bool         getNXDNDStarEnable() const;
 	std::vector<std::pair<uint16_t, std::string>> getNXDNDStarTGs() const;
@@ -196,10 +180,6 @@ public:
 	bool         getNXDNFMEnable() const;
 	uint16_t     getNXDNFMTG() const;
 
-	// The NXDN to M17 section
-	bool         getNXDNM17Enable() const;
-	std::vector<std::pair<uint16_t, std::string>> getNXDNM17TGs() const;
-
 	// The FM to D-Star section
 	bool         getFMDStarEnable() const;
 
@@ -217,36 +197,6 @@ public:
 
 	// The FM to FM section
 	bool         getFMFMEnable() const;
-
-	// The FM to M17 section
-	bool         getFMM17Enable() const;
-
-	// The M17 to D-Star section
-	bool         getM17DStarEnable() const;
-	std::vector<std::string> getM17DStarDests() const;
-
-	// The M17 to DMR section
-	bool         getM17DMREnable() const;
-	std::vector<std::tuple<std::string, uint8_t, uint32_t>> getM17DMRDests() const;
-
-	// The M17 to System Fusion section
-	bool         getM17YSFEnable() const;
-	std::vector<std::pair<std::string, uint8_t>> getM17YSFDests() const;
-
-	// The M17 to P25 section
-	bool         getM17P25Enable() const;
-	std::vector<std::pair<std::string, uint32_t>> getM17P25Dests() const;
-
-	// The M17 to NXDN section
-	bool         getM17NXDNEnable() const;
-	std::vector<std::pair<std::string, uint16_t>> getM17NXDNDests() const;
-
-	// The M17 to FM section
-	bool         getM17FMEnable() const;
-	std::string  getM17FMDest() const;
-
-	// The M17 to M17 section
-	bool         getM17M17Enable() const;
 
 	// The From D-Star Network section
 	std::string  getDStarFromRemoteAddress() const;
@@ -332,20 +282,6 @@ public:
 	uint16_t     getFMToLocalPort() const;
 	bool         getFMToDebug() const;
 
-	// The From M17 Network section
-	std::string  getM17FromRemoteAddress() const;
-	uint16_t     getM17FromRemotePort() const;
-	std::string  getM17FromLocalAddress() const;
-	uint16_t     getM17FromLocalPort() const;
-	bool         getM17FromDebug() const;
-
-	// The To M17 Network section
-	std::string  getM17ToRemoteAddress() const;
-	uint16_t     getM17ToRemotePort() const;
-	std::string  getM17ToLocalAddress() const;
-	uint16_t     getM17ToLocalPort() const;
-	bool         getM17ToDebug() const;
-
 private:
 	std::string  m_file;
 
@@ -392,9 +328,6 @@ private:
 	bool         m_dstarFMEnable;
 	std::string  m_dstarFMDest;
 
-	bool         m_dstarM17Enable;
-	std::vector<std::string> m_dstarM17Dests;
-
 	bool         m_dmrDStarEnable;
 	std::vector<std::tuple<uint8_t, uint32_t, std::string>> m_dmrDStarTGs;
 
@@ -413,9 +346,6 @@ private:
 	bool         m_dmrFMEnable;
 	std::pair<uint8_t, uint32_t> m_dmrFMTG;
 
-	bool         m_dmrM17Enable;
-	std::vector<std::tuple<uint8_t, uint32_t, std::string>> m_dmrM17TGs;
-
 	bool         m_ysfDStarEnable;
 	std::vector<std::pair<uint8_t, std::string>> m_ysfDStarDGIds;
 
@@ -432,9 +362,6 @@ private:
 
 	bool         m_ysfFMEnable;
 	uint8_t      m_ysfFMDGId;
-
-	bool         m_ysfM17Enable;
-	std::vector<std::pair<uint8_t, std::string>> m_ysfM17DGIds;
 
 	bool         m_p25DStarEnable;
 	std::vector<std::pair<uint32_t, std::string>> m_p25DStarTGs;
@@ -453,9 +380,6 @@ private:
 	bool         m_p25FMEnable;
 	uint32_t     m_p25FMTG;
 
-	bool         m_p25M17Enable;
-	std::vector<std::pair<uint32_t, std::string>> m_p25M17TGs;
-
 	bool         m_nxdnDStarEnable;
 	std::vector<std::pair<uint16_t, std::string>> m_nxdnDStarTGs;
 
@@ -473,9 +397,6 @@ private:
 	bool         m_nxdnFMEnable;
 	uint16_t     m_nxdnFMTG;
 
-	bool         m_nxdnM17Enable;
-	std::vector<std::pair<uint16_t, std::string>> m_nxdnM17TGs;
-
 	bool         m_fmDStarEnable;
 
 	bool         m_fmDMREnable;
@@ -487,28 +408,6 @@ private:
 	bool         m_fmNXDNEnable;
 
 	bool         m_fmFMEnable;
-
-	bool         m_fmM17Enable;
-
-	bool         m_m17DStarEnable;
-	std::vector<std::string> m_m17DStarDests;
-
-	bool         m_m17DMREnable;
-	std::vector<std::tuple<std::string, uint8_t, uint32_t>> m_m17DMRDests;
-
-	bool         m_m17YSFEnable;
-	std::vector<std::pair<std::string, uint8_t>> m_m17YSFDests;
-
-	bool         m_m17P25Enable;
-	std::vector<std::pair<std::string, uint32_t>> m_m17P25Dests;
-
-	bool         m_m17NXDNEnable;
-	std::vector<std::pair<std::string, uint16_t>> m_m17NXDNDests;
-
-	bool         m_m17FMEnable;
-	std::string  m_m17FMDest;
-
-	bool         m_m17M17Enable;
 
 	std::string  m_dStarFromRemoteAddress;
 	uint16_t     m_dStarFromRemotePort;
@@ -581,18 +480,6 @@ private:
 	std::string  m_fmToLocalAddress;
 	uint16_t     m_fmToLocalPort;
 	bool         m_fmToDebug;
-
-	std::string  m_m17FromRemoteAddress;
-	uint16_t     m_m17FromRemotePort;
-	std::string  m_m17FromLocalAddress;
-	uint16_t     m_m17FromLocalPort;
-	bool         m_m17FromDebug;
-
-	std::string  m_m17ToRemoteAddress;
-	uint16_t     m_m17ToRemotePort;
-	std::string  m_m17ToLocalAddress;
-	uint16_t     m_m17ToLocalPort;
-	bool         m_m17ToDebug;
 
 	std::string getString(const char* text) const;
 	std::pair<uint8_t, uint32_t> getSlotTG(char* text) const;
