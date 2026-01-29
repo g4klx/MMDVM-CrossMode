@@ -179,6 +179,7 @@
     <ClInclude Include="Thread.h" />
     <ClInclude Include="Timer.h" />
     <ClInclude Include="Transcoder.h" />
+    <ClInclude Include="TranscoderConnection.h" />
     <ClInclude Include="TranscoderDefines.h" />
     <ClInclude Include="UARTController.h" />
     <ClInclude Include="UDPSocket.h" />
@@ -218,6 +219,7 @@
     <ClCompile Include="Thread.cpp" />
     <ClCompile Include="Timer.cpp" />
     <ClCompile Include="Transcoder.cpp" />
+    <ClCompile Include="TranscoderConnection.cpp" />
     <ClCompile Include="UARTController.cpp" />
     <ClCompile Include="UDPSocket.cpp" />
     <ClCompile Include="Utils.cpp" />

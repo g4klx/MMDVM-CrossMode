@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2024,2026 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2026 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -16,47 +16,40 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#if !defined(Transcoder_H)
-#define Transcoder_H
+#if !defined(TranscoderConnection_H)
+#define TranscoderConnection_H
 
-#include "TranscoderConnection.h"
+#include "UARTController.h"
+#include "RingBuffer.h"
+#include "UDPSocket.h"
 
 #include <string>
 
-class CTranscoder {
+#include <cstdint>
+
+class CTranscoderConnection {
 public:
-	CTranscoder(bool debug);
-	~CTranscoder();
+	CTranscoderConnection(bool debug);
+	~CTranscoderConnection();
 
 	void setUARTConnection(const std::string& port, uint32_t speed);
 	void setUDPConnection(const std::string& remoteAddress, uint16_t remotePort, const std::string& localAddress, uint16_t localPort);
 
 	bool open();
 
-	bool setConversion(uint8_t inMode, uint8_t outMode);
+	uint16_t read(uint8_t* buffer, uint16_t length);
 
-	uint16_t read(uint8_t* data);
-	bool     write(const uint8_t* data);
-
-	uint16_t getInLength() const;
-	uint16_t getOutLength() const;
+	int16_t  write(const uint8_t* buffer, uint16_t length);
 
 	void close();
 
 private:
-	CTranscoderConnection m_connection;
-	bool                  m_debug;
-	uint8_t               m_inMode;
-	uint8_t               m_outMode;
-	uint16_t              m_inLength;
-	uint16_t              m_outLength;
-	uint8_t               m_hasAMBE;
-
-	bool           validateOptions() const;
-	int16_t        write(const uint8_t* buffer, uint16_t length);
-	uint16_t       read(uint8_t* buffer, uint16_t timeout);
-	uint16_t       getBlockLength(uint8_t mode) const;
-	const uint8_t* getDataHeader(uint8_t mode) const;
+	CUARTController*     m_serial;
+	CUDPSocket*          m_socket;
+	bool                 m_debug;
+	sockaddr_storage     m_address;
+	size_t               m_addressLength;
+	CRingBuffer<uint8_t> m_buffer;
 };
 
 #endif

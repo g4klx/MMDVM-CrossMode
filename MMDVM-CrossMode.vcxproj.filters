@@ -140,6 +140,9 @@
     <ClInclude Include="NXDNConvolution.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="TranscoderConnection.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Conf.cpp">
@@ -242,6 +245,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="NXDNConvolution.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TranscoderConnection.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

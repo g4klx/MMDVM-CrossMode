@@ -105,8 +105,13 @@ m_logFileLevel(0U),
 m_logFilePath(),
 m_logFileRoot(),
 m_logFileRotate(true),
-m_transcoderPort(),
-m_transcoderSpeed(460800U),
+m_transcoderProtocol("uart"),
+m_transcoderUARTPort(),
+m_transcoderUARTSpeed(460800U),
+m_transcoderRemoteAddress(),
+m_transcoderRemotePort(0U),
+m_transcoderLocalAddress(),
+m_transcoderLocalPort(0U),
 m_transcoderDebug(false),
 m_dmrLookupFile(),
 m_nxdnLookupFile(),
@@ -412,10 +417,20 @@ bool CConf::read()
 			else if (::strcmp(key, "FileRotate") == 0)
 				m_logFileRotate = ::atoi(value) == 1;
 		} else if (section == SECTION_TRANSCODER) {
-			if (::strcmp(key, "Port") == 0)
-				m_transcoderPort = value;
-			else if (::strcmp(key, "Speed") == 0)
-				m_transcoderSpeed = uint32_t(::atoi(value));
+			if (::strcmp(key, "Protocol") == 0)
+				m_transcoderProtocol = value;
+			else if (::strcmp(key, "UARTPort") == 0)
+				m_transcoderUARTPort = value;
+			else if (::strcmp(key, "UARTSpeed") == 0)
+				m_transcoderUARTSpeed = uint32_t(::atoi(value));
+			else if (::strcmp(key, "RemoteAddress") == 0)
+				m_transcoderRemoteAddress = value;
+			else if (::strcmp(key, "RemotePort") == 0)
+				m_transcoderRemotePort = uint16_t(::atoi(value));
+			else if (::strcmp(key, "LocalAddress") == 0)
+				m_transcoderLocalAddress = value;
+			else if (::strcmp(key, "LocalPort") == 0)
+				m_transcoderLocalPort = uint16_t(::atoi(value));
 			else if (::strcmp(key, "Debug") == 0)
 				m_transcoderDebug = ::atoi(value) == 1;
 		} else if (section == SECTION_LOOKUP) {
@@ -1103,14 +1118,39 @@ bool CConf::getLogFileRotate() const
 	return m_logFileRotate;
 }
 
-std::string CConf::getTranscoderPort() const
+std::string CConf::getTranscoderProtocol() const
 {
-	return m_transcoderPort;
+	return m_transcoderProtocol;
 }
 
-uint32_t CConf::getTranscoderSpeed() const
+std::string CConf::getTranscoderUARTPort() const
 {
-	return m_transcoderSpeed;
+	return m_transcoderUARTPort;
+}
+
+uint32_t CConf::getTranscoderUARTSpeed() const
+{
+	return m_transcoderUARTSpeed;
+}
+
+std::string CConf::getTranscoderRemoteAddress() const
+{
+	return m_transcoderRemoteAddress;
+}
+
+uint16_t CConf::getTranscoderRemotePort() const
+{
+	return m_transcoderRemotePort;
+}
+
+std::string CConf::getTranscoderLocalAddress() const
+{
+	return m_transcoderLocalAddress;
+}
+
+uint16_t CConf::getTranscoderLocalPort() const
+{
+	return m_transcoderLocalPort;
 }
 
 bool CConf::getTranscoderDebug() const

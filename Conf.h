@@ -46,8 +46,13 @@ public:
 	bool         getLogFileRotate() const;
 
 	// The Transcoder section
-	std::string  getTranscoderPort() const;
-	uint32_t     getTranscoderSpeed() const;
+	std::string  getTranscoderProtocol() const;
+	std::string  getTranscoderUARTPort() const;
+	uint32_t     getTranscoderUARTSpeed() const;
+	std::string  getTranscoderRemoteAddress() const;
+	uint16_t     getTranscoderRemotePort() const;
+	std::string  getTranscoderLocalAddress() const;
+	uint16_t     getTranscoderLocalPort() const;
 	bool         getTranscoderDebug() const;
 
 	// The Lookup section
@@ -297,8 +302,13 @@ private:
 	std::string  m_logFileRoot;
 	bool         m_logFileRotate;
 
-	std::string  m_transcoderPort;
-	uint32_t     m_transcoderSpeed;
+	std::string  m_transcoderProtocol;
+	std::string  m_transcoderUARTPort;
+	uint32_t     m_transcoderUARTSpeed;
+	std::string  m_transcoderRemoteAddress;
+	uint16_t     m_transcoderRemotePort;
+	std::string  m_transcoderLocalAddress;
+	uint16_t     m_transcoderLocalPort;
 	bool         m_transcoderDebug;
 
 	std::string  m_dmrLookupFile;

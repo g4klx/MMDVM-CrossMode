@@ -32,8 +32,11 @@
 
 class CData {
 public:
-	CData(const std::string& port, uint32_t speed, bool debug, const std::string& callsign, uint32_t dmrId, uint16_t nxdnId);
+	CData(const std::string& callsign, uint32_t dmrId, uint16_t nxdnId, bool debug);
 	~CData();
+
+	void setUARTConnection(const std::string& port, uint32_t speed);
+	void setUDPConnection(const std::string& remoteAddress, uint16_t remotePort, const std::string& localAddress, uint16_t localPort);
 
 	bool setFromMode(DATA_MODE mode);
 	bool setToMode(DATA_MODE mode);
@@ -119,6 +122,7 @@ private:
 	uint16_t    m_defaultNXDNId;
 	CDMRLookup  m_dmrLookup;
 	CNXDNLookup m_nxdnLookup;
+	bool        m_debug;
 
 	bool        m_toDStar;
 	bool        m_toDMR1;
