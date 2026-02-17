@@ -32,11 +32,12 @@ const uint8_t  NULL_SLOT = 0U;
 const uint16_t NULL_ID16 = 0xFFFFU;
 const uint32_t NULL_ID32 = 0xFFFFFFFFU;
 
-CData::CData(const std::string& port, uint32_t speed, bool debug, const std::string& callsign, uint32_t dmrId, uint16_t nxdnId) :
-m_transcoder(port, speed, debug),
+CData::CData(const std::string& callsign, uint32_t dmrId, uint16_t nxdnId, bool debug) :
+m_transcoder(debug),
 m_defaultCallsign(callsign),
 m_defaultDMRId(dmrId),
 m_defaultNXDNId(nxdnId),
+m_debug(debug),
 m_dmrLookup(),
 m_nxdnLookup(),
 m_toDStar(false),
@@ -101,6 +102,16 @@ CData::~CData()
 {
 	delete[] m_data;
 	delete[] m_rawData;
+}
+
+void CData::setUARTConnection(const std::string& port, uint32_t speed)
+{
+	m_transcoder.setUARTConnection(port, speed);
+}
+
+void CData::setUDPConnection(const std::string& remoteAddress, uint16_t remotePort, const std::string& localAddress, uint16_t localPort)
+{
+	m_transcoder.setUDPConnection(remoteAddress, remotePort, localAddress, localPort);
 }
 
 bool CData::setFromMode(DATA_MODE mode)

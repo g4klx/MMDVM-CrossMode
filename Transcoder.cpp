@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2024 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2024,2026 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -27,8 +27,8 @@
 #include <cassert>
 
 
-CTranscoder::CTranscoder(const std::string& port, uint32_t speed, bool debug) :
-m_serial(port, speed),
+CTranscoder::CTranscoder(bool debug) :
+m_connection(debug),
 m_debug(debug),
 m_inMode(MODE_PCM),
 m_outMode(MODE_PCM),
@@ -36,19 +36,27 @@ m_inLength(0U),
 m_outLength(0U),
 m_hasAMBE(NO_AMBE_CHIP)
 {
-	assert(!port.empty());
-	assert(speed > 0U);
 }
 
 CTranscoder::~CTranscoder()
 {
 }
 
+void CTranscoder::setUARTConnection(const std::string& port, uint32_t speed)
+{
+	m_connection.setUARTConnection(port, speed);
+}
+
+void CTranscoder::setUDPConnection(const std::string& remoteAddress, uint16_t remotePort, const std::string& localAddress, uint16_t localPort)
+{
+	m_connection.setUDPConnection(remoteAddress, remotePort, localAddress, localPort);
+}
+
 bool CTranscoder::open()
 {
 	LogMessage("Opening the transcoder connection");
 
-	bool ret1 = m_serial.open();
+	bool ret1 = m_connection.open();
 	if (!ret1) {
 		LogError("Cannot open the transcoder port");
 		return false;
@@ -64,7 +72,7 @@ bool CTranscoder::open()
 	uint16_t len = read(buffer, 200U);
 	if (len == 0U) {
 		LogError("Transcoder version read timeout (200 me)");
-		m_serial.close();
+		close();
 		return false;
 	}
 
@@ -74,13 +82,13 @@ bool CTranscoder::open()
 	switch (buffer[TYPE_POS]) {
 	case TYPE_NAK:
 		LogError("NAK returned for get version - %u", buffer[NAK_ERROR_POS]);
-		m_serial.close();
+		close();
 		return false;
 
 	case TYPE_GET_VERSION:
 		if (buffer[GET_VERSION_PROTOCOL_POS] != PROTOCOL_VERSION) {
 			LogError("Unknown protocol version - %u", buffer[GET_VERSION_PROTOCOL_POS]);
-			m_serial.close();
+			close();
 			return false;
 		}
 
@@ -89,7 +97,7 @@ bool CTranscoder::open()
 
 	default:
 		LogError("Unknown response from the transcoder to get version - 0x%02X", buffer[TYPE_POS]);
-		m_serial.close();
+		close();
 		return false;
 	}
 
@@ -102,7 +110,7 @@ bool CTranscoder::open()
 	len = read(buffer, 50U);
 	if (len == 0U) {
 		LogError("Transcoder capabilities read timeout (200 me)");
-		m_serial.close();
+		close();
 		return false;
 	}
 
@@ -112,7 +120,7 @@ bool CTranscoder::open()
 	switch (buffer[TYPE_POS]) {
 	case TYPE_NAK:
 		LogError("NAK returned for get capabilities - %u", buffer[NAK_ERROR_POS]);
-		m_serial.close();
+		close();
 		return false;
 
 	case TYPE_GET_CAPABILITIES:
@@ -120,7 +128,7 @@ bool CTranscoder::open()
 
 	default:
 		LogError("Unknown response from the transcoder to get capabilities - 0x%02X", buffer[TYPE_POS]);
-		m_serial.close();
+		close();
 		return false;
 	}
 
@@ -186,7 +194,7 @@ bool CTranscoder::setConversion(uint8_t inMode, uint8_t outMode)
 
 void CTranscoder::close()
 {
-	m_serial.close();
+	m_connection.close();
 }
 
 uint16_t CTranscoder::read(uint8_t* buffer, uint16_t timeout)
@@ -201,7 +209,7 @@ uint16_t CTranscoder::read(uint8_t* buffer, uint16_t timeout)
 
 	for (;;) {
 		uint8_t c = 0U;
-		if (m_serial.read(&c, 1U) == 1) {
+		if (m_connection.read(&c, 1U) == 1) {
 			if (ptr == MARKER_POS) {
 				if (c == MARKER) {
 					// Handle the frame start correctly
@@ -252,7 +260,7 @@ int16_t CTranscoder::write(const uint8_t* buffer, uint16_t length)
 	if (m_debug)
 		CUtils::dump("Transcoder write", buffer, length);
 
-	return m_serial.write(buffer, length);
+	return m_connection.write(buffer, length);
 }
 
 uint16_t CTranscoder::read(uint8_t* data)

@@ -14,7 +14,7 @@ The final version will transcode between all of the following digital and non-di
 The initial version only allows for D-Star, DMR, YSF DN, and FM being possible.
 
 It builds on 32-bit and 64-bit Linux as well as on Windows using Visual Studio
-2019 on x86 and x64. It can optionally control various Displays. Currently
+2022 on x86 and x64. It can optionally control various Displays. Currently
 these are:
 
 This software is licenced under the GPL v2 and is primarily intended for amateur and

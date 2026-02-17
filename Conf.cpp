@@ -106,9 +106,14 @@ m_logMQTTLevel(0U),
 m_mqttAddress("127.0.0.1"),
 m_mqttPort(1883U),
 m_mqttKeepalive(60U),
-m_mqttName("mmdvm-crossmode"),
-m_transcoderPort(),
-m_transcoderSpeed(460800U),
+m_mqttName("mmdvm-crossmode"), 
+m_transcoderProtocol("uart"),
+m_transcoderUARTPort(),
+m_transcoderUARTSpeed(460800U),
+m_transcoderRemoteAddress(),
+m_transcoderRemotePort(0U),
+m_transcoderLocalAddress(),
+m_transcoderLocalPort(0U),
 m_transcoderDebug(false),
 m_dmrLookupFile(),
 m_nxdnLookupFile(),
@@ -418,6 +423,30 @@ bool CConf::read()
 				m_mqttKeepalive = (unsigned int)::atoi(value);
 			else if (::strcmp(key, "Name") == 0)
 				m_mqttName = value;
+		} else if (section == SECTION_TRANSCODER) {
+			if (::strcmp(key, "Protocol") == 0)
+				m_transcoderProtocol = value;
+			else if (::strcmp(key, "UARTPort") == 0)
+				m_transcoderUARTPort = value;
+			else if (::strcmp(key, "UARTSpeed") == 0)
+				m_transcoderUARTSpeed = uint32_t(::atoi(value));
+			else if (::strcmp(key, "RemoteAddress") == 0)
+				m_transcoderRemoteAddress = value;
+			else if (::strcmp(key, "RemotePort") == 0)
+				m_transcoderRemotePort = uint16_t(::atoi(value));
+			else if (::strcmp(key, "LocalAddress") == 0)
+				m_transcoderLocalAddress = value;
+			else if (::strcmp(key, "LocalPort") == 0)
+				m_transcoderLocalPort = uint16_t(::atoi(value));
+			else if (::strcmp(key, "Debug") == 0)
+				m_transcoderDebug = ::atoi(value) == 1;
+		} else if (section == SECTION_LOOKUP) {
+			if (::strcmp(key, "DMRLookup") == 0)
+				m_dmrLookupFile = value;
+			else if (::strcmp(key, "NXDNLookup") == 0)
+				m_nxdnLookupFile = value;
+			else if (::strcmp(key, "ReloadTime") == 0)
+				m_reloadTime = (unsigned int)::atoi(value);
 		} else if (section == SECTION_DSTAR) {
 			if (::strcmp(key, "Module") == 0)
 				m_dStarModule = value;
@@ -1101,14 +1130,39 @@ std::string CConf::getMQTTName() const
 	return m_mqttName;
 }
 
-std::string CConf::getTranscoderPort() const
+std::string CConf::getTranscoderProtocol() const
 {
-	return m_transcoderPort;
+	return m_transcoderProtocol;
 }
 
-uint32_t CConf::getTranscoderSpeed() const
+std::string CConf::getTranscoderUARTPort() const
 {
-	return m_transcoderSpeed;
+	return m_transcoderUARTPort;
+}
+
+uint32_t CConf::getTranscoderUARTSpeed() const
+{
+	return m_transcoderUARTSpeed;
+}
+
+std::string CConf::getTranscoderRemoteAddress() const
+{
+	return m_transcoderRemoteAddress;
+}
+
+uint16_t CConf::getTranscoderRemotePort() const
+{
+	return m_transcoderRemotePort;
+}
+
+std::string CConf::getTranscoderLocalAddress() const
+{
+	return m_transcoderLocalAddress;
+}
+
+uint16_t CConf::getTranscoderLocalPort() const
+{
+	return m_transcoderLocalPort;
 }
 
 bool CConf::getTranscoderDebug() const

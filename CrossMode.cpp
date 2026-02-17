@@ -230,7 +230,19 @@ int CCrossMode::run()
 	if (!ret)
 		return 1;
 
-	CData data(m_conf.getTranscoderPort(), m_conf.getTranscoderSpeed(), m_conf.getTranscoderDebug(), m_conf.getCallsign(), m_conf.getDMRId(), m_conf.getNXDNId());
+	CData data(m_conf.getCallsign(), m_conf.getDMRId(), m_conf.getNXDNId(), m_conf.getTranscoderDebug());
+
+	std::string protocol = m_conf.getTranscoderProtocol();
+	if (protocol == "uart") {
+		data.setUARTConnection(m_conf.getTranscoderUARTPort(), m_conf.getTranscoderUARTSpeed());
+	} else if (protocol == "udp") {
+		data.setUDPConnection(m_conf.getTranscoderRemoteAddress(), m_conf.getTranscoderRemotePort(),
+			m_conf.getTranscoderLocalAddress(), m_conf.getTranscoderLocalPort());
+	} else {
+		LogError("Unknown transcoder connection protocol - %s", protocol.c_str());
+		return 1;
+	}
+
 	ret = data.open();
 	if (!ret) {
 		m_fromNetwork->close();
