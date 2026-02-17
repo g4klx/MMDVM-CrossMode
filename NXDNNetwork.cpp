@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2009-2014,2016,2018,2020,2024 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2009-2014,2016,2018,2020,2024,2026 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -319,7 +319,7 @@ void CNXDNNetwork::clock(unsigned int ms)
 	if (length <= 0)
 		return;
 
-	if (!CUDPSocket::match(m_addr, addr, IMT_ADDRESS_AND_PORT)) {
+	if (!CUDPSocket::match(m_addr, addr, IPMATCHTYPE::ADDRESS_AND_PORT)) {
 		LogWarning("NXDN Data received from an unknown address");
 		return;
 	}

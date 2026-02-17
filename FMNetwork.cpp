@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2020,2021,2023,2024 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2020,2021,2023,2024,2026 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -122,7 +122,7 @@ void CFMNetwork::clock(unsigned int ms)
 		return;
 
 	// Check if the data is for us
-	if (!CUDPSocket::match(addr, m_addr, IMT_ADDRESS_AND_PORT)) {
+	if (!CUDPSocket::match(addr, m_addr, IPMATCHTYPE::ADDRESS_AND_PORT)) {
 		LogMessage("FM packet received from an invalid source");
 		return;
 	}

@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2009-2014,2016,2019,2020,2021,2024 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2009-2014,2016,2019,2020,2021,2024,2026 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -277,7 +277,7 @@ void CP25Network::clock(unsigned int ms)
 	if (length <= 0)
 		return;
 
-	if (!CUDPSocket::match(m_addr, address, IMT_ADDRESS_AND_PORT)) {
+	if (!CUDPSocket::match(m_addr, address, IPMATCHTYPE::ADDRESS_AND_PORT)) {
 		LogMessage("P25, packet received from an invalid source");
 		return;
 	}

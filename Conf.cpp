@@ -34,64 +34,64 @@ const uint8_t  NULL_SLOT = 0U;
 const uint16_t NULL_ID16 = 0xFFFFU;
 const uint32_t NULL_ID32 = 0xFFFFFFFFU;
 
-enum SECTION {
-	SECTION_NONE,
-	SECTION_GENERAL,
-	SECTION_LOG,
-	SECTION_MQTT,
-	SECTION_TRANSCODER,
-	SECTION_LOOKUP,
-	SECTION_DSTAR,
-	SECTION_DMR,
-	SECTION_NXDN,
-	SECTION_DSTAR_DSTAR,
-	SECTION_DSTAR_DMR,
-	SECTION_DSTAR_YSF,
-	SECTION_DSTAR_P25,
-	SECTION_DSTAR_NXDN,
-	SECTION_DSTAR_FM,
-	SECTION_DMR_DSTAR,
-	SECTION_DMR_DMR,
-	SECTION_DMR_YSF,
-	SECTION_DMR_P25,
-	SECTION_DMR_NXDN,
-	SECTION_DMR_FM,
-	SECTION_YSF_DSTAR,
-	SECTION_YSF_DMR,
-	SECTION_YSF_YSF,
-	SECTION_YSF_P25,
-	SECTION_YSF_NXDN,
-	SECTION_YSF_FM,
-	SECTION_P25_DSTAR,
-	SECTION_P25_DMR,
-	SECTION_P25_YSF,
-	SECTION_P25_P25,
-	SECTION_P25_NXDN,
-	SECTION_P25_FM,
-	SECTION_NXDN_DSTAR,
-	SECTION_NXDN_DMR,
-	SECTION_NXDN_YSF,
-	SECTION_NXDN_P25,
-	SECTION_NXDN_NXDN,
-	SECTION_NXDN_FM,
-	SECTION_FM_DSTAR,
-	SECTION_FM_DMR,
-	SECTION_FM_YSF,
-	SECTION_FM_P25,
-	SECTION_FM_NXDN,
-	SECTION_FM_FM,
-	SECTION_DSTAR_NETWORK_FROM,
-	SECTION_DSTAR_NETWORK_TO,
-	SECTION_DMR_NETWORK_FROM,
-	SECTION_DMR_NETWORK_TO,
-	SECTION_YSF_NETWORK_FROM,
-	SECTION_YSF_NETWORK_TO,
-	SECTION_P25_NETWORK_FROM,
-	SECTION_P25_NETWORK_TO,
-	SECTION_NXDN_NETWORK_FROM,
-	SECTION_NXDN_NETWORK_TO,
-	SECTION_FM_NETWORK_FROM,
-	SECTION_FM_NETWORK_TO
+enum class SECTION {
+	NONE,
+	GENERAL,
+	LOG,
+	MQTT,
+	TRANSCODER,
+	LOOKUP,
+	DSTAR,
+	DMR,
+	NXDN,
+	DSTAR_DSTAR,
+	DSTAR_DMR,
+	DSTAR_YSF,
+	DSTAR_P25,
+	DSTAR_NXDN,
+	DSTAR_FM,
+	DMR_DSTAR,
+	DMR_DMR,
+	DMR_YSF,
+	DMR_P25,
+	DMR_NXDN,
+	DMR_FM,
+	YSF_DSTAR,
+	YSF_DMR,
+	YSF_YSF,
+	YSF_P25,
+	YSF_NXDN,
+	YSF_FM,
+	P25_DSTAR,
+	P25_DMR,
+	P25_YSF,
+	P25_P25,
+	P25_NXDN,
+	P25_FM,
+	NXDN_DSTAR,
+	NXDN_DMR,
+	NXDN_YSF,
+	NXDN_P25,
+	NXDN_NXDN,
+	NXDN_FM,
+	FM_DSTAR,
+	FM_DMR,
+	FM_YSF,
+	FM_P25,
+	FM_NXDN,
+	FM_FM,
+	DSTAR_NETWORK_FROM,
+	DSTAR_NETWORK_TO,
+	DMR_NETWORK_FROM,
+	DMR_NETWORK_TO,
+	YSF_NETWORK_FROM,
+	YSF_NETWORK_TO,
+	P25_NETWORK_FROM,
+	P25_NETWORK_TO,
+	NXDN_NETWORK_FROM,
+	NXDN_NETWORK_TO,
+	FM_NETWORK_FROM,
+	FM_NETWORK_TO
 };
 
 CConf::CConf(const std::string& file) :
@@ -257,7 +257,7 @@ bool CConf::read()
 		return false;
 	}
 
-	SECTION section = SECTION_NONE;
+	SECTION section = SECTION::NONE;
 
 	char buffer[BUFFER_SIZE];
 	while (::fgets(buffer, BUFFER_SIZE, fp) != nullptr) {
@@ -266,119 +266,119 @@ bool CConf::read()
 
 		if (buffer[0U] == '[') {
 			if (::strncmp(buffer, "[General]", 9U) == 0)
-				section = SECTION_GENERAL;
+				section = SECTION::GENERAL;
 			else if (::strncmp(buffer, "[Log]", 5U) == 0)
-				section = SECTION_LOG;
+				section = SECTION::LOG;
 			else if (::strncmp(buffer, "[MQTT]", 6U) == 0)
-				section = SECTION_MQTT;
+				section = SECTION::MQTT;
 			else if (::strncmp(buffer, "[Transcoder]", 12U) == 0)
-				section = SECTION_TRANSCODER;
+				section = SECTION::TRANSCODER;
 			else if (::strncmp(buffer, "[Lookup]", 8U) == 0)
-				section = SECTION_LOOKUP;
+				section = SECTION::LOOKUP;
 			else if (::strncmp(buffer, "[D-Star]", 8U) == 0)
-				section = SECTION_DSTAR;
+				section = SECTION::DSTAR;
 			else if (::strncmp(buffer, "[DMR]", 5U) == 0)
-				section = SECTION_DMR;
+				section = SECTION::DMR;
 			else if (::strncmp(buffer, "[NXDN]", 6U) == 0)
-				section = SECTION_NXDN;
+				section = SECTION::NXDN;
 			else if (::strncmp(buffer, "[D-Star to D-Star]", 18U) == 0)
-				section = SECTION_DSTAR_DSTAR;
+				section = SECTION::DSTAR_DSTAR;
 			else if (::strncmp(buffer, "[D-Star to DMR]", 15U) == 0)
-				section = SECTION_DSTAR_DMR;
+				section = SECTION::DSTAR_DMR;
 			else if (::strncmp(buffer, "[D-Star to System Fusion]", 25U) == 0)
-				section = SECTION_DSTAR_YSF;
+				section = SECTION::DSTAR_YSF;
 			else if (::strncmp(buffer, "[D-Star to P25]", 15U) == 0)
-				section = SECTION_DSTAR_P25;
+				section = SECTION::DSTAR_P25;
 			else if (::strncmp(buffer, "[D-Star to NXDN]", 16U) == 0)
-				section = SECTION_DSTAR_NXDN;
+				section = SECTION::DSTAR_NXDN;
 			else if (::strncmp(buffer, "[D-Star to FM]", 14U) == 0)
-				section = SECTION_DSTAR_FM;
+				section = SECTION::DSTAR_FM;
 			else if (::strncmp(buffer, "[DMR to D-Star]", 15U) == 0)
-				section = SECTION_DMR_DSTAR;
+				section = SECTION::DMR_DSTAR;
 			else if (::strncmp(buffer, "[DMR to DMR]", 12U) == 0)
-				section = SECTION_DMR_DMR;
+				section = SECTION::DMR_DMR;
 			else if (::strncmp(buffer, "[DMR to System Fusion]", 22U) == 0)
-				section = SECTION_DMR_YSF;
+				section = SECTION::DMR_YSF;
 			else if (::strncmp(buffer, "[DMR to P25]", 12U) == 0)
-				section = SECTION_DMR_P25;
+				section = SECTION::DMR_P25;
 			else if (::strncmp(buffer, "[DMR to NXDN]", 13U) == 0)
-				section = SECTION_DMR_NXDN;
+				section = SECTION::DMR_NXDN;
 			else if (::strncmp(buffer, "[DMR to FM]", 11U) == 0)
-				section = SECTION_DMR_FM;
+				section = SECTION::DMR_FM;
 			else if (::strncmp(buffer, "[System Fusion to D-Star]", 25U) == 0)
-				section = SECTION_YSF_DSTAR;
+				section = SECTION::YSF_DSTAR;
 			else if (::strncmp(buffer, "[System Fusion to DMR]", 22U) == 0)
-				section = SECTION_YSF_DMR;
+				section = SECTION::YSF_DMR;
 			else if (::strncmp(buffer, "[System Fusion to System Fusion]", 32U) == 0)
-				section = SECTION_YSF_YSF;
+				section = SECTION::YSF_YSF;
 			else if (::strncmp(buffer, "[System Fusion to P25]", 22U) == 0)
-				section = SECTION_YSF_P25;
+				section = SECTION::YSF_P25;
 			else if (::strncmp(buffer, "[System Fusion to NXDN]", 23U) == 0)
-				section = SECTION_YSF_NXDN;
+				section = SECTION::YSF_NXDN;
 			else if (::strncmp(buffer, "[System Fusion to FM]", 21U) == 0)
-				section = SECTION_YSF_FM;
+				section = SECTION::YSF_FM;
 			else if (::strncmp(buffer, "[P25 to D-Star]", 15U) == 0)
-				section = SECTION_P25_DSTAR;
+				section = SECTION::P25_DSTAR;
 			else if (::strncmp(buffer, "[P25 to DMR]", 12U) == 0)
-				section = SECTION_P25_DMR;
+				section = SECTION::P25_DMR;
 			else if (::strncmp(buffer, "[P25 to System Fusion]", 22U) == 0)
-				section = SECTION_P25_YSF;
+				section = SECTION::P25_YSF;
 			else if (::strncmp(buffer, "[P25 to P25]", 12U) == 0)
-				section = SECTION_P25_P25;
+				section = SECTION::P25_P25;
 			else if (::strncmp(buffer, "[P25 to NXDN]", 13U) == 0)
-				section = SECTION_P25_NXDN;
+				section = SECTION::P25_NXDN;
 			else if (::strncmp(buffer, "[P25 to FM]", 11U) == 0)
-				section = SECTION_P25_FM;
+				section = SECTION::P25_FM;
 			else if (::strncmp(buffer, "[NXDN to D-Star]", 16U) == 0)
-				section = SECTION_NXDN_DSTAR;
+				section = SECTION::NXDN_DSTAR;
 			else if (::strncmp(buffer, "[NXDN to DMR]", 13U) == 0)
-				section = SECTION_NXDN_DMR;
+				section = SECTION::NXDN_DMR;
 			else if (::strncmp(buffer, "[NXDN to System Fusion]", 23U) == 0)
-				section = SECTION_NXDN_YSF;
+				section = SECTION::NXDN_YSF;
 			else if (::strncmp(buffer, "[NXDN to P25]", 13U) == 0)
-				section = SECTION_NXDN_P25;
+				section = SECTION::NXDN_P25;
 			else if (::strncmp(buffer, "[NXDN to NXDN]", 14U) == 0)
-				section = SECTION_NXDN_NXDN;
+				section = SECTION::NXDN_NXDN;
 			else if (::strncmp(buffer, "[NXDN to FM]", 12U) == 0)
-				section = SECTION_NXDN_FM;
+				section = SECTION::NXDN_FM;
 			else if (::strncmp(buffer, "[FM to D-Star]", 14U) == 0)
-				section = SECTION_FM_DSTAR;
+				section = SECTION::FM_DSTAR;
 			else if (::strncmp(buffer, "[FM to DMR]", 11U) == 0)
-				section = SECTION_FM_DMR;
+				section = SECTION::FM_DMR;
 			else if (::strncmp(buffer, "[FM to System Fusion]", 21U) == 0)
-				section = SECTION_FM_YSF;
+				section = SECTION::FM_YSF;
 			else if (::strncmp(buffer, "[FM to P25]", 11U) == 0)
-				section = SECTION_FM_P25;
+				section = SECTION::FM_P25;
 			else if (::strncmp(buffer, "[FM to NXDN]", 12U) == 0)
-				section = SECTION_FM_NXDN;
+				section = SECTION::FM_NXDN;
 			else if (::strncmp(buffer, "[FM to FM]", 10U) == 0)
-				section = SECTION_FM_FM;
+				section = SECTION::FM_FM;
 			else if (::strncmp(buffer, "[D-Star Network From]", 21U) == 0)
-				section = SECTION_DSTAR_NETWORK_FROM;
+				section = SECTION::DSTAR_NETWORK_FROM;
 			else if (::strncmp(buffer, "[D-Star Network To]", 19U) == 0)
-				section = SECTION_DSTAR_NETWORK_TO;
+				section = SECTION::DSTAR_NETWORK_TO;
 			else if (::strncmp(buffer, "[DMR Network From]", 18U) == 0)
-				section = SECTION_DMR_NETWORK_FROM;
+				section = SECTION::DMR_NETWORK_FROM;
 			else if (::strncmp(buffer, "[DMR Network To]", 16U) == 0)
-				section = SECTION_DMR_NETWORK_TO;
+				section = SECTION::DMR_NETWORK_TO;
 			else if (::strncmp(buffer, "[System Fusion Network From]", 28U) == 0)
-				section = SECTION_YSF_NETWORK_FROM;
+				section = SECTION::YSF_NETWORK_FROM;
 			else if (::strncmp(buffer, "[System Fusion Network To]", 26U) == 0)
-				section = SECTION_YSF_NETWORK_TO;
+				section = SECTION::YSF_NETWORK_TO;
 			else if (::strncmp(buffer, "[P25 Network From]", 18U) == 0)
-				section = SECTION_P25_NETWORK_FROM;
+				section = SECTION::P25_NETWORK_FROM;
 			else if (::strncmp(buffer, "[P25 Network To]", 16U) == 0)
-				section = SECTION_P25_NETWORK_TO;
+				section = SECTION::P25_NETWORK_TO;
 			else if (::strncmp(buffer, "[NXDN Network From]", 19U) == 0)
-				section = SECTION_NXDN_NETWORK_FROM;
+				section = SECTION::NXDN_NETWORK_FROM;
 			else if (::strncmp(buffer, "[NXDN Network To]", 17U) == 0)
-				section = SECTION_NXDN_NETWORK_TO;
+				section = SECTION::NXDN_NETWORK_TO;
 			else if (::strncmp(buffer, "[FM Network From]", 17U) == 0)
-				section = SECTION_FM_NETWORK_FROM;
+				section = SECTION::FM_NETWORK_FROM;
 			else if (::strncmp(buffer, "[FM Network To]", 15U) == 0)
-				section = SECTION_FM_NETWORK_TO;
+				section = SECTION::FM_NETWORK_TO;
 			else
-				section = SECTION_NONE;
+				section = SECTION::NONE;
 
 			continue;
 		}
@@ -398,7 +398,7 @@ bool CConf::read()
 			value++;
 		}
 
-		if (section == SECTION_GENERAL) {
+		if (section == SECTION::GENERAL) {
 			if (::strcmp(key, "Callsign") == 0)
 				m_callsign = value;
 			else if (::strcmp(key, "FromMode") == 0)
@@ -409,12 +409,12 @@ bool CConf::read()
 				m_netModeHang = (unsigned int)::atoi(value);
 			else if (::strcmp(key, "Daemon") == 0)
 				m_daemon = ::atoi(value) == 1;
-		} else if (section == SECTION_LOG) {
+		} else if (section == SECTION::LOG) {
 			if (::strcmp(key, "DisplayLevel") == 0)
 				m_logDisplayLevel = (unsigned int)::atoi(value);
 			else if (::strcmp(key, "MQTTLevel") == 0)
 				m_logMQTTLevel = (unsigned int)::atoi(value);
-		} else if (section == SECTION_MQTT) {
+		} else if (section == SECTION::MQTT) {
 			if (::strcmp(key, "Address") == 0)
 				m_mqttAddress = value;
 			else if (::strcmp(key, "Port") == 0)
@@ -423,7 +423,7 @@ bool CConf::read()
 				m_mqttKeepalive = (unsigned int)::atoi(value);
 			else if (::strcmp(key, "Name") == 0)
 				m_mqttName = value;
-		} else if (section == SECTION_TRANSCODER) {
+		} else if (section == SECTION::TRANSCODER) {
 			if (::strcmp(key, "Protocol") == 0)
 				m_transcoderProtocol = value;
 			else if (::strcmp(key, "UARTPort") == 0)
@@ -440,26 +440,26 @@ bool CConf::read()
 				m_transcoderLocalPort = uint16_t(::atoi(value));
 			else if (::strcmp(key, "Debug") == 0)
 				m_transcoderDebug = ::atoi(value) == 1;
-		} else if (section == SECTION_LOOKUP) {
+		} else if (section == SECTION::LOOKUP) {
 			if (::strcmp(key, "DMRLookup") == 0)
 				m_dmrLookupFile = value;
 			else if (::strcmp(key, "NXDNLookup") == 0)
 				m_nxdnLookupFile = value;
 			else if (::strcmp(key, "ReloadTime") == 0)
 				m_reloadTime = (unsigned int)::atoi(value);
-		} else if (section == SECTION_DSTAR) {
+		} else if (section == SECTION::DSTAR) {
 			if (::strcmp(key, "Module") == 0)
 				m_dStarModule = value;
-		} else if (section == SECTION_DMR) {
+		} else if (section == SECTION::DMR) {
 			if (::strcmp(key, "Id") == 0)
 				m_dmrId = uint32_t(::atoi(value));
-		} else if (section == SECTION_NXDN) {
+		} else if (section == SECTION::NXDN) {
 			if (::strcmp(key, "Id") == 0)
 				m_nxdnId = uint16_t(::atoi(value));
-		} else if (section == SECTION_DSTAR_DSTAR) {
+		} else if (section == SECTION::DSTAR_DSTAR) {
 			if (::strcmp(key, "Enable") == 0)
 				m_dstarDStarEnable = ::atoi(value) == 1;
-		} else if (section == SECTION_DSTAR_DMR) {
+		} else if (section == SECTION::DSTAR_DMR) {
 			if (::strcmp(key, "Enable") == 0) {
 				m_dstarDMREnable = ::atoi(value) == 1;
 			} else if (::strcmp(key, "Dest") == 0) {
@@ -481,7 +481,7 @@ bool CConf::read()
 #endif
 				m_dstarDMRDests.push_back(std::tuple<std::string, uint8_t, uint32_t>(dest, slotTG.first, slotTG.second));
 			}
-		} else if (section == SECTION_DSTAR_YSF) {
+		} else if (section == SECTION::DSTAR_YSF) {
 			if (::strcmp(key, "Enable") == 0) {
 				m_dstarYSFEnable = ::atoi(value) == 1;
 			} else if (::strcmp(key, "Dest") == 0) {
@@ -501,7 +501,7 @@ bool CConf::read()
 #endif
 				m_dstarYSFDests.push_back(std::pair<std::string, uint8_t>(dest, dgid));
 			}
-		} else if (section == SECTION_DSTAR_P25) {
+		} else if (section == SECTION::DSTAR_P25) {
 			if (::strcmp(key, "Enable") == 0) {
 				m_dstarP25Enable = ::atoi(value) == 1;
 			} else if (::strcmp(key, "Dest") == 0) {
@@ -521,7 +521,7 @@ bool CConf::read()
 #endif
 				m_dstarP25Dests.push_back(std::pair<std::string, uint32_t>(dest, tgid));
 			}
-		} else if (section == SECTION_DSTAR_NXDN) {
+		} else if (section == SECTION::DSTAR_NXDN) {
 			if (::strcmp(key, "Enable") == 0) {
 				m_dstarNXDNEnable = ::atoi(value) == 1;
 			} else if (::strcmp(key, "Dest") == 0) {
@@ -541,7 +541,7 @@ bool CConf::read()
 #endif
 				m_dstarNXDNDests.push_back(std::pair<std::string, uint16_t>(dest, tgid));
 			}
-		} else if (section == SECTION_DSTAR_FM) {
+		} else if (section == SECTION::DSTAR_FM) {
 			if (::strcmp(key, "Enable") == 0) {
 				m_dstarFMEnable = ::atoi(value) == 1;
 			} else if (::strcmp(key, "Dest") == 0) {
@@ -553,7 +553,7 @@ bool CConf::read()
 #endif
 				m_dstarFMDest = dest;
 			}
-		} else if (section == SECTION_DMR_DSTAR) {
+		} else if (section == SECTION::DMR_DSTAR) {
 			if (::strcmp(key, "Enable") == 0) {
 				m_dmrDStarEnable = ::atoi(value) == 1;
 			} else if (::strcmp(key, "TG") == 0) {
@@ -575,12 +575,12 @@ bool CConf::read()
 #endif
 				m_dmrDStarTGs.push_back(std::tuple<uint8_t, uint32_t, std::string>(slotTG.first, slotTG.second, dest));
 			}
-		} else if (section == SECTION_DMR_DMR) {
+		} else if (section == SECTION::DMR_DMR) {
 			if (::strcmp(key, "Enable1") == 0)
 				m_dmrDMREnable1 = ::atoi(value) == 1;
 			else if (::strcmp(key, "Enable2") == 0)
 				m_dmrDMREnable2 = ::atoi(value) == 1;
-		} else if (section == SECTION_DMR_YSF) {
+		} else if (section == SECTION::DMR_YSF) {
 			if (::strcmp(key, "Enable") == 0) {
 				m_dmrYSFEnable = ::atoi(value) == 1;
 			} else if (::strcmp(key, "TG") == 0) {
@@ -600,7 +600,7 @@ bool CConf::read()
 #endif
 				m_dmrYSFTGs.push_back(std::tuple<uint8_t, uint32_t, uint8_t>(slotTG.first, slotTG.second, dgId));
 			}
-		} else if (section == SECTION_DMR_P25) {
+		} else if (section == SECTION::DMR_P25) {
 			if (::strcmp(key, "Enable") == 0) {
 				m_dmrP25Enable = ::atoi(value) == 1;
 			} else if (::strcmp(key, "TG") == 0) {
@@ -620,7 +620,7 @@ bool CConf::read()
 #endif
 				m_dmrP25TGs.push_back(std::tuple<uint8_t, uint32_t, uint32_t>(slotTG.first, slotTG.second, tgId));
 			}
-		} else if (section == SECTION_DMR_NXDN) {
+		} else if (section == SECTION::DMR_NXDN) {
 			if (::strcmp(key, "Enable") == 0) {
 				m_dmrNXDNEnable = ::atoi(value) == 1;
 			} else if (::strcmp(key, "TG") == 0) {
@@ -640,7 +640,7 @@ bool CConf::read()
 #endif
 				m_dmrNXDNTGs.push_back(std::tuple<uint8_t, uint32_t, uint16_t>(slotTG.first, slotTG.second, tgId));
 			}
-		} else if (section == SECTION_DMR_FM) {
+		} else if (section == SECTION::DMR_FM) {
 			if (::strcmp(key, "Enable") == 0) {
 				m_dmrFMEnable = ::atoi(value) == 1;
 			} else if (::strcmp(key, "TG") == 0) {
@@ -653,7 +653,7 @@ bool CConf::read()
 #endif
 				m_dmrFMTG = std::make_pair(slotTG.first, slotTG.second);
 			}
-		} else if (section == SECTION_YSF_DSTAR) {
+		} else if (section == SECTION::YSF_DSTAR) {
 			if (::strcmp(key, "Enable") == 0) {
 				m_ysfDStarEnable = ::atoi(value) == 1;
 			} else if (::strcmp(key, "DGId") == 0) {
@@ -673,7 +673,7 @@ bool CConf::read()
 #endif
 				m_ysfDStarDGIds.push_back(std::pair<uint8_t, std::string>(dgId, dest));
 			}
-		} else if (section == SECTION_YSF_DMR) {
+		} else if (section == SECTION::YSF_DMR) {
 			if (::strcmp(key, "Enable") == 0) {
 				m_ysfDMREnable = ::atoi(value) == 1;
 			} else if (::strcmp(key, "DGId") == 0) {
@@ -693,10 +693,10 @@ bool CConf::read()
 #endif
 				m_ysfDMRDGIds.push_back(std::tuple<uint8_t, uint8_t, uint32_t>(dgId, slotTG.first, slotTG.second));
 			}
-		} else if (section == SECTION_YSF_YSF) {
+		} else if (section == SECTION::YSF_YSF) {
 			if (::strcmp(key, "Enable") == 0)
 				m_ysfYSFEnable = ::atoi(value) == 1;
-		} else if (section == SECTION_YSF_P25) {
+		} else if (section == SECTION::YSF_P25) {
 			if (::strcmp(key, "Enable") == 0) {
 				m_ysfP25Enable = ::atoi(value) == 1;
 			} else if (::strcmp(key, "DGId") == 0) {
@@ -714,7 +714,7 @@ bool CConf::read()
 #endif
 				m_ysfP25DGIds.push_back(std::pair<uint8_t, uint32_t>(dgId, tgid));
 			}
-		} else if (section == SECTION_YSF_NXDN) {
+		} else if (section == SECTION::YSF_NXDN) {
 			if (::strcmp(key, "Enable") == 0) {
 				m_ysfNXDNEnable = ::atoi(value) == 1;
 			} else if (::strcmp(key, "DGId") == 0) {
@@ -732,7 +732,7 @@ bool CConf::read()
 #endif
 				m_ysfNXDNDGIds.push_back(std::pair<uint8_t, uint16_t>(dgId, tgid));
 			}
-		} else if (section == SECTION_YSF_FM) {
+		} else if (section == SECTION::YSF_FM) {
 			if (::strcmp(key, "Enable") == 0) {
 				m_ysfFMEnable = ::atoi(value) == 1;
 			} else if (::strcmp(key, "DGId") == 0) {
@@ -741,7 +741,7 @@ bool CConf::read()
 				::fprintf(stdout, "YSF => FM, mapping %u\n", m_ysfFMDGId);
 #endif
 			}
-		} else if (section == SECTION_P25_DSTAR) {
+		} else if (section == SECTION::P25_DSTAR) {
 			if (::strcmp(key, "Enable") == 0) {
 				m_p25DStarEnable = ::atoi(value) == 1;
 			} else if (::strcmp(key, "TG") == 0) {
@@ -761,7 +761,7 @@ bool CConf::read()
 	#endif
 				m_p25DStarTGs.push_back(std::pair<uint32_t, std::string>(tg, dest));
 			}
-		} else if (section == SECTION_P25_DMR) {
+		} else if (section == SECTION::P25_DMR) {
 			if (::strcmp(key, "Enable") == 0) {
 				m_p25DMREnable = ::atoi(value) == 1;
 			} else if (::strcmp(key, "TG") == 0) {
@@ -781,7 +781,7 @@ bool CConf::read()
 #endif
 				m_p25DMRTGs.push_back(std::tuple<uint32_t, uint8_t, uint32_t>(tg, slotTG.first, slotTG.second));
 			}
-		} else if (section == SECTION_P25_YSF) {
+		} else if (section == SECTION::P25_YSF) {
 			if (::strcmp(key, "Enable") == 0) {
 				m_p25YSFEnable = ::atoi(value) == 1;
 			} else if (::strcmp(key, "TG") == 0) {
@@ -799,10 +799,10 @@ bool CConf::read()
 #endif
 				m_p25YSFTGs.push_back(std::pair<uint32_t, uint8_t>(tg, dgId));
 			}
-		} else if (section == SECTION_P25_P25) {
+		} else if (section == SECTION::P25_P25) {
 			if (::strcmp(key, "Enable") == 0)
 				m_p25P25Enable = ::atoi(value) == 1;
-		} else if (section == SECTION_P25_NXDN) {
+		} else if (section == SECTION::P25_NXDN) {
 			if (::strcmp(key, "Enable") == 0) {
 				m_p25NXDNEnable = ::atoi(value) == 1;
 			} else if (::strcmp(key, "TG") == 0) {
@@ -820,7 +820,7 @@ bool CConf::read()
 #endif
 				m_p25NXDNTGs.push_back(std::pair<uint32_t, uint16_t>(tg1, tg2));
 			}
-		} else if (section == SECTION_P25_FM) {
+		} else if (section == SECTION::P25_FM) {
 			if (::strcmp(key, "Enable") == 0) {
 				m_p25FMEnable = ::atoi(value) == 1;
 			} else if (::strcmp(key, "TG") == 0) {
@@ -829,7 +829,7 @@ bool CConf::read()
 				::fprintf(stdout, "P25 => FM, mapping TG%u\n", m_p25FMTG);
 #endif
 			}
-		} else if (section == SECTION_NXDN_DSTAR) {
+		} else if (section == SECTION::NXDN_DSTAR) {
 			if (::strcmp(key, "Enable") == 0) {
 				m_nxdnDStarEnable = ::atoi(value) == 1;
 			} else if (::strcmp(key, "TG") == 0) {
@@ -849,7 +849,7 @@ bool CConf::read()
 #endif
 				m_nxdnDStarTGs.push_back(std::pair<uint16_t, std::string>(tg, dest));
 			}
-		} else if (section == SECTION_NXDN_DMR) {
+		} else if (section == SECTION::NXDN_DMR) {
 			if (::strcmp(key, "Enable") == 0) {
 				m_nxdnDMREnable = ::atoi(value) == 1;
 			} else if (::strcmp(key, "TG") == 0) {
@@ -869,7 +869,7 @@ bool CConf::read()
 #endif
 				m_nxdnDMRTGs.push_back(std::tuple<uint16_t, uint8_t, uint32_t>(tg, slotTG.first, slotTG.second));
 			}
-		} else if (section == SECTION_NXDN_YSF) {
+		} else if (section == SECTION::NXDN_YSF) {
 			if (::strcmp(key, "Enable") == 0) {
 				m_nxdnYSFEnable = ::atoi(value) == 1;
 			} else if (::strcmp(key, "TG") == 0) {
@@ -887,7 +887,7 @@ bool CConf::read()
 #endif
 				m_nxdnYSFTGs.push_back(std::pair<uint16_t, uint8_t>(tg, dgid));
 			}
-		} else if (section == SECTION_NXDN_P25) {
+		} else if (section == SECTION::NXDN_P25) {
 			if (::strcmp(key, "Enable") == 0) {
 				m_nxdnP25Enable = ::atoi(value) == 1;
 			} else if (::strcmp(key, "TG") == 0) {
@@ -905,10 +905,10 @@ bool CConf::read()
 #endif
 				m_nxdnP25TGs.push_back(std::pair<uint16_t, uint32_t>(tg1, tg2));
 			}
-		} else if (section == SECTION_NXDN_NXDN) {
+		} else if (section == SECTION::NXDN_NXDN) {
 			if (::strcmp(key, "Enable") == 0)
 				m_nxdnNXDNEnable = ::atoi(value) == 1;
-		} else if (section == SECTION_NXDN_FM) {
+		} else if (section == SECTION::NXDN_FM) {
 			if (::strcmp(key, "Enable") == 0) {
 				m_nxdnFMEnable = ::atoi(value) == 1;
 			} else if (::strcmp(key, "TG") == 0) {
@@ -917,25 +917,25 @@ bool CConf::read()
 				::fprintf(stdout, "NXDN => FM, mapping TG%u\n", m_nxdnFMTG);
 #endif
 			}
-		} else if (section == SECTION_FM_DSTAR) {
+		} else if (section == SECTION::FM_DSTAR) {
 			if (::strcmp(key, "Enable") == 0)
 				m_fmDStarEnable = ::atoi(value) == 1;
-		} else if (section == SECTION_FM_DMR) {
+		} else if (section == SECTION::FM_DMR) {
 			if (::strcmp(key, "Enable") == 0)
 				m_fmDMREnable = ::atoi(value) == 1;
-		} else if (section == SECTION_FM_YSF) {
+		} else if (section == SECTION::FM_YSF) {
 			if (::strcmp(key, "Enable") == 0)
 				m_fmYSFEnable = ::atoi(value) == 1;
-		} else if (section == SECTION_FM_P25) {
+		} else if (section == SECTION::FM_P25) {
 			if (::strcmp(key, "Enable") == 0)
 				m_fmP25Enable = ::atoi(value) == 1;
-		} else if (section == SECTION_FM_NXDN) {
+		} else if (section == SECTION::FM_NXDN) {
 			if (::strcmp(key, "Enable") == 0)
 				m_fmNXDNEnable = ::atoi(value) == 1;
-		} else if (section == SECTION_FM_FM) {
+		} else if (section == SECTION::FM_FM) {
 			if (::strcmp(key, "Enable") == 0)
 				m_fmFMEnable = ::atoi(value) == 1;
-		} else if (section == SECTION_DSTAR_NETWORK_FROM) {
+		} else if (section == SECTION::DSTAR_NETWORK_FROM) {
 			if (::strcmp(key, "RemoteAddress") == 0)
 				m_dStarFromRemoteAddress = value;
 			else if (::strcmp(key, "RemotePort") == 0)
@@ -946,7 +946,7 @@ bool CConf::read()
 				m_dStarFromLocalPort = uint16_t(::atoi(value));
 			else if (::strcmp(key, "Debug") == 0)
 				m_dStarFromDebug = ::atoi(value) == 1;
-		} else if (section == SECTION_DSTAR_NETWORK_TO) {
+		} else if (section == SECTION::DSTAR_NETWORK_TO) {
 			if (::strcmp(key, "RemoteAddress") == 0)
 				m_dStarToRemoteAddress = value;
 			else if (::strcmp(key, "RemotePort") == 0)
@@ -957,7 +957,7 @@ bool CConf::read()
 				m_dStarToLocalPort = uint16_t(::atoi(value));
 			else if (::strcmp(key, "Debug") == 0)
 				m_dStarToDebug = ::atoi(value) == 1;
-		} else if (section == SECTION_DMR_NETWORK_FROM) {
+		} else if (section == SECTION::DMR_NETWORK_FROM) {
 			if (::strcmp(key, "RemoteAddress") == 0)
 				m_dmrFromRemoteAddress = value;
 			else if (::strcmp(key, "RemotePort") == 0)
@@ -968,7 +968,7 @@ bool CConf::read()
 				m_dmrFromLocalPort = uint16_t(::atoi(value));
 			else if (::strcmp(key, "Debug") == 0)
 				m_dmrFromDebug = ::atoi(value) == 1;
-		} else if (section == SECTION_DMR_NETWORK_TO) {
+		} else if (section == SECTION::DMR_NETWORK_TO) {
 			if (::strcmp(key, "RemoteAddress") == 0)
 				m_dmrToRemoteAddress = value;
 			else if (::strcmp(key, "RemotePort") == 0)
@@ -979,7 +979,7 @@ bool CConf::read()
 				m_dmrToLocalPort = uint16_t(::atoi(value));
 			else if (::strcmp(key, "Debug") == 0)
 				m_dmrToDebug = ::atoi(value) == 1;
-		} else if (section == SECTION_YSF_NETWORK_FROM) {
+		} else if (section == SECTION::YSF_NETWORK_FROM) {
 			if (::strcmp(key, "RemoteAddress") == 0)
 				m_ysfFromRemoteAddress = value;
 			else if (::strcmp(key, "RemotePort") == 0)
@@ -990,7 +990,7 @@ bool CConf::read()
 				m_ysfFromLocalPort = uint16_t(::atoi(value));
 			else if (::strcmp(key, "Debug") == 0)
 				m_ysfFromDebug = ::atoi(value) == 1;
-		} else if (section == SECTION_YSF_NETWORK_TO) {
+		} else if (section == SECTION::YSF_NETWORK_TO) {
 			if (::strcmp(key, "RemoteAddress") == 0)
 				m_ysfToRemoteAddress = value;
 			else if (::strcmp(key, "RemotePort") == 0)
@@ -1001,7 +1001,7 @@ bool CConf::read()
 				m_ysfToLocalPort = uint16_t(::atoi(value));
 			else if (::strcmp(key, "Debug") == 0)
 				m_ysfToDebug = ::atoi(value) == 1;
-		} else if (section == SECTION_P25_NETWORK_FROM) {
+		} else if (section == SECTION::P25_NETWORK_FROM) {
 			if (::strcmp(key, "RemoteAddress") == 0)
 				m_p25FromRemoteAddress = value;
 			else if (::strcmp(key, "RemotePort") == 0)
@@ -1012,7 +1012,7 @@ bool CConf::read()
 				m_p25FromLocalPort = uint16_t(::atoi(value));
 			else if (::strcmp(key, "Debug") == 0)
 				m_p25FromDebug = ::atoi(value) == 1;
-		} else if (section == SECTION_P25_NETWORK_TO) {
+		} else if (section == SECTION::P25_NETWORK_TO) {
 			if (::strcmp(key, "RemoteAddress") == 0)
 				m_p25ToRemoteAddress = value;
 			else if (::strcmp(key, "RemotePort") == 0)
@@ -1023,7 +1023,7 @@ bool CConf::read()
 				m_p25ToLocalPort = uint16_t(::atoi(value));
 			else if (::strcmp(key, "Debug") == 0)
 				m_p25ToDebug = ::atoi(value) == 1;
-		} else if (section == SECTION_NXDN_NETWORK_FROM) {
+		} else if (section == SECTION::NXDN_NETWORK_FROM) {
 			if (::strcmp(key, "RemoteAddress") == 0)
 				m_nxdnFromRemoteAddress = value;
 			else if (::strcmp(key, "RemotePort") == 0)
@@ -1034,7 +1034,7 @@ bool CConf::read()
 				m_nxdnFromLocalPort = uint16_t(::atoi(value));
 			else if (::strcmp(key, "Debug") == 0)
 				m_nxdnFromDebug = ::atoi(value) == 1;
-		} else if (section == SECTION_NXDN_NETWORK_TO) {
+		} else if (section == SECTION::NXDN_NETWORK_TO) {
 			if (::strcmp(key, "RemoteAddress") == 0)
 				m_nxdnToRemoteAddress = value;
 			else if (::strcmp(key, "RemotePort") == 0)
@@ -1045,7 +1045,7 @@ bool CConf::read()
 				m_nxdnToLocalPort = uint16_t(::atoi(value));
 			else if (::strcmp(key, "Debug") == 0)
 				m_nxdnToDebug = ::atoi(value) == 1;
-		} else if (section == SECTION_FM_NETWORK_FROM) {
+		} else if (section == SECTION::FM_NETWORK_FROM) {
 			if (::strcmp(key, "RemoteAddress") == 0)
 				m_fmFromRemoteAddress = value;
 			else if (::strcmp(key, "RemotePort") == 0)
@@ -1056,7 +1056,7 @@ bool CConf::read()
 				m_fmFromLocalPort = uint16_t(::atoi(value));
 			else if (::strcmp(key, "Debug") == 0)
 				m_fmFromDebug = ::atoi(value) == 1;
-		} else if (section == SECTION_FM_NETWORK_TO) {
+		} else if (section == SECTION::FM_NETWORK_TO) {
 			if (::strcmp(key, "RemoteAddress") == 0)
 				m_fmToRemoteAddress = value;
 			else if (::strcmp(key, "RemotePort") == 0)
