@@ -111,8 +111,7 @@ bool CMQTTConnection::publish(const char* topic, const unsigned char* data, unsi
 			::fprintf(stderr, "MQTT Error publishing: %s\n", ::mosquitto_strerror(rc));
 			return false;
 		}
-	}
-	else {
+	} else {
 		int rc = ::mosquitto_publish(m_mosq, NULL, topic, len, data, static_cast<int>(m_qos), false);
 		if (rc != MOSQ_ERR_SUCCESS) {
 			::fprintf(stderr, "MQTT Error publishing: %s\n", ::mosquitto_strerror(rc));
@@ -127,6 +126,7 @@ void CMQTTConnection::close()
 {
 	if (m_mosq != NULL) {
 		::mosquitto_disconnect(m_mosq);
+		::mosquitto_loop_stop(m_mosq, true);
 		::mosquitto_destroy(m_mosq);
 		m_mosq = NULL;
 	}
