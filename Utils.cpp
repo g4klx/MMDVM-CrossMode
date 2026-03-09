@@ -1,5 +1,5 @@
 /*
- *	Copyright (C) 2009,2014,2015,2016,2024 Jonathan Naylor, G4KLX
+ *	Copyright (C) 2009,2014,2015,2016,2024,2026 Jonathan Naylor, G4KLX
  *
  *	This program is free software; you can redistribute it and/or modify
  *	it under the terms of the GNU General Public License as published by
@@ -16,6 +16,13 @@
 
 #include <cstdio>
 #include <cassert>
+
+#if defined(_WIN32) || defined(_WIN64)
+#include <Windows.h>
+#else
+#include <sys/time.h>
+#include <unistd.h>
+#endif
 
 void CUtils::dump(const std::string& title, const uint8_t* data, unsigned int length)
 {
@@ -159,4 +166,45 @@ unsigned int CUtils::countBits(unsigned int v)
 	}
 
 	return count;
+}
+
+std::string CUtils::createTimestamp()
+{
+	char buffer[100U];
+
+#if defined(_WIN32) || defined(_WIN64)
+	SYSTEMTIME st;
+	::GetSystemTime(&st);
+
+	::sprintf(buffer, "%04u-%02u-%02u %02u:%02u:%02u.%03u", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds);
+#else
+	struct timeval now;
+	::gettimeofday(&now, nullptr);
+
+	struct tm* tm = ::gmtime(&now.tv_sec);
+
+	::sprintf(buffer, "%04d-%02d-%02d %02d:%02d:%02d.%03lld", tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec, now.tv_usec / 1000LL);
+#endif
+
+	return buffer;
+}
+
+std::string CUtils::dataModeToString(DATA_MODE mode)
+{
+	switch (mode) {
+	case DATA_MODE::DSTAR:
+		return "D-Star";
+	case DATA_MODE::DMR:
+		return "DMR";
+	case DATA_MODE::YSF:
+		return "YSF";
+	case DATA_MODE::P25:
+		return "P25";
+	case DATA_MODE::NXDN:
+		return "NXDN";
+	case DATA_MODE::FM:
+		return "FM";
+	default:
+		return "none";
+	}
 }

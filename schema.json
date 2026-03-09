@@ -1,0 +1,23 @@
+{
+        "$defs": {
+                "mode": {"type": "string", "enum": ["none", "D-Star", "DMR", "YSF", "P25", "NXDN", "FM"]},
+                "reason": {"type": "string", "enum": ["rf", "network", "timer", "startup"]},
+                "timestamp": {"type": "string"}
+        },
+
+        "Message": {
+                "type": "object",
+                "timestamp": {"$ref": "#/$defs/timestamp"},
+                "message": {"type": "string"},
+                "required": ["timestamp", "message"]
+        },
+
+        "Status": {
+                "type": "object",
+                "timestamp": {"$ref": "#/$defs/timestamp"},
+                "reason": {"$ref": "#/$defs/reason"},
+				"from_mode": {"ref": "#/$defs/mode"},
+				"to_mode": {"ref": "#/$defs/mode"},
+                "required": ["timestamp", "reason", "from_mode", "to_mode"]
+        }
+}

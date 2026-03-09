@@ -30,6 +30,7 @@
 #include "Defines.h"
 #include "Thread.h"
 #include "Timer.h"
+#include "Utils.h"
 #include "Log.h"
 #include "GitVersion.h"
 
@@ -283,6 +284,10 @@ int CCrossMode::run()
 	LogMessage("CrossMode-%s is starting", VERSION);
 	LogMessage("Built %s %s (GitID #%.7s)", __TIME__, __DATE__, gitversion);
 
+	writeJSONMessage("CrossMode is starting");
+
+	writeJSONStatus("startup", fromMode, toMode);
+
 	while (!m_killed) {
 		stopwatch.start();
 
@@ -324,23 +329,25 @@ int CCrossMode::run()
 		default:
 			ret = m_fromNetwork->hasData();
 			if (ret) {
-				::LogMessage("Swicthed by RF activity");
+				::LogMessage("Switched by RF activity");
 				rfTimer.start();
 				watchdog.start();
 				toMode = data.getToMode();
 				direction = DIRECTION::FROM_TO;
-				data.setDirection(DIRECTION::FROM_TO);
+				data.setDirection(direction);
+				writeJSONStatus("rf", fromMode, toMode);
 				break;
 			}
 
 			toMode = hasToNetworkGotData();
 			if (toMode != DATA_MODE::NONE) {
-				::LogMessage("Swicthed by Net activity");
+				::LogMessage("Switched by Net activity");
 				netTimer.start();
 				watchdog.start();
 				direction = DIRECTION::TO_FROM;
 				data.setToMode(toMode);
-				data.setDirection(DIRECTION::TO_FROM);
+				data.setDirection(direction);
+				writeJSONStatus("network", fromMode, toMode);
 				break;
 			}
 
@@ -352,7 +359,7 @@ int CCrossMode::run()
 			resetToNetworks();
 			data.reset();
 			direction = DIRECTION::NONE;
-			data.setDirection(DIRECTION::NONE);
+			data.setDirection(direction);
 			watchdog.stop();
 			netTimer.stop();
 			rfTimer.stop();
@@ -368,39 +375,42 @@ int CCrossMode::run()
 
 		rfTimer.clock(elapsed);
 		if (rfTimer.isRunning() && rfTimer.hasExpired()) {
-			::LogMessage("Swictched back to Idle");
+			::LogMessage("Switched back to Idle");
 			m_fromNetwork->reset();
 			resetToNetworks();
 			data.reset();
 			direction = DIRECTION::NONE;
-			data.setDirection(DIRECTION::NONE);
+			data.setDirection(direction);
 			rfTimer.stop();
+			writeJSONStatus("timer", fromMode, toMode);
 		}
 
 		netTimer.clock(elapsed);
 		if (netTimer.isRunning() && netTimer.hasExpired()) {
-			::LogMessage("Swictched back to Idle");
+			::LogMessage("Switched back to Idle");
 			m_fromNetwork->reset();
 			resetToNetworks();
 			data.reset();
 			direction = DIRECTION::NONE;
-			data.setDirection(DIRECTION::NONE);
+			data.setDirection(direction);
 			netTimer.stop();
+			writeJSONStatus("timer", fromMode, toMode);
 		}
 
 		watchdog.clock(elapsed);
 		if (watchdog.isRunning() && watchdog.hasExpired()) {
-			::LogMessage("The watchdog timer has exprired");
+			::LogMessage("The watchdog timer has expired");
 			m_fromNetwork->reset();
 			resetToNetworks();
 			data.reset();
 			direction = DIRECTION::NONE;
-			data.setDirection(DIRECTION::NONE);
+			data.setDirection(direction);
 			watchdog.stop();
 		}
 	}
 
 	LogInfo("CrossMode is stopping");
+	writeJSONMessage("CrossMode is stopping");
 
 	data.close();
 
@@ -845,4 +855,26 @@ bool CCrossMode::loadIdLookupTables(CData& data)
 		return false;
 
 	return data.setNXDNLookup(nxdnFileName, reloadTime);
+}
+
+void CCrossMode::writeJSONStatus(const std::string& reason, DATA_MODE fromMode, DATA_MODE toMode)
+{
+	nlohmann::json json;
+
+	json["timestamp"] = CUtils::createTimestamp();
+	json["reason"]    = reason;
+	json["from_mode"] = CUtils::dataModeToString(fromMode);
+	json["to_mode"]   = CUtils::dataModeToString(toMode);
+
+	WriteJSON("Status", json);
+}
+
+void CCrossMode::writeJSONMessage(const std::string& message)
+{
+	nlohmann::json json;
+
+	json["timestamp"] = CUtils::createTimestamp();
+	json["message"] = message;
+
+	WriteJSON("Message", json);
 }

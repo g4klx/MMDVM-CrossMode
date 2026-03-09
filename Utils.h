@@ -1,5 +1,5 @@
 /*
- *	Copyright (C) 2009,2014,2015,2024 by Jonathan Naylor, G4KLX
+ *	Copyright (C) 2009,2014,2015,2024,2026 by Jonathan Naylor, G4KLX
  *
  *	This program is free software; you can redistribute it and/or modify
  *	it under the terms of the GNU General Public License as published by
@@ -13,6 +13,8 @@
 
 #if !defined(Utils_H)
 #define	Utils_H
+
+#include "Defines.h"
 
 #include <cstdint>
 #include <string>
@@ -32,6 +34,10 @@ public:
 	static void bitsToByteLE(const bool* bits, uint8_t& byte);
 
 	static unsigned int countBits(unsigned int v);
+
+	static std::string createTimestamp();
+
+	static std::string dataModeToString(DATA_MODE mode);
 
 private:
 };
