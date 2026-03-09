@@ -47,6 +47,9 @@ public:
 	uint16_t     getMQTTPort() const;
 	unsigned int getMQTTKeepalive() const;
 	std::string  getMQTTName() const;
+	bool         getMQTTAuthEnabled() const;
+	std::string  getMQTTUsername() const;
+	std::string  getMQTTPassword() const;
 
 	// The Transcoder section
 	std::string  getTranscoderProtocol() const;
@@ -306,6 +309,9 @@ private:
 	uint16_t     m_mqttPort;
 	unsigned int m_mqttKeepalive;
 	std::string  m_mqttName;
+	bool         m_mqttAuthEnabled;
+	std::string  m_mqttUsername;
+	std::string  m_mqttPassword;
 
 	std::string  m_transcoderProtocol;
 	std::string  m_transcoderUARTPort;
