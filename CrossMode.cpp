@@ -286,8 +286,6 @@ int CCrossMode::run()
 
 	writeJSONMessage("CrossMode is starting");
 
-	writeJSONStatus("startup", fromMode, toMode);
-
 	while (!m_killed) {
 		stopwatch.start();
 
@@ -335,7 +333,6 @@ int CCrossMode::run()
 				toMode = data.getToMode();
 				direction = DIRECTION::FROM_TO;
 				data.setDirection(direction);
-				writeJSONStatus("rf", fromMode, toMode);
 				break;
 			}
 
@@ -347,7 +344,6 @@ int CCrossMode::run()
 				direction = DIRECTION::TO_FROM;
 				data.setToMode(toMode);
 				data.setDirection(direction);
-				writeJSONStatus("network", fromMode, toMode);
 				break;
 			}
 
@@ -382,7 +378,6 @@ int CCrossMode::run()
 			direction = DIRECTION::NONE;
 			data.setDirection(direction);
 			rfTimer.stop();
-			writeJSONStatus("timer", fromMode, toMode);
 		}
 
 		netTimer.clock(elapsed);
@@ -394,7 +389,6 @@ int CCrossMode::run()
 			direction = DIRECTION::NONE;
 			data.setDirection(direction);
 			netTimer.stop();
-			writeJSONStatus("timer", fromMode, toMode);
 		}
 
 		watchdog.clock(elapsed);
@@ -855,18 +849,6 @@ bool CCrossMode::loadIdLookupTables(CData& data)
 		return false;
 
 	return data.setNXDNLookup(nxdnFileName, reloadTime);
-}
-
-void CCrossMode::writeJSONStatus(const std::string& reason, DATA_MODE fromMode, DATA_MODE toMode)
-{
-	nlohmann::json json;
-
-	json["timestamp"] = CUtils::createTimestamp();
-	json["reason"]    = reason;
-	json["from_mode"] = CUtils::dataModeToString(fromMode);
-	json["to_mode"]   = CUtils::dataModeToString(toMode);
-
-	WriteJSON("Status", json);
 }
 
 void CCrossMode::writeJSONMessage(const std::string& message)

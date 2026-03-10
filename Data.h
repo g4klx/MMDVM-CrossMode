@@ -256,6 +256,8 @@ private:
 
 	std::string bytesToString(const uint8_t* str, size_t length) const;
 	void stringToBytes(uint8_t* str, size_t length, const std::string& callsign) const;
+
+	void writeJSONStatus(DATA_MODE fromMode, DATA_MODE toMode, uint32_t fromId = 0U, uint32_t toId = 0U, bool fromGroup = false, bool toGroup = false, const std::string& fromCS = "", const std::string& toCS = "", uint8_t fromSlot = 0U, uint8_t toSlot = 0U);
 };
 
 #endif

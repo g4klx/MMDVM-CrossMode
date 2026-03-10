@@ -20,6 +20,7 @@
 
 #include "DStarDefines.h"
 #include "YSFDefines.h"
+#include "Utils.h"
 #include "Log.h"
 
 #include <cstring>
@@ -345,6 +346,8 @@ void CData::setNXDNFMTG(uint16_t tg)
 
 bool CData::open()
 {
+	writeJSONStatus(DATA_MODE::NONE, DATA_MODE::NONE);
+
 	return m_transcoder.open();
 }
 
@@ -372,6 +375,8 @@ void CData::setDStar(NETWORK network, const uint8_t* source, const uint8_t* dest
 			m_srcId  = srcId;
 			m_group  = true;
 			m_toMode = DATA_MODE::DMR;
+
+			writeJSONStatus(DATA_MODE::DSTAR, DATA_MODE::DMR, 0U, m_dstId, false, true, dstCallsign, "", 0U, m_slot);
 		}
 
 		if (m_toMode == DATA_MODE::NONE) {
@@ -382,6 +387,8 @@ void CData::setDStar(NETWORK network, const uint8_t* source, const uint8_t* dest
 				m_dgId        = dgId;
 				m_srcCallsign = srcCallsign;
 				m_toMode      = DATA_MODE::YSF;
+
+				writeJSONStatus(DATA_MODE::DSTAR, DATA_MODE::YSF, 0U, m_dgId, false, false, dstCallsign);
 			}
 		}
 
@@ -398,6 +405,8 @@ void CData::setDStar(NETWORK network, const uint8_t* source, const uint8_t* dest
 				m_srcId  = srcId;
 				m_group  = true;
 				m_toMode = DATA_MODE::P25;
+
+				writeJSONStatus(DATA_MODE::DSTAR, DATA_MODE::P25, 0U, m_dstId, false, true, dstCallsign);
 			}
 		}
 
@@ -414,6 +423,8 @@ void CData::setDStar(NETWORK network, const uint8_t* source, const uint8_t* dest
 				m_srcId  = srcId;
 				m_group  = true;
 				m_toMode = DATA_MODE::NXDN;
+
+				writeJSONStatus(DATA_MODE::DSTAR, DATA_MODE::NXDN, 0U, m_dstId, false, true, dstCallsign);
 			}
 		}
 
@@ -422,6 +433,8 @@ void CData::setDStar(NETWORK network, const uint8_t* source, const uint8_t* dest
 				LogDebug("D-Star => FM, %s>%s ->", srcCallsign.c_str(), dstCallsign.c_str());
 
 				m_toMode = DATA_MODE::FM;
+
+				writeJSONStatus(DATA_MODE::DSTAR, DATA_MODE::FM, 0U, 0U, false, false, dstCallsign);
 			}
 		}
 
@@ -432,6 +445,8 @@ void CData::setDStar(NETWORK network, const uint8_t* source, const uint8_t* dest
 				m_srcCallsign = srcCallsign;
 				m_dstCallsign = dstCallsign;
 				m_toMode      = DATA_MODE::DSTAR;
+
+				writeJSONStatus(DATA_MODE::DSTAR, DATA_MODE::DSTAR, 0U, 0U, false, false, dstCallsign, dstCallsign);
 			}
 		}
 	} else {
@@ -533,6 +548,8 @@ void CData::setDMR(NETWORK network, uint8_t slot, uint32_t source, uint32_t dest
 				m_srcCallsign = src;
 				m_dstCallsign = dst;
 				m_toMode      = DATA_MODE::DSTAR;
+
+				writeJSONStatus(DATA_MODE::DMR, DATA_MODE::DSTAR, destination, 0U, true, false, "", m_dstCallsign, slot);
 			}
 		}
 
@@ -546,6 +563,8 @@ void CData::setDMR(NETWORK network, uint8_t slot, uint32_t source, uint32_t dest
 					m_srcCallsign = src;
 					m_dgId        = dgId;
 					m_toMode      = DATA_MODE::YSF;
+
+					writeJSONStatus(DATA_MODE::DMR, DATA_MODE::YSF, destination, dgId, true, false, "", "", slot);
 				}
 			}
 		}
@@ -559,6 +578,8 @@ void CData::setDMR(NETWORK network, uint8_t slot, uint32_t source, uint32_t dest
 				m_dstId  = tg;
 				m_group  = true;
 				m_toMode = DATA_MODE::P25;
+
+				writeJSONStatus(DATA_MODE::DMR, DATA_MODE::P25, destination, tg, true, true, "", "", slot);
 			}
 		}
 
@@ -575,6 +596,8 @@ void CData::setDMR(NETWORK network, uint8_t slot, uint32_t source, uint32_t dest
 						m_dstId  = tg;
 						m_group  = true;
 						m_toMode = DATA_MODE::NXDN;
+
+						writeJSONStatus(DATA_MODE::DMR, DATA_MODE::NXDN, destination, tg, true, true, "", "", slot);
 					}
 				}
 			}
@@ -586,6 +609,8 @@ void CData::setDMR(NETWORK network, uint8_t slot, uint32_t source, uint32_t dest
 				LogDebug("DMR => FM, %u>%u:TG%u ->", source, slot, destination);
 
 				m_toMode = DATA_MODE::FM;
+
+				writeJSONStatus(DATA_MODE::DMR, DATA_MODE::FM, destination, 0U, true, false, "", "", slot);
 			}
 		}
 
@@ -598,6 +623,8 @@ void CData::setDMR(NETWORK network, uint8_t slot, uint32_t source, uint32_t dest
 				m_dstId  = destination;
 				m_group  = group;
 				m_toMode = DATA_MODE::DMR;
+
+				writeJSONStatus(DATA_MODE::DMR, DATA_MODE::DMR, destination, destination, true, true, "", "", slot, slot);
 			}
 			if ((slot == 2U) && m_toDMR2) {
 				LogDebug("DMR => DMR, %u>%u:TG%u -> %u>%u:TG%u", source, slot, destination, source, slot, destination);
@@ -607,6 +634,8 @@ void CData::setDMR(NETWORK network, uint8_t slot, uint32_t source, uint32_t dest
 				m_dstId  = destination;
 				m_group  = group;
 				m_toMode = DATA_MODE::DMR;
+
+				writeJSONStatus(DATA_MODE::DMR, DATA_MODE::DMR, destination, destination, true, true, "", "", slot, slot);
 			}
 		}
 	} else {
@@ -721,6 +750,8 @@ void CData::setYSF(NETWORK network, const uint8_t* source, uint8_t dgId)
 			m_srcCallsign = srcCallsign;
 			m_dstCallsign = dest;
 			m_toMode      = DATA_MODE::DSTAR;
+
+			writeJSONStatus(DATA_MODE::YSF, DATA_MODE::DSTAR, dgId, 0U, false, false, "", m_dstCallsign);
 		}
 
 		if (m_toMode == DATA_MODE::NONE) {
@@ -737,6 +768,8 @@ void CData::setYSF(NETWORK network, const uint8_t* source, uint8_t dgId)
 				m_dstId  = dst.second;
 				m_group  = true;
 				m_toMode = DATA_MODE::DMR;
+
+				writeJSONStatus(DATA_MODE::YSF, DATA_MODE::DMR, dgId, m_dstId, false, true, "", "", 0U, m_slot);
 			}
 		}
 
@@ -753,6 +786,8 @@ void CData::setYSF(NETWORK network, const uint8_t* source, uint8_t dgId)
 				m_dstId  = dstId;
 				m_group  = true;
 				m_toMode = DATA_MODE::P25;
+
+				writeJSONStatus(DATA_MODE::YSF, DATA_MODE::P25, dgId, m_dstId, false, true);
 			}
 		}
 
@@ -769,6 +804,8 @@ void CData::setYSF(NETWORK network, const uint8_t* source, uint8_t dgId)
 				m_dstId  = dstId;
 				m_group  = true;
 				m_toMode = DATA_MODE::NXDN;
+
+				writeJSONStatus(DATA_MODE::YSF, DATA_MODE::NXDN, dgId, m_dstId, false, true);
 			}
 		}
 
@@ -777,6 +814,8 @@ void CData::setYSF(NETWORK network, const uint8_t* source, uint8_t dgId)
 				LogDebug("YSF => FM, %s>%u ->", srcCallsign.c_str(), dgId);
 
 				m_toMode = DATA_MODE::FM;
+
+				writeJSONStatus(DATA_MODE::YSF, DATA_MODE::FM, dgId);
 			}
 		}
 
@@ -787,6 +826,8 @@ void CData::setYSF(NETWORK network, const uint8_t* source, uint8_t dgId)
 				m_srcCallsign = srcCallsign;
 				m_dgId        = dgId;
 				m_toMode      = DATA_MODE::YSF;
+
+				writeJSONStatus(DATA_MODE::YSF, DATA_MODE::YSF, dgId, dgId);
 			}
 		}
 	} else {
@@ -887,6 +928,8 @@ void CData::setP25(NETWORK network, uint32_t source, uint32_t destination, bool 
 				m_srcCallsign = src;
 				m_dstCallsign = dst;
 				m_toMode      = DATA_MODE::DSTAR;
+
+				writeJSONStatus(DATA_MODE::P25, DATA_MODE::DSTAR, destination, 0U, true, false, "", m_dstCallsign);
 			}
 		}
 
@@ -900,6 +943,8 @@ void CData::setP25(NETWORK network, uint32_t source, uint32_t destination, bool 
 				m_dstId  = slotTG.second;
 				m_group  = true;
 				m_toMode = DATA_MODE::DMR;
+
+				writeJSONStatus(DATA_MODE::P25, DATA_MODE::DMR, destination, m_dstId, true, true, "", "", 0U, m_slot);
 			}
 		}
 
@@ -913,6 +958,8 @@ void CData::setP25(NETWORK network, uint32_t source, uint32_t destination, bool 
 					m_srcCallsign = src;
 					m_dgId        = dgId;
 					m_toMode      = DATA_MODE::YSF;
+
+					writeJSONStatus(DATA_MODE::P25, DATA_MODE::YSF, destination, m_dgId, true, false);
 				}
 			}
 		}
@@ -930,6 +977,8 @@ void CData::setP25(NETWORK network, uint32_t source, uint32_t destination, bool 
 						m_dstId  = tg;
 						m_group  = true;
 						m_toMode = DATA_MODE::NXDN;
+
+						writeJSONStatus(DATA_MODE::P25, DATA_MODE::NXDN, destination, m_dstId, true, true);
 					}
 				}
 			}
@@ -940,6 +989,8 @@ void CData::setP25(NETWORK network, uint32_t source, uint32_t destination, bool 
 				LogDebug("P25 => FM, %u>TG%u ->", source, destination);
 
 				m_toMode = DATA_MODE::FM;
+
+				writeJSONStatus(DATA_MODE::P25, DATA_MODE::FM, destination, 0U, true, true);
 			}
 		}
 
@@ -951,6 +1002,8 @@ void CData::setP25(NETWORK network, uint32_t source, uint32_t destination, bool 
 				m_dstId  = destination;
 				m_group  = group;
 				m_toMode = DATA_MODE::P25;
+
+				writeJSONStatus(DATA_MODE::P25, DATA_MODE::P25, destination, destination, true, true);
 			}
 		}
 	} else {
@@ -1056,6 +1109,8 @@ void CData::setNXDN(NETWORK network, uint16_t source, uint16_t destination, bool
 				m_srcCallsign = src;
 				m_dstCallsign = dst;
 				m_toMode      = DATA_MODE::DSTAR;
+
+				writeJSONStatus(DATA_MODE::NXDN, DATA_MODE::DSTAR, destination, 0U, true, false, "", m_dstCallsign);
 			}
 		}
 
@@ -1069,6 +1124,8 @@ void CData::setNXDN(NETWORK network, uint16_t source, uint16_t destination, bool
 				m_dstId  = slotTG.second;
 				m_group  = true;
 				m_toMode = DATA_MODE::DMR;
+
+				writeJSONStatus(DATA_MODE::NXDN, DATA_MODE::DMR, destination, m_dstId, true, true, "", "", 0U, m_slot);
 			}
 		}
 
@@ -1082,6 +1139,8 @@ void CData::setNXDN(NETWORK network, uint16_t source, uint16_t destination, bool
 					m_srcCallsign = src;
 					m_dgId        = dgId;
 					m_toMode      = DATA_MODE::YSF;
+
+					writeJSONStatus(DATA_MODE::NXDN, DATA_MODE::YSF, destination, m_dgId, true, false);
 				}
 			}
 		}
@@ -1099,6 +1158,8 @@ void CData::setNXDN(NETWORK network, uint16_t source, uint16_t destination, bool
 						m_dstId  = tg;
 						m_group  = true;
 						m_toMode = DATA_MODE::P25;
+
+						writeJSONStatus(DATA_MODE::NXDN, DATA_MODE::P25, destination, m_dstId, true, true);
 					}
 				}
 			}
@@ -1109,6 +1170,8 @@ void CData::setNXDN(NETWORK network, uint16_t source, uint16_t destination, bool
 				LogDebug("NXDN => FM, %u>TG%u ->", source, destination);
 
 				m_toMode = DATA_MODE::FM;
+
+				writeJSONStatus(DATA_MODE::NXDN, DATA_MODE::FM, destination, 0U, true, true);
 			}
 		}
 
@@ -1120,6 +1183,8 @@ void CData::setNXDN(NETWORK network, uint16_t source, uint16_t destination, bool
 				m_dstId  = destination;
 				m_group  = group;
 				m_toMode = DATA_MODE::NXDN;
+
+				writeJSONStatus(DATA_MODE::NXDN, DATA_MODE::NXDN, destination, destination, true, true);
 			}
 		}
 	} else {
@@ -1217,6 +1282,8 @@ void CData::setFM(NETWORK network)
 				LogDebug("FM => FM, %s ->", m_defaultCallsign.c_str());
 
 				m_toMode = DATA_MODE::FM;
+
+				writeJSONStatus(DATA_MODE::FM, DATA_MODE::FM);
 			}
 		}
 	} else {
@@ -1427,6 +1494,8 @@ void CData::reset()
 	m_rawLength = 0U;
 	m_toMode    = DATA_MODE::NONE;
 	m_direction = DIRECTION::NONE;
+
+	writeJSONStatus(DATA_MODE::NONE, DATA_MODE::NONE);
 }
 
 void CData::clock(unsigned int ms)
@@ -1881,4 +1950,63 @@ void CData::stringToBytes(uint8_t* str, size_t length, const std::string& callsi
 
 	for (size_t i = 0U; i < len; i++)
 		str[i] = callsign[i];
+}
+
+void CData::writeJSONStatus(DATA_MODE fromMode, DATA_MODE toMode, uint32_t fromId, uint32_t toId, bool fromGroup, bool toGroup, const std::string& fromCS, const std::string& toCS, uint8_t fromSlot, uint8_t toSlot)
+{
+	nlohmann::json json;
+
+	json["timestamp"] = CUtils::createTimestamp();
+	json["from_mode"] = CUtils::dataModeToString(fromMode);
+	json["to_mode"]   = CUtils::dataModeToString(toMode);
+
+	switch (fromMode) {
+	case DATA_MODE::DSTAR:
+		json["from_dstar_callsign"]   = fromCS;
+		break;
+	case DATA_MODE::DMR:
+		json["from_dmr_slot"]         = fromSlot;
+		json["from_dmr_id"]           = fromId;
+		json["from_destination_type"] = fromGroup ? "group" : "individual";
+		break;
+	case DATA_MODE::YSF:
+		json["from_dg-id"]            = fromId;
+		break;
+	case DATA_MODE::P25:
+		json["from_p25_id"]           = fromId;
+		json["from_destination_type"] = fromGroup ? "group" : "individual";
+		break;
+	case DATA_MODE::NXDN:
+		json["from_nxdn_id"]          = fromId;
+		json["from_destination_type"] = fromGroup ? "group" : "individual";
+		break;
+	default:
+		break;
+	}
+
+	switch (toMode) {
+	case DATA_MODE::DSTAR:
+		json["to_dstar_callsign"]   = toCS;
+		break;
+	case DATA_MODE::DMR:
+		json["to_dmr_slot"]         = toSlot;
+		json["to_dmr_id"]           = toId;
+		json["to_destination_type"] = toGroup ? "group" : "individual";
+		break;
+	case DATA_MODE::YSF:
+		json["to_dg-id"]            = toId;
+		break;
+	case DATA_MODE::P25:
+		json["to_p25_id"]           = toId;
+		json["to_destination_type"] = toGroup ? "group" : "individual";
+		break;
+	case DATA_MODE::NXDN:
+		json["to_nxdn_id"]          = toId;
+		json["to_destination_type"] = toGroup ? "group" : "individual";
+		break;
+	default:
+		break;
+	}
+
+	WriteJSON("Status", json);
 }

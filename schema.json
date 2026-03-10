@@ -1,23 +1,42 @@
 {
-        "$defs": {
-                "mode": {"type": "string", "enum": ["none", "D-Star", "DMR", "YSF", "P25", "NXDN", "FM"]},
-                "reason": {"type": "string", "enum": ["rf", "network", "timer", "startup"]},
-                "timestamp": {"type": "string"}
-        },
+	"$defs": {
+		"mode": {"type": "string", "enum": ["none", "D-Star", "DMR", "YSF", "P25", "NXDN", "FM"]},
+		"dstar_callsign": {"type": "string", "minLength": 8, "maxLength": 8},
+		"dmr_slot": {"type": "integer", "enum": [1, 2]},
+		"dmr_id": {"type": "integer", "minimum": 1, "maximum": 16777215},
+		"destination_type": {"type": "string", "enum": ["group", "individual"]},
+		"dg-id": {"type": "integer", "minimum": 0, "maximum": 99},
+		"p25_id": {"type": "integer", "minimum": 1, "maximum": 65535},
+		"nxdn_id": {"type": "integer", "minimum": 1, "maximum": 65535},
+		"timestamp": {"type": "string"}
+	},
 
-        "Message": {
-                "type": "object",
-                "timestamp": {"$ref": "#/$defs/timestamp"},
-                "message": {"type": "string"},
-                "required": ["timestamp", "message"]
-        },
+	"Message": {
+		"type": "object",
+		"timestamp": {"$ref": "#/$defs/timestamp"},
+		"message": {"type": "string"},
+		"required": ["timestamp", "message"]
+	},
 
-        "Status": {
-                "type": "object",
-                "timestamp": {"$ref": "#/$defs/timestamp"},
-                "reason": {"$ref": "#/$defs/reason"},
-				"from_mode": {"ref": "#/$defs/mode"},
-				"to_mode": {"ref": "#/$defs/mode"},
-                "required": ["timestamp", "reason", "from_mode", "to_mode"]
-        }
+	"Status": {
+		"type": "object",
+		"timestamp": {"$ref": "#/$defs/timestamp"},
+		"from_mode": {"$ref": "#/$defs/mode"},
+		"to_mode": {"$ref": "#/$defs/mode"},
+		"from_dstar_callsign": {"$ref": "#/$refs/dstar_callsign"},
+		"to_dstar_callsign": {"$ref": "#/$refs/dstar_callsign"},
+		"from_dmr_slot": {"$ref": "#/$refs/dmr_slot"},
+		"from_dmr_id": {"$ref": "#/$refs/dmr_id"},
+		"to_dmr_slot": {"$ref": "#/$refs/dmr_slot"},
+		"to_dmr_id": {"$ref": "#/$refs/dmr_id"},
+		"from_dg-id": {"$ref": "#/$refs/dg-id"},
+		"to_dg-id": {"$ref": "#/$refs/dg-id"},
+		"from_p25_id": {"$ref": "#/$refs/p25_id"},
+		"to_p25_id": {"$ref": "#/$refs/p25_id"},
+		"from_nxdn_id": {"$ref": "#/$refs/nxdn_id"},
+		"to_nxdn_id": {"$ref": "#/$refs/nxdn_id"},
+		"from_destination_type": {"$refs": "#/$refs/destination_type"},
+		"to_destination_type": {"$refs": "#/$refs/destination_type"},
+		"required": ["timestamp", "from_mode", "to_mode"]
+	}
 }

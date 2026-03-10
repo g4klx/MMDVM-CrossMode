@@ -55,7 +55,6 @@ private:
 	bool loadIdLookupTables(CData& data);
 	void loadModeTranslationTables(DATA_MODE fromMode, CData& data);
 
-	void writeJSONStatus(const std::string& reason, DATA_MODE fromMode, DATA_MODE toMode);
 	void writeJSONMessage(const std::string& message);
 };
 
