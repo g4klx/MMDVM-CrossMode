@@ -188,23 +188,3 @@ std::string CUtils::createTimestamp()
 
 	return buffer;
 }
-
-std::string CUtils::dataModeToString(DATA_MODE mode)
-{
-	switch (mode) {
-	case DATA_MODE::DSTAR:
-		return "D-Star";
-	case DATA_MODE::DMR:
-		return "DMR";
-	case DATA_MODE::YSF:
-		return "YSF";
-	case DATA_MODE::P25:
-		return "P25";
-	case DATA_MODE::NXDN:
-		return "NXDN";
-	case DATA_MODE::FM:
-		return "FM";
-	default:
-		return "none";
-	}
-}

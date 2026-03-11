@@ -1957,54 +1957,70 @@ void CData::writeJSONStatus(DATA_MODE fromMode, DATA_MODE toMode, uint32_t fromI
 	nlohmann::json json;
 
 	json["timestamp"] = CUtils::createTimestamp();
-	json["from_mode"] = CUtils::dataModeToString(fromMode);
-	json["to_mode"]   = CUtils::dataModeToString(toMode);
 
 	switch (fromMode) {
 	case DATA_MODE::DSTAR:
+		json["from_mode"]             = "D-Star";
 		json["from_dstar_callsign"]   = fromCS;
 		break;
 	case DATA_MODE::DMR:
+		json["from_mode"]             = "DMR";
 		json["from_dmr_slot"]         = fromSlot;
 		json["from_dmr_id"]           = fromId;
 		json["from_destination_type"] = fromGroup ? "group" : "individual";
 		break;
 	case DATA_MODE::YSF:
+		json["from_mode"]             = "YSF";
 		json["from_dg-id"]            = fromId;
 		break;
 	case DATA_MODE::P25:
+		json["from_mode"]             = "P25";
 		json["from_p25_id"]           = fromId;
 		json["from_destination_type"] = fromGroup ? "group" : "individual";
 		break;
 	case DATA_MODE::NXDN:
+		json["from_mode"]             = "NXDN";
 		json["from_nxdn_id"]          = fromId;
 		json["from_destination_type"] = fromGroup ? "group" : "individual";
 		break;
+	case DATA_MODE::FM:
+		json["from_mode"]             = "FM";
+		break;
 	default:
+		json["from_mode"]             = "none";
 		break;
 	}
 
 	switch (toMode) {
 	case DATA_MODE::DSTAR:
+		json["to_mode"]             = "D-Star";
 		json["to_dstar_callsign"]   = toCS;
 		break;
 	case DATA_MODE::DMR:
+		json["to_mode"]             = "DMR";
 		json["to_dmr_slot"]         = toSlot;
 		json["to_dmr_id"]           = toId;
 		json["to_destination_type"] = toGroup ? "group" : "individual";
 		break;
 	case DATA_MODE::YSF:
+		json["to_mode"]             = "YSF";
 		json["to_dg-id"]            = toId;
 		break;
 	case DATA_MODE::P25:
+		json["to_mode"]             = "P25";
 		json["to_p25_id"]           = toId;
 		json["to_destination_type"] = toGroup ? "group" : "individual";
 		break;
 	case DATA_MODE::NXDN:
+		json["to_mode"]             = "NXDN";
 		json["to_nxdn_id"]          = toId;
 		json["to_destination_type"] = toGroup ? "group" : "individual";
 		break;
+	case DATA_MODE::FM:
+		json["to_mode"]             = "FM";
+		break;
 	default:
+		json["to_mode"]             = "none";
 		break;
 	}
 

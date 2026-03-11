@@ -37,8 +37,6 @@ public:
 
 	static std::string createTimestamp();
 
-	static std::string dataModeToString(DATA_MODE mode);
-
 private:
 };
 
