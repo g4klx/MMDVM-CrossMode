@@ -497,7 +497,6 @@ bool CCrossMode::createToNetworks(DATA_MODE fromMode, CData& data)
 	bool toP25   = false;
 	bool toNXDN  = false;
 	bool toFM    = false;
-	bool toM17   = false;
 
 	if (((fromMode == DATA_MODE::DSTAR) && m_conf.getDStarDStarEnable()) ||
 		((fromMode == DATA_MODE::DMR)   && m_conf.getDMRDStarEnable())   ||

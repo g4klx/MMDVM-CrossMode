@@ -1,6 +1,7 @@
 GitVersion.h
 *.o
 *.a
+*.d
 *.bak
 *~
 x64

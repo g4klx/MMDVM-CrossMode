@@ -123,9 +123,9 @@ private:
 	std::string m_defaultCallsign;
 	uint32_t    m_defaultDMRId;
 	uint16_t    m_defaultNXDNId;
+	bool        m_debug;
 	CDMRLookup  m_dmrLookup;
 	CNXDNLookup m_nxdnLookup;
-	bool        m_debug;
 
 	bool        m_toDStar;
 	bool        m_toDMR1;
