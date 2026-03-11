@@ -1,21 +1,21 @@
 CC      = cc
 CXX     = c++
-CFLAGS  = -g -O3 -Wall
+CFLAGS  = -g -O3 -Wall -MMD -MD
 LIBS    = -lmosquitto
 LDFLAGS = -g
 
-OBJECTS =	BPTC19696.o CRC.o Conf.o CrossMode.o Data.o DMRLookup.o DMRLC.o DMRNetwork.o DStarNetwork.o FMNetwork.o Golay24128.o Hamming.o \
-			Log.o MQTTConnection.o Network.o NXDNConvolution.o NXDNCRC.o NXDNFACCH1.o NXDNLayer3.o NXDNLICH.o NXDNLookup.o NXDNNetwork.o \
-			P25Network.o RS129.o StopWatch.o Thread.o Timer.o Transcoder.o TranscoderConnection.o UARTController.o UDPSocket.o Utils.o \
-			YSFConvolution.o YSFFICH.o YSFNetwork.o YSFPayload.o
+SRCS = $(wildcard *.cpp)
+OBJS = $(SRCS:.cpp=.o)
+DEPS = $(SRCS:.cpp=.d)
 
 all:		CrossMode
 
-CrossMode:	$(OBJECTS)
-		$(CXX) $(OBJECTS) $(CFLAGS) $(LIBS) -o CrossMode
+CrossMode:	$(OBJS)
+		$(CXX) $(OBJS) $(CFLAGS) $(LIBS) -o CrossMode
 
 %.o: %.cpp
 		$(CXX) $(CFLAGS) -c -o $@ $<
+-include $(DEPS)
 
 CrossMode.o: GitVersion.h FORCE
 
