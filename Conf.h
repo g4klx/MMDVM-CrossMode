@@ -23,6 +23,8 @@
 #include <vector>
 #include <tuple>
 
+#include <cstdint>
+
 class CConf
 {
 public:
