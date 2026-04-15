@@ -486,7 +486,8 @@ bool CConf::read()
 					continue;
 
 #if defined(TRACE_CONFIG)
-				::fprintf(stdout, "D-Star => DMR, mapping \"%s\" to %u:TG%u\n", dest.c_str(), slotTG.first, slotTG.second);
+				if (m_dstarDMREnable)
+					::fprintf(stdout, "D-Star => DMR, mapping \"%s\" to %u:TG%u\n", dest.c_str(), slotTG.first, slotTG.second);
 #endif
 				m_dstarDMRDests.push_back(std::tuple<std::string, uint8_t, uint32_t>(dest, slotTG.first, slotTG.second));
 			}
@@ -506,7 +507,8 @@ bool CConf::read()
 				uint8_t dgid = uint8_t(::atoi(p + 1U));
 
 #if defined(TRACE_CONFIG)
-				::fprintf(stdout, "D-Star => YSF, mapping \"%s\" to %u\n", dest.c_str(), dgid);
+				if (m_dstarYSFEnable)
+					::fprintf(stdout, "D-Star => YSF, mapping \"%s\" to %u\n", dest.c_str(), dgid);
 #endif
 				m_dstarYSFDests.push_back(std::pair<std::string, uint8_t>(dest, dgid));
 			}
@@ -526,7 +528,8 @@ bool CConf::read()
 				uint32_t tgid = uint32_t(::atoi(p + 1U));
 
 #if defined(TRACE_CONFIG)
-				::fprintf(stdout, "D-Star => P25, mapping \"%s\" to TG%u\n", dest.c_str(), tgid);
+				if (m_dstarP25Enable)
+					::fprintf(stdout, "D-Star => P25, mapping \"%s\" to TG%u\n", dest.c_str(), tgid);
 #endif
 				m_dstarP25Dests.push_back(std::pair<std::string, uint32_t>(dest, tgid));
 			}
@@ -546,7 +549,8 @@ bool CConf::read()
 				uint16_t tgid = uint16_t(::atoi(p + 1U));
 
 #if defined(TRACE_CONFIG)
-				::fprintf(stdout, "D-Star => NXDN, mapping \"%s\" to TG%u\n", dest.c_str(), tgid);
+				if (m_dstarNXDNEnable)
+					::fprintf(stdout, "D-Star => NXDN, mapping \"%s\" to TG%u\n", dest.c_str(), tgid);
 #endif
 				m_dstarNXDNDests.push_back(std::pair<std::string, uint16_t>(dest, tgid));
 			}
@@ -558,7 +562,8 @@ bool CConf::read()
 				if (dest.empty())
 					continue;
 #if defined(TRACE_CONFIG)
-				::fprintf(stdout, "D-Star => FM, mapping \"%s\"\n", dest.c_str());
+				if (m_dstarFMEnable)
+					::fprintf(stdout, "D-Star => FM, mapping \"%s\"\n", dest.c_str());
 #endif
 				m_dstarFMDest = dest;
 			}
@@ -580,7 +585,8 @@ bool CConf::read()
 					continue;
 
 #if defined(TRACE_CONFIG)
-				::fprintf(stdout, "DMR => D-Star, mapping %u:TG%u to \"%s\"\n", slotTG.first, slotTG.second, dest.c_str());
+				if (m_dmrDStarEnable)
+					::fprintf(stdout, "DMR => D-Star, mapping %u:TG%u to \"%s\"\n", slotTG.first, slotTG.second, dest.c_str());
 #endif
 				m_dmrDStarTGs.push_back(std::tuple<uint8_t, uint32_t, std::string>(slotTG.first, slotTG.second, dest));
 			}
@@ -605,7 +611,8 @@ bool CConf::read()
 				uint8_t dgId = uint8_t(::atoi(p + 1U));
 
 #if defined(TRACE_CONFIG)
-				::fprintf(stdout, "DMR => YSF, mapping %u:TG%u to %u\n", slotTG.first, slotTG.second, dgId);
+				if (m_dmrYSFEnable)
+					::fprintf(stdout, "DMR => YSF, mapping %u:TG%u to %u\n", slotTG.first, slotTG.second, dgId);
 #endif
 				m_dmrYSFTGs.push_back(std::tuple<uint8_t, uint32_t, uint8_t>(slotTG.first, slotTG.second, dgId));
 			}
@@ -625,7 +632,8 @@ bool CConf::read()
 				uint32_t tgId = uint32_t(::atoi(p + 1U));
 
 #if defined(TRACE_CONFIG)
-				::fprintf(stdout, "DMR => P25, mapping %u:TG%u to TG%u\n", slotTG.first, slotTG.second, tgId);
+				if (m_dmrP25Enable)
+					::fprintf(stdout, "DMR => P25, mapping %u:TG%u to TG%u\n", slotTG.first, slotTG.second, tgId);
 #endif
 				m_dmrP25TGs.push_back(std::tuple<uint8_t, uint32_t, uint32_t>(slotTG.first, slotTG.second, tgId));
 			}
@@ -645,7 +653,8 @@ bool CConf::read()
 				uint16_t tgId = uint16_t(::atoi(p + 1U));
 
 #if defined(TRACE_CONFIG)
-				::fprintf(stdout, "DMR => NXDN, mapping %u:TG%u to TG%u\n", slotTG.first, slotTG.second, tgId);
+				if (m_dmrNXDNEnable)
+					::fprintf(stdout, "DMR => NXDN, mapping %u:TG%u to TG%u\n", slotTG.first, slotTG.second, tgId);
 #endif
 				m_dmrNXDNTGs.push_back(std::tuple<uint8_t, uint32_t, uint16_t>(slotTG.first, slotTG.second, tgId));
 			}
@@ -658,7 +667,8 @@ bool CConf::read()
 					continue;
 
 #if defined(TRACE_CONFIG)
-				::fprintf(stdout, "DMR => FM, mapping %u:TG%u\n", slotTG.first, slotTG.second);
+				if (m_dmrFMEnable)
+					::fprintf(stdout, "DMR => FM, mapping %u:TG%u\n", slotTG.first, slotTG.second);
 #endif
 				m_dmrFMTG = std::make_pair(slotTG.first, slotTG.second);
 			}
@@ -678,7 +688,8 @@ bool CConf::read()
 					continue;
 
 #if defined(TRACE_CONFIG)
-				::fprintf(stdout, "YSF => D-Star, mapping %u to \"%s\"\n", dgId, dest.c_str());
+				if (m_ysfDStarEnable)
+					::fprintf(stdout, "YSF => D-Star, mapping %u to \"%s\"\n", dgId, dest.c_str());
 #endif
 				m_ysfDStarDGIds.push_back(std::pair<uint8_t, std::string>(dgId, dest));
 			}
@@ -698,7 +709,8 @@ bool CConf::read()
 					continue;
 
 #if defined(TRACE_CONFIG)
-				::fprintf(stdout, "YSF => DMR, mapping %u to %u:TG%u\n", dgId, slotTG.first, slotTG.second);
+				if (m_ysfDMREnable)
+					::fprintf(stdout, "YSF => DMR, mapping %u to %u:TG%u\n", dgId, slotTG.first, slotTG.second);
 #endif
 				m_ysfDMRDGIds.push_back(std::tuple<uint8_t, uint8_t, uint32_t>(dgId, slotTG.first, slotTG.second));
 			}
@@ -719,7 +731,8 @@ bool CConf::read()
 				uint32_t tgid = uint32_t(::atoi(p + 1U));
 
 #if defined(TRACE_CONFIG)
-				::fprintf(stdout, "YSF => P25, mapping %u to TG%u\n", dgId, tgid);
+				if (m_ysfP25Enable)
+					::fprintf(stdout, "YSF => P25, mapping %u to TG%u\n", dgId, tgid);
 #endif
 				m_ysfP25DGIds.push_back(std::pair<uint8_t, uint32_t>(dgId, tgid));
 			}
@@ -737,7 +750,8 @@ bool CConf::read()
 				uint16_t tgid = uint16_t(::atoi(p + 1U));
 
 #if defined(TRACE_CONFIG)
-				::fprintf(stdout, "YSF => NXDN, mapping %u to TG%u\n", dgId, tgid);
+				if (m_ysfNXDNEnable)
+					::fprintf(stdout, "YSF => NXDN, mapping %u to TG%u\n", dgId, tgid);
 #endif
 				m_ysfNXDNDGIds.push_back(std::pair<uint8_t, uint16_t>(dgId, tgid));
 			}
@@ -747,7 +761,8 @@ bool CConf::read()
 			} else if (::strcmp(key, "DGId") == 0) {
 				m_ysfFMDGId = uint8_t(::atoi(value));
 #if defined(TRACE_CONFIG)
-				::fprintf(stdout, "YSF => FM, mapping %u\n", m_ysfFMDGId);
+				if (m_ysfFMEnable)
+					::fprintf(stdout, "YSF => FM, mapping %u\n", m_ysfFMDGId);
 #endif
 			}
 		} else if (section == SECTION::P25_DSTAR) {
@@ -765,9 +780,10 @@ bool CConf::read()
 				if (dest.empty())
 					continue;
 
-	#if defined(TRACE_CONFIG)
-				::fprintf(stdout, "P25 => D-Star, mapping TG%u to \"%s\"\n", tg, dest.c_str());
-	#endif
+#if defined(TRACE_CONFIG)
+				if (m_p25DStarEnable)
+					::fprintf(stdout, "P25 => D-Star, mapping TG%u to \"%s\"\n", tg, dest.c_str());
+#endif
 				m_p25DStarTGs.push_back(std::pair<uint32_t, std::string>(tg, dest));
 			}
 		} else if (section == SECTION::P25_DMR) {
@@ -786,7 +802,8 @@ bool CConf::read()
 					continue;
 
 #if defined(TRACE_CONFIG)
-				::fprintf(stdout, "P25 => DMR, mapping TG%u to %u:TG%u\n", tg, slotTG.first, slotTG.second);
+				if (m_p25DMREnable)
+					::fprintf(stdout, "P25 => DMR, mapping TG%u to %u:TG%u\n", tg, slotTG.first, slotTG.second);
 #endif
 				m_p25DMRTGs.push_back(std::tuple<uint32_t, uint8_t, uint32_t>(tg, slotTG.first, slotTG.second));
 			}
@@ -804,7 +821,8 @@ bool CConf::read()
 				uint8_t dgId = uint8_t(::atoi(p + 1U));
 
 #if defined(TRACE_CONFIG)
-				::fprintf(stdout, "P25 => YSF, mapping TG%u to %u\n", tg, dgId);
+				if (m_p25YSFEnable)
+					::fprintf(stdout, "P25 => YSF, mapping TG%u to %u\n", tg, dgId);
 #endif
 				m_p25YSFTGs.push_back(std::pair<uint32_t, uint8_t>(tg, dgId));
 			}
@@ -825,7 +843,8 @@ bool CConf::read()
 				uint16_t tg2 = uint16_t(::atoi(p + 1U));
 
 #if defined(TRACE_CONFIG)
-				::fprintf(stdout, "P25 => NXDN, mapping TG%u to TG%u\n", tg1, tg2);
+				if (m_p25NXDNEnable)
+					::fprintf(stdout, "P25 => NXDN, mapping TG%u to TG%u\n", tg1, tg2);
 #endif
 				m_p25NXDNTGs.push_back(std::pair<uint32_t, uint16_t>(tg1, tg2));
 			}
@@ -835,7 +854,8 @@ bool CConf::read()
 			} else if (::strcmp(key, "TG") == 0) {
 				m_p25FMTG = uint32_t(::atoi(value));
 #if defined(TRACE_CONFIG)
-				::fprintf(stdout, "P25 => FM, mapping TG%u\n", m_p25FMTG);
+				if (m_p25FMEnable)
+					::fprintf(stdout, "P25 => FM, mapping TG%u\n", m_p25FMTG);
 #endif
 			}
 		} else if (section == SECTION::NXDN_DSTAR) {
@@ -854,7 +874,8 @@ bool CConf::read()
 					continue;
 
 #if defined(TRACE_CONFIG)
-				::fprintf(stdout, "NXDN => D-Star, mapping TG%u to \"%s\"\n", tg, dest.c_str());
+				if (m_nxdnDStarEnable)
+					::fprintf(stdout, "NXDN => D-Star, mapping TG%u to \"%s\"\n", tg, dest.c_str());
 #endif
 				m_nxdnDStarTGs.push_back(std::pair<uint16_t, std::string>(tg, dest));
 			}
@@ -874,7 +895,8 @@ bool CConf::read()
 					continue;
 
 #if defined(TRACE_CONFIG)
-				::fprintf(stdout, "NXDN => DMR, mapping TG%u to %u:TG%u\n", tg, slotTG.first, slotTG.second);
+				if (m_nxdnDMREnable)
+					::fprintf(stdout, "NXDN => DMR, mapping TG%u to %u:TG%u\n", tg, slotTG.first, slotTG.second);
 #endif
 				m_nxdnDMRTGs.push_back(std::tuple<uint16_t, uint8_t, uint32_t>(tg, slotTG.first, slotTG.second));
 			}
@@ -892,7 +914,8 @@ bool CConf::read()
 				uint8_t dgid = uint8_t(::atoi(p + 1U));
 
 #if defined(TRACE_CONFIG)
-				::fprintf(stdout, "NXDN => YSF, mapping TG%u to %u\n", tg, dgid);
+				if (m_nxdnYSFEnable)
+					::fprintf(stdout, "NXDN => YSF, mapping TG%u to %u\n", tg, dgid);
 #endif
 				m_nxdnYSFTGs.push_back(std::pair<uint16_t, uint8_t>(tg, dgid));
 			}
@@ -910,7 +933,8 @@ bool CConf::read()
 				uint32_t tg2 = uint32_t(::atoi(p + 1U));
 
 #if defined(TRACE_CONFIG)
-				::fprintf(stdout, "NXDN => P25, mapping TG%u to TG%u\n", tg1, tg2);
+				if (m_nxdnP25Enable)
+					::fprintf(stdout, "NXDN => P25, mapping TG%u to TG%u\n", tg1, tg2);
 #endif
 				m_nxdnP25TGs.push_back(std::pair<uint16_t, uint32_t>(tg1, tg2));
 			}
@@ -923,7 +947,8 @@ bool CConf::read()
 			} else if (::strcmp(key, "TG") == 0) {
 				m_nxdnFMTG = uint16_t(::atoi(value));
 #if defined(TRACE_CONFIG)
-				::fprintf(stdout, "NXDN => FM, mapping TG%u\n", m_nxdnFMTG);
+				if (m_nxdnFMEnable)
+					::fprintf(stdout, "NXDN => FM, mapping TG%u\n", m_nxdnFMTG);
 #endif
 			}
 		} else if (section == SECTION::FM_DSTAR) {
