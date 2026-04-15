@@ -55,11 +55,17 @@ CP25Network::~CP25Network()
 bool CP25Network::open()
 {
 	if (m_addrLen == 0U) {
-		LogError("Unable to resolve the address of the P25 Gateway");
+		if (m_network == NETWORK::FROM)
+			LogError("Unable to resolve the address of the P25 FROM network");
+		else
+			LogError("Unable to resolve the address of the P25 TO network");
 		return false;
 	}
 
-	LogMessage("Opening P25 network connection");
+	if (m_network == NETWORK::FROM)
+		LogMessage("Opening the P25 FROM network");
+	else
+		LogMessage("Opening the P25 TO network");
 
 	return m_socket.open(m_addr);
 }
@@ -75,9 +81,13 @@ bool CP25Network::writeRaw(CData& data)
 	if (length == 0U)
 		return true;
 
-	if (m_debug)
-		CUtils::dump(1U, "P25 Network Raw Sent", buffer, length);
-
+	if (m_debug) {
+		if (m_network == NETWORK::FROM)
+			CUtils::dump(1U, "P25 FROM Network Raw Sent", buffer, length);
+		else
+			CUtils::dump(1U, "P25 TO Network Raw Sent", buffer, length);
+	}
+	
 	return m_socket.write(buffer, length, m_addr, m_addrLen);
 }
 
@@ -245,8 +255,12 @@ bool CP25Network::writeData(CData& data)
 			break;
 		}
 
-		if (m_debug)
-			CUtils::dump(1U, "P25 Network Data Sent", buffer, len);
+		if (m_debug) {
+			if (m_network == NETWORK::FROM)
+				CUtils::dump(1U, "P25 FROM Network Data Sent", buffer, len);
+			else
+				CUtils::dump(1U, "P25 TO Network Data Sent", buffer, len);
+		}
 
 		bool ret = m_socket.write(buffer, len, m_addr, m_addrLen);
 		if (!ret)
@@ -256,8 +270,12 @@ bool CP25Network::writeData(CData& data)
 	if (!data.hasData() && data.isEnd()) {
 		::memcpy(buffer, REC80, 17U);
 
-		if (m_debug)
-			CUtils::dump(1U, "P25 Network Data Sent", buffer, 17U);
+		if (m_debug) {
+			if (m_network == NETWORK::FROM)
+				CUtils::dump(1U, "P25 FROM Network Data Sent", buffer, 17U);
+			else
+				CUtils::dump(1U, "P25 TO Network Data Sent", buffer, 17U);
+		}
 
 		bool ret = m_socket.write(buffer, 17U, m_addr, m_addrLen);
 		if (!ret)
@@ -278,12 +296,19 @@ void CP25Network::clock(unsigned int ms)
 		return;
 
 	if (!CUDPSocket::match(m_addr, address, IPMATCHTYPE::ADDRESS_AND_PORT)) {
-		LogMessage("P25, packet received from an invalid source");
+		if (m_network == NETWORK::FROM)
+			LogMessage("P25 FROM packet received from an invalid source");
+		else
+			LogMessage("P25 TO packet received from an invalid source");
 		return;
 	}
 
-	if (m_debug)
-		CUtils::dump(1U, "P25 Network Data Received", buffer, length);
+	if (m_debug) {
+		if (m_network == NETWORK::FROM)
+			CUtils::dump(1U, "P25 FROM Network Data Received", buffer, length);
+		else
+			CUtils::dump(1U, "P25 TO Network Data Received", buffer, length);
+	}
 
 	uint8_t c = length;
 	m_buffer.add(&c, 1U);
@@ -414,5 +439,8 @@ void CP25Network::close()
 {
 	m_socket.close();
 
-	LogMessage("Closing P25 network connection");
+	if (m_network == NETWORK::FROM)
+		LogMessage("Closing the P25 FROM network");
+	else
+		LogMessage("Closing the P25 TO network");
 }

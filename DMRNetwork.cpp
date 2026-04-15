@@ -85,11 +85,17 @@ CDMRNetwork::~CDMRNetwork()
 bool CDMRNetwork::open()
 {
 	if (m_addrLen == 0U) {
-		LogError("DMR, Unable to resolve the address of the DMR Network");
+		if (m_network == NETWORK::FROM)
+			LogError("Unable to resolve the address of the DMR FROM network");
+		else
+			LogError("Unable to resolve the address of the DMR TO network");
 		return false;
 	}
 
-	LogMessage("Opening DMR Network");
+	if (m_network == NETWORK::FROM)
+		LogMessage("Opening the DMR FROM network");
+	else
+		LogMessage("Opening the DMR TO network");
 
 	bool ret = m_socket.open(m_addr);
 	if (!ret)
@@ -111,8 +117,12 @@ bool CDMRNetwork::writeRaw(CData& data)
 	if (length == 0U)
 		return true;
 
-	if (m_debug)
-		CUtils::dump(1U, "DMR Network Raw Sent", buffer, length);
+	if (m_debug) {
+		if (m_network == NETWORK::FROM)
+			CUtils::dump(1U, "DMR FROM Network Raw Sent", buffer, length);
+		else
+			CUtils::dump(1U, "DMR TO Network Raw Sent", buffer, length);
+	}
 
 	return m_socket.write(buffer, length, m_addr, m_addrLen);
 }
@@ -312,8 +322,12 @@ bool CDMRNetwork::writeHeader(CData& data)
 	m_seqNo++;
 	m_N = 0U;
 
-	if (m_debug)
-		CUtils::dump(1U, "DMR Network Header Sent", buffer, HOMEBREW_DATA_PACKET_LENGTH);
+	if (m_debug) {
+		if (m_network == NETWORK::FROM)
+			CUtils::dump(1U, "DMR FROM Network Header Sent", buffer, HOMEBREW_DATA_PACKET_LENGTH);
+		else
+			CUtils::dump(1U, "DMR TO Network Header Sent", buffer, HOMEBREW_DATA_PACKET_LENGTH);
+	}
 
 	return m_socket.write(buffer, HOMEBREW_DATA_PACKET_LENGTH, m_addr, m_addrLen);
 }
@@ -414,9 +428,13 @@ bool CDMRNetwork::writeAudio(CData& data)
 
 	m_seqNo++;
 
-	if (m_debug)
-		CUtils::dump(1U, "DMR Network Audio Sent", buffer, HOMEBREW_DATA_PACKET_LENGTH);
-
+	if (m_debug) {
+		if (m_network == NETWORK::FROM)
+			CUtils::dump(1U, "DMR FROM Network Audio Sent", buffer, HOMEBREW_DATA_PACKET_LENGTH);
+		else
+			CUtils::dump(1U, "DMR TO Network Audio Sent", buffer, HOMEBREW_DATA_PACKET_LENGTH);
+	}
+	
 	return m_socket.write(buffer, HOMEBREW_DATA_PACKET_LENGTH, m_addr, m_addrLen);
 }
 
@@ -467,8 +485,12 @@ bool CDMRNetwork::writeTrailer(CData& data)
 	buffer[53U] = 0U;
 	buffer[54U] = 0U;
 
-	if (m_debug)
-		CUtils::dump(1U, "DMR Network Trailer Sent", buffer, HOMEBREW_DATA_PACKET_LENGTH);
+	if (m_debug) {
+		if (m_network == NETWORK::FROM)
+			CUtils::dump(1U, "DMR FROM Network Trailer Sent", buffer, HOMEBREW_DATA_PACKET_LENGTH);
+		else
+			CUtils::dump(1U, "DMR TO Network Trailer Sent", buffer, HOMEBREW_DATA_PACKET_LENGTH);
+	}
 
 	return m_socket.write(buffer, HOMEBREW_DATA_PACKET_LENGTH, m_addr, m_addrLen);
 }
@@ -488,7 +510,10 @@ bool CDMRNetwork::hasData()
 
 void CDMRNetwork::close()
 {
-	LogMessage("Closing DMR Network");
+	if (m_network == NETWORK::FROM)
+		LogMessage("Closing the DMR FROM network");
+	else
+		LogMessage("Closing the DMR TO network");
 
 	m_socket.close();
 }
@@ -508,12 +533,19 @@ void CDMRNetwork::clock(unsigned int ms)
 		return;
 
 	if (!CUDPSocket::match(m_addr, address)) {
-		LogMessage("DMR, packet received from an invalid source");
+		if (m_network == NETWORK::FROM)
+			LogMessage("DMR FROM packet received from an invalid source");
+		else
+			LogMessage("DMR TO packet received from an invalid source");
 		return;
 	}
 
-	if (m_debug)
-		CUtils::dump(1U, "DMR Network Received", m_buffer, length);
+	if (m_debug) {
+		if (m_network == NETWORK::FROM)
+			CUtils::dump(1U, "DMR FROM Network Received", m_buffer, length);
+		else
+			CUtils::dump(1U, "DMR TO Network Received", m_buffer, length);
+	}
 
 	uint8_t len = length;
 	m_rxData.add(&len, 1U);
@@ -529,8 +561,12 @@ bool CDMRNetwork::writePing()
 	buffer[2U] = 'R';
 	buffer[3U] = 'P';
 
-	// if (m_debug)
-	//	CUtils::dump(1U, "DMR Network Ping Sent", buffer, 4U);
+	// if (m_debug) {
+	//	if (m_network == NETWORK::FROM)
+	//		CUtils::dump(1U, "DMR FROM Network Ping Sent", buffer, 4U);
+	//	else
+	//		CUtils::dump(1U, "DMR TO Network Ping Sent", buffer, 4U);
+	// }
 
 	return m_socket.write(buffer, 4U, m_addr, m_addrLen);
 }

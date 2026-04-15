@@ -54,11 +54,17 @@ CFMNetwork::~CFMNetwork()
 bool CFMNetwork::open()
 {
 	if (m_addrLen == 0U) {
-		LogError("Unable to resolve the address of the remote");
+		if (m_network == NETWORK::FROM)
+			LogError("Unable to resolve the address of the FM FROM network");
+		else
+			LogError("Unable to resolve the address of the FM TO network");
 		return false;
 	}
 
-	LogMessage("Opening FM network connection");
+	if (m_network == NETWORK::FROM)
+		LogMessage("Opening the FM FROM network");
+	else
+		LogMessage("Opening the FM TO network");
 
 	return m_socket.open(m_addr);
 }
@@ -74,8 +80,12 @@ bool CFMNetwork::writeRaw(CData& data)
 	if (length == 0U)
 		return true;
 
-	if (m_debug)
-		CUtils::dump(1U, "FM Network Raw Sent", buffer, length);
+	if (m_debug) {
+		if (m_network == NETWORK::FROM)
+			CUtils::dump(1U, "FM FROM Network Raw Sent", buffer, length);
+		else
+			CUtils::dump(1U, "FM TO Network Raw Sent", buffer, length);
+	}
 
 	return m_socket.write(buffer, length, m_addr, m_addrLen);
 }
@@ -103,8 +113,12 @@ bool CFMNetwork::writeData(CData& data)
 
 	data.getData(buffer + 3U);
 
-	if (m_debug)
-		CUtils::dump(1U, "FM Network Data Sent", buffer, 3U + PCM_DATA_LENGTH);
+	if (m_debug) {
+		if (m_network == NETWORK::FROM)
+			CUtils::dump(1U, "FM FROM Network Data Sent", buffer, 3U + PCM_DATA_LENGTH);
+		else
+			CUtils::dump(1U, "FM TO Network Data Sent", buffer, 3U + PCM_DATA_LENGTH);
+	}
 
 	m_seqNo++;
 
@@ -123,12 +137,19 @@ void CFMNetwork::clock(unsigned int ms)
 
 	// Check if the data is for us
 	if (!CUDPSocket::match(addr, m_addr, IPMATCHTYPE::ADDRESS_AND_PORT)) {
-		LogMessage("FM packet received from an invalid source");
+		if (m_network == NETWORK::FROM)
+			LogMessage("FM FROM packet received from an invalid source");
+		else
+			LogMessage("FM TO packet received from an invalid source");
 		return;
 	}
 
-	if (m_debug)
-		CUtils::dump(1U, "FM Network Data Received", buffer, length);
+	if (m_debug) {
+		if (m_network == NETWORK::FROM)
+			CUtils::dump(1U, "FM FROM Network Data Received", buffer, length);
+		else
+			CUtils::dump(1U, "FM TO Network Data Received", buffer, length);
+	}
 
 	// Invalid packet type?
 	if (::memcmp(buffer, "FM", 2U) != 0)
@@ -193,7 +214,10 @@ void CFMNetwork::close()
 {
 	m_socket.close();
 
-	LogMessage("Closing FM network connection");
+	if (m_network == NETWORK::FROM)
+		LogMessage("Closing the FM FROM network");
+	else
+		LogMessage("Closing the FM TO network");
 }
 
 bool CFMNetwork::writeStart(CData& data)
@@ -209,8 +233,12 @@ bool CFMNetwork::writeStart(CData& data)
 
 	uint16_t length = uint16_t(::strlen((char*)buffer));
 
-	if (m_debug)
-		CUtils::dump(1U, "FM Network Data Sent", buffer, length + 1U);
+	if (m_debug) {
+		if (m_network == NETWORK::FROM)
+			CUtils::dump(1U, "FM FROM Network Data Sent", buffer, length + 1U);
+		else
+			CUtils::dump(1U, "FM TO Network Data Sent", buffer, length + 1U);
+	}
 
 	return m_socket.write(buffer, length + 1U, m_addr, m_addrLen);
 }
@@ -223,8 +251,12 @@ bool CFMNetwork::writeEnd()
 	buffer[1U] = 'M';
 	buffer[2U] = 'E';
 
-	if (m_debug)
-		CUtils::dump(1U, "FM Network Data Sent", buffer, 3U);
+	if (m_debug) {
+		if (m_network == NETWORK::FROM)
+			CUtils::dump(1U, "FM FROM Network Data Sent", buffer, 3U);
+		else
+			CUtils::dump(1U, "FM TO Network Data Sent", buffer, 3U);
+	}
 
 	return m_socket.write(buffer, 3U, m_addr, m_addrLen);
 }

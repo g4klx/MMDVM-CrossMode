@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2009-2014,2016,2019,2020,2021,2024 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2009-2014,2016,2019,2020,2021,2024,2026 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -100,11 +100,17 @@ CDStarNetwork::~CDStarNetwork()
 bool CDStarNetwork::open()
 {
 	if (m_addrLen == 0U) {
-		LogError("D-Star, unable to resolve the address of the remote");
+		if (m_network == NETWORK::FROM)
+			LogError("Unable to resolve the address of the D-Star FROM network");
+		else
+			LogError("Unable to resolve the address of the D-Star TO network");
 		return false;
 	}
 
-	LogMessage("Opening D-Star network connection");
+	if (m_network == NETWORK::FROM)
+		LogMessage("Opening the D-Star FROM network");
+	else
+		LogMessage("Opening the D-Star TO network");
 
 	m_pollTimer.start();
 
@@ -122,8 +128,12 @@ bool CDStarNetwork::writeRaw(CData& data)
 	if (length == 0U)
 		return true;
 
-	if (m_debug)
-		CUtils::dump(1U, "D-Star Network Raw Sent", buffer, length);
+	if (m_debug) {
+		if (m_network == NETWORK::FROM)
+			CUtils::dump(1U, "D-Star FROM Network Raw Sent", buffer, length);
+		else
+			CUtils::dump(1U, "D-Star TO Network Raw Sent", buffer, length);
+	}
 
 	return m_socket.write(buffer, length, m_addr, m_addrLen);
 }
@@ -180,8 +190,12 @@ bool CDStarNetwork::writeHeader(const CData& data)
 
 	m_outSeq = 0U;
 
-	if (m_debug)
-		CUtils::dump(1U, "D-Star Network Header Sent", buffer, 49U);
+	if (m_debug) {
+		if (m_network == NETWORK::FROM)
+			CUtils::dump(1U, "D-Star FROM Network Header Sent", buffer, 49U);
+		else
+			CUtils::dump(1U, "D-Star TO Network Header Sent", buffer, 49U);		
+	}
 
 	return m_socket.write(buffer, 49U, m_addr, m_addrLen);
 }
@@ -209,8 +223,12 @@ bool CDStarNetwork::writeBody(CData& data)
 
 	const unsigned int length = 9U + DSTAR_VOICE_FRAME_LENGTH_BYTES + DSTAR_DATA_FRAME_LENGTH_BYTES;
 
-	if (m_debug)
-		CUtils::dump(1U, "D-Star Network Data Sent", buffer, length);
+	if (m_debug) {
+		if (m_network == NETWORK::FROM)
+			CUtils::dump(1U, "D-Star FROM Network Data Sent", buffer, length);
+		else
+			CUtils::dump(1U, "D-Star TO Network Header Sent", buffer, 49U);
+	}
 
 	return m_socket.write(buffer, length, m_addr, m_addrLen);
 }
@@ -238,8 +256,12 @@ bool CDStarNetwork::writeTrailer(CData& data)
 
 	LogMessage("END");
 
-	if (m_debug)
-		CUtils::dump(1U, "D-Star Network Data Sent", buffer, length);
+	if (m_debug) {
+		if (m_network == NETWORK::FROM)
+			CUtils::dump(1U, "D-Star FROM Network Data Sent", buffer, length);
+		else
+			CUtils::dump(1U, "D-Star TO Network Header Sent", buffer, 49U);
+	}
 
 	return m_socket.write(buffer, length, m_addr, m_addrLen);
 }
@@ -262,8 +284,12 @@ bool CDStarNetwork::writePoll(const char* text)
 	// Include the nul at the end also
 	::memcpy(buffer + 5U, text, length + 1U);
 
-	// if (m_debug)
-	//	CUtils::dump(1U, "D-Star Network Poll Sent", buffer, 6U + length);
+	// if (m_debug) {
+	//	if (m_network == NETWORK::FROM)
+	//		CUtils::dump(1U, "D-Star FROM Network Poll Sent", buffer, 6U + length);
+	//	else
+	//		CUtils::dump(1U, "D-Star TO Network Poll Sent", buffer, 6U + length);
+	// }
 
 	return m_socket.write(buffer, 6U + length, m_addr, m_addrLen);
 }
@@ -285,7 +311,10 @@ void CDStarNetwork::clock(unsigned int ms)
 		return;
 
 	if (!CUDPSocket::match(m_addr, address)) {
-		LogMessage("D-Star, packet received from an invalid source");
+		if (m_network == NETWORK::FROM)
+			LogMessage("D-Star FROM packet received from an invalid source");
+		else
+			LogMessage("D-Star TO packet received from an invalid source");
 		return;
 	}
 
@@ -322,8 +351,12 @@ bool CDStarNetwork::read(CData& data)
 
 	case 0x20U:			// NETWORK_HEADER
 		if (m_inId == 0U) {
-			if (m_debug)
-				CUtils::dump(1U, "D-Star Network Header Received", buffer, length);
+			if (m_debug) {
+				if (m_network == NETWORK::FROM)
+					CUtils::dump(1U, "D-Star FROM Network Header Received", buffer, length);
+				else
+					CUtils::dump(1U, "D-Star TO Network Header Received", buffer, length);
+			}
 
 			m_inId = buffer[5] * 256U + buffer[6];
 
@@ -332,8 +365,12 @@ bool CDStarNetwork::read(CData& data)
 		break;
 
 	case 0x21U: {			// NETWORK_DATA
-		if (m_debug)
-			CUtils::dump(1U, "D-Star Network Data Received", buffer, length);
+		if (m_debug) {
+			if (m_network == NETWORK::FROM)
+				CUtils::dump(1U, "D-Star FROM Network Data Received", buffer, length);
+			else
+				CUtils::dump(1U, "D-Star TO Network Data Received", buffer, length);
+		}
 
 		uint16_t id = buffer[5] * 256U + buffer[6];
 
@@ -387,7 +424,10 @@ void CDStarNetwork::close()
 {
 	m_socket.close();
 
-	LogMessage("Closing D-Star network connection");
+	if (m_network == NETWORK::FROM)
+		LogMessage("Closing the D-Star FROM network");
+	else
+		LogMessage("Closing the D-Star TO network");
 }
 
 void CDStarNetwork::createHeader(const CData& data)
