@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2024 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2024,2026 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -16,8 +16,8 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#if !defined(CrossMode_H)
-#define	CrossMode_H
+#if !defined(MMDVM_CrossMode_H)
+#define	MMDVM_CrossMode_H
 
 #include "Network.h"
 #include "Defines.h"
@@ -27,10 +27,10 @@
 #include <string>
 #include <map>
 
-class CCrossMode {
+class CMMDVMCrossMode {
 public:
-	CCrossMode(const std::string& fileName);
-	~CCrossMode();
+	CMMDVMCrossMode(const std::string& fileName);
+	~CMMDVMCrossMode();
 
 	int run();
 

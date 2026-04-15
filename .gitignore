@@ -10,6 +10,6 @@ Release
 *.user
 *.onj
 .vs
-CrossMode
+MMDVM-CrossMode
 *.log
 

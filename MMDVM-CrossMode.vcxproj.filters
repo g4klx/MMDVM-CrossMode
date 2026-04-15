@@ -59,7 +59,7 @@
     <ClInclude Include="DStarDefines.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CrossMode.h">
+    <ClInclude Include="MMDVM-CrossMode.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Defines.h">
@@ -184,7 +184,7 @@
     <ClCompile Include="FMNetwork.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CrossMode.cpp">
+    <ClCompile Include="MMDVM-CrossMode.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Network.cpp">

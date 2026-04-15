@@ -16,7 +16,7 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#include "CrossMode.h"
+#include "MMDVM-CrossMode.h"
 
 #include "MQTTConnection.h"
 #include "DStarNetwork.h"
@@ -46,9 +46,9 @@
 #endif
 
 #if defined(_WIN32) || defined(_WIN64)
-const char* DEFAULT_INI_FILE = "CrossMode.ini";
+const char* DEFAULT_INI_FILE = "MMDVM-CrossMode.ini";
 #else
-const char* DEFAULT_INI_FILE = "/etc/CrossMode.ini";
+const char* DEFAULT_INI_FILE = "/etc/MMDVM-CrossMode.ini";
 #endif
 
 static bool m_killed = false;
@@ -99,26 +99,26 @@ int main(int argc, char** argv)
 	do {
 		m_signal = 0;
 
-		CCrossMode* host = new CCrossMode(iniFile);
+		CMMDVMCrossMode* host = new CMMDVMCrossMode(iniFile);
 		ret = host->run();
 
 		delete host;
 
 		switch (m_signal) {
 		case 2:
-			::LogInfo("CrossMode-%s exited on receipt of SIGINT", VERSION);
+			::LogInfo("MMDVM-CrossMode-%s exited on receipt of SIGINT", VERSION);
 			break;
 		case 15:
-			::LogInfo("CrossMode-%s exited on receipt of SIGTERM", VERSION);
+			::LogInfo("MMDVM-CrossMode-%s exited on receipt of SIGTERM", VERSION);
 			break;
 		case 1:
-			::LogInfo("CrossMode-%s exited on receipt of SIGHUP", VERSION);
+			::LogInfo("MMDVM-CrossMode-%s exited on receipt of SIGHUP", VERSION);
 			break;
 		case 10:
-			::LogInfo("CrossMode-%s is restarting on receipt of SIGUSR1", VERSION);
+			::LogInfo("MMDVM-CrossMode-%s is restarting on receipt of SIGUSR1", VERSION);
 			break;
 		default:
-			::LogInfo("CrossMode-%s exited on receipt of an unknown signal", VERSION);
+			::LogInfo("MMDVM-CrossMode-%s exited on receipt of an unknown signal", VERSION);
 			break;
 		}
 	} while (m_signal == 10);
@@ -128,7 +128,7 @@ int main(int argc, char** argv)
 	return ret;
 }
 
-CCrossMode::CCrossMode(const std::string& fileName) :
+CMMDVMCrossMode::CMMDVMCrossMode(const std::string& fileName) :
 m_conf(fileName),
 m_fromNetwork(nullptr),
 m_toNetworks()
@@ -136,11 +136,11 @@ m_toNetworks()
 	assert(!fileName.empty());
 }
 
-CCrossMode::~CCrossMode()
+CMMDVMCrossMode::~CMMDVMCrossMode()
 {
 }
 
-int CCrossMode::run()
+int CMMDVMCrossMode::run()
 {
 	bool ret = m_conf.read();
 	if (!ret) {
@@ -418,7 +418,7 @@ int CCrossMode::run()
 	return 0;
 }
 
-bool CCrossMode::createFromNetwork(DATA_MODE mode)
+bool CMMDVMCrossMode::createFromNetwork(DATA_MODE mode)
 {
 	std::string callsign = m_conf.getCallsign();
 
@@ -485,7 +485,7 @@ bool CCrossMode::createFromNetwork(DATA_MODE mode)
 	return true;
 }
 
-bool CCrossMode::createToNetworks(DATA_MODE fromMode, CData& data)
+bool CMMDVMCrossMode::createToNetworks(DATA_MODE fromMode, CData& data)
 {
 	closeToNetworks();
 
@@ -684,7 +684,7 @@ bool CCrossMode::createToNetworks(DATA_MODE fromMode, CData& data)
 	return true;
 }
 
-DATA_MODE CCrossMode::hasToNetworkGotData() const
+DATA_MODE CMMDVMCrossMode::hasToNetworkGotData() const
 {
 	for (const auto& it : m_toNetworks) {
 		bool ret = it.second->hasData();
@@ -695,7 +695,7 @@ DATA_MODE CCrossMode::hasToNetworkGotData() const
 	return DATA_MODE::NONE;
 }
 
-bool CCrossMode::readToNetwork(DATA_MODE mode, CData& data)
+bool CMMDVMCrossMode::readToNetwork(DATA_MODE mode, CData& data)
 {
 	bool ret = false;
 
@@ -709,7 +709,7 @@ bool CCrossMode::readToNetwork(DATA_MODE mode, CData& data)
 	return ret;
 }
 
-bool CCrossMode::writeToNetworkData(DATA_MODE mode, CData& data)
+bool CMMDVMCrossMode::writeToNetworkData(DATA_MODE mode, CData& data)
 {
 	const auto& it = m_toNetworks.find(mode);
 	if (it == m_toNetworks.end())
@@ -718,7 +718,7 @@ bool CCrossMode::writeToNetworkData(DATA_MODE mode, CData& data)
 	return it->second->writeData(data);
 }
 
-bool CCrossMode::writeToNetworkRaw(DATA_MODE mode, CData& data)
+bool CMMDVMCrossMode::writeToNetworkRaw(DATA_MODE mode, CData& data)
 {
 	const auto& it = m_toNetworks.find(mode);
 	if (it == m_toNetworks.end())
@@ -727,19 +727,19 @@ bool CCrossMode::writeToNetworkRaw(DATA_MODE mode, CData& data)
 	return it->second->writeRaw(data);
 }
 
-void CCrossMode::resetToNetworks()
+void CMMDVMCrossMode::resetToNetworks()
 {
 	for (auto& it : m_toNetworks)
 		it.second->reset();
 }
 
-void CCrossMode::clockToNetworks(unsigned int ms)
+void CMMDVMCrossMode::clockToNetworks(unsigned int ms)
 {
 	for (auto& it : m_toNetworks)
 		it.second->clock(ms);
 }
 
-void CCrossMode::closeToNetworks()
+void CMMDVMCrossMode::closeToNetworks()
 {
 	for (auto& it : m_toNetworks) {
 		it.second->close();
@@ -749,7 +749,7 @@ void CCrossMode::closeToNetworks()
 	m_toNetworks.clear();
 }
 
-DATA_MODE CCrossMode::getFromMode() const
+DATA_MODE CMMDVMCrossMode::getFromMode() const
 {
 	std::string mode = m_conf.getFromMode();
 
@@ -769,7 +769,7 @@ DATA_MODE CCrossMode::getFromMode() const
 		return DATA_MODE::NONE;
 }
 
-void CCrossMode::loadModeTranslationTables(DATA_MODE fromMode, CData& data)
+void CMMDVMCrossMode::loadModeTranslationTables(DATA_MODE fromMode, CData& data)
 {
 	if (fromMode == DATA_MODE::DSTAR) {
 		if (m_conf.getDStarDMREnable())
@@ -837,7 +837,7 @@ void CCrossMode::loadModeTranslationTables(DATA_MODE fromMode, CData& data)
 	}
 }
 
-bool CCrossMode::loadIdLookupTables(CData& data)
+bool CMMDVMCrossMode::loadIdLookupTables(CData& data)
 {
 	std::string dmrFileName  = m_conf.getDMRLookupFile();
 	std::string nxdnFileName = m_conf.getNXDNLookupFile();
@@ -850,7 +850,7 @@ bool CCrossMode::loadIdLookupTables(CData& data)
 	return data.setNXDNLookup(nxdnFileName, reloadTime);
 }
 
-void CCrossMode::writeJSONMessage(const std::string& message)
+void CMMDVMCrossMode::writeJSONMessage(const std::string& message)
 {
 	nlohmann::json json;
 

@@ -8,26 +8,26 @@ SRCS = $(wildcard *.cpp)
 OBJS = $(SRCS:.cpp=.o)
 DEPS = $(SRCS:.cpp=.d)
 
-all:		CrossMode
+all:		MMDVM-CrossMode
 
-CrossMode:	$(OBJS)
-		$(CXX) $(OBJS) $(CFLAGS) $(LIBS) -o CrossMode
+MMDVM-CrossMode:	$(OBJS)
+		$(CXX) $(OBJS) $(CFLAGS) $(LIBS) -o MMDVM-CrossMode
 
 %.o: %.cpp
 		$(CXX) $(CFLAGS) -c -o $@ $<
 -include $(DEPS)
 
-CrossMode.o: GitVersion.h FORCE
+MMDVM-CrossMode.o: GitVersion.h FORCE
 
 .PHONY: GitVersion.h
 
 FORCE:
 
 clean:
-		$(RM) CrossMode *.o *.d *.bak *~ GitVersion.h
+		$(RM) MMDVM-CrossMode *.o *.d *.bak *~ GitVersion.h
 
 install:
-		install -m 755 CrossMode /usr/local/bin/
+		install -m 755 MMDVM-CrossMode /usr/local/bin/
 
 # Export the current git version if the index file exists, else 000...
 GitVersion.h:
