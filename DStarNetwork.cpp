@@ -227,7 +227,7 @@ bool CDStarNetwork::writeBody(CData& data)
 		if (m_network == NETWORK::FROM)
 			CUtils::dump(1U, "D-Star FROM Network Data Sent", buffer, length);
 		else
-			CUtils::dump(1U, "D-Star TO Network Header Sent", buffer, 49U);
+			CUtils::dump(1U, "D-Star TO Network Header Sent", buffer, length);
 	}
 
 	return m_socket.write(buffer, length, m_addr, m_addrLen);
@@ -260,7 +260,7 @@ bool CDStarNetwork::writeTrailer(CData& data)
 		if (m_network == NETWORK::FROM)
 			CUtils::dump(1U, "D-Star FROM Network Data Sent", buffer, length);
 		else
-			CUtils::dump(1U, "D-Star TO Network Header Sent", buffer, 49U);
+			CUtils::dump(1U, "D-Star TO Network Header Sent", buffer, length);
 	}
 
 	return m_socket.write(buffer, length, m_addr, m_addrLen);
@@ -361,29 +361,33 @@ bool CDStarNetwork::read(CData& data)
 			m_inId = buffer[5] * 256U + buffer[6];
 
 			data.setDStar(m_network, buffer + 35U, buffer + 27U);
+
+			return true;
 		}
 		break;
 
 	case 0x21U: {			// NETWORK_DATA
-		if (m_debug) {
-			if (m_network == NETWORK::FROM)
-				CUtils::dump(1U, "D-Star FROM Network Data Received", buffer, length);
-			else
-				CUtils::dump(1U, "D-Star TO Network Data Received", buffer, length);
-		}
-
-		uint16_t id = buffer[5] * 256U + buffer[6];
-
-		// Check that the stream id matches the valid header, reject otherwise
-		if (id == m_inId) {
-			// Is this the last packet in the stream?
-			if ((buffer[7] & 0x40U) == 0x40U) {
-				m_inId = 0U;
-				data.setEnd();
-			} else {
-				data.setData(buffer + 10U);
+			if (m_debug) {
+				if (m_network == NETWORK::FROM)
+					CUtils::dump(1U, "D-Star FROM Network Data Received", buffer, length);
+				else
+					CUtils::dump(1U, "D-Star TO Network Data Received", buffer, length);
 			}
-		}
+
+			uint16_t id = buffer[5] * 256U + buffer[6];
+
+			// Check that the stream id matches the valid header, reject otherwise
+			if (id == m_inId) {
+				// Is this the last packet in the stream?
+				if ((buffer[7] & 0x40U) == 0x40U) {
+					m_inId = 0U;
+					data.setEnd();
+				} else {
+					data.setData(buffer + 10U);
+				}
+
+				return true;
+			}
 		}
 		break;
 
@@ -391,7 +395,7 @@ bool CDStarNetwork::read(CData& data)
 		break;
 	}
 
-	return true;
+	return false;
 }
 
 bool CDStarNetwork::read()

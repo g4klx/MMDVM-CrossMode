@@ -168,6 +168,28 @@ unsigned int CUtils::countBits(unsigned int v)
 	return count;
 }
 
+std::string CUtils::getModeName(DATA_MODE mode)
+{
+	switch (mode) {
+		case DATA_MODE::DSTAR:
+			return "D-Star";
+		case DATA_MODE::DMR:
+			return "DMR";
+		case DATA_MODE::YSF:
+			return "YSF";
+		case DATA_MODE::P25:
+			return "P25";
+		case DATA_MODE::NXDN:
+			return "NXDN";
+		case DATA_MODE::FM:
+			return "FM";
+		case DATA_MODE::NONE:
+			return "None";
+		default:
+			return "???";
+	}
+}
+
 std::string CUtils::createTimestamp()
 {
 	char buffer[100U];

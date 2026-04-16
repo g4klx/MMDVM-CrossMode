@@ -286,15 +286,22 @@ int CMMDVMCrossMode::run()
 
 	writeJSONMessage("CrossMode is starting");
 
-	while (!m_killed) {
-		stopwatch.start();
+	stopwatch.start();
 
+	while (!m_killed) {
 		switch (direction) {
 		case DIRECTION::FROM_TO:
 			ret = m_fromNetwork->read(data);
 			if (ret) {
+				netTimer.stop();
 				rfTimer.start();
 				watchdog.start();
+
+				DATA_MODE mode = data.getToMode();
+				if (mode != toMode) {
+					toMode = mode;
+					::LogMessage("Switched by RF activity to %s", CUtils::getModeName(toMode).c_str());
+				}
 			}
 
 			if (data.isTranscode()) {
@@ -310,6 +317,7 @@ int CMMDVMCrossMode::run()
 		case DIRECTION::TO_FROM:
 			ret = readToNetwork(toMode, data);
 			if (ret) {
+				rfTimer.stop();
 				netTimer.start();
 				watchdog.start();
 			}
@@ -327,10 +335,6 @@ int CMMDVMCrossMode::run()
 		default:
 			ret = m_fromNetwork->hasData();
 			if (ret) {
-				::LogMessage("Switched by RF activity");
-				rfTimer.start();
-				watchdog.start();
-				toMode = data.getToMode();
 				direction = DIRECTION::FROM_TO;
 				data.setDirection(direction);
 				break;
@@ -338,12 +342,10 @@ int CMMDVMCrossMode::run()
 
 			toMode = hasToNetworkGotData();
 			if (toMode != DATA_MODE::NONE) {
-				::LogMessage("Switched by Net activity");
-				netTimer.start();
-				watchdog.start();
 				direction = DIRECTION::TO_FROM;
-				data.setToMode(toMode);
 				data.setDirection(direction);
+				data.setToMode(toMode);
+				::LogMessage("Switched by Net activity to %s", CUtils::getModeName(toMode).c_str());
 				break;
 			}
 
@@ -357,13 +359,12 @@ int CMMDVMCrossMode::run()
 			direction = DIRECTION::NONE;
 			data.setDirection(direction);
 			watchdog.stop();
-			netTimer.stop();
-			rfTimer.stop();
 		}
 
 		CThread::sleep(5U);
 
 		unsigned int elapsed = stopwatch.elapsed();
+		stopwatch.start();
 
 		m_fromNetwork->clock(elapsed);
 		clockToNetworks(elapsed);
@@ -371,35 +372,37 @@ int CMMDVMCrossMode::run()
 
 		rfTimer.clock(elapsed);
 		if (rfTimer.isRunning() && rfTimer.hasExpired()) {
-			::LogMessage("Switched back to Idle");
 			m_fromNetwork->reset();
 			resetToNetworks();
 			data.reset();
 			direction = DIRECTION::NONE;
+			toMode    = DATA_MODE::NONE;
 			data.setDirection(direction);
 			rfTimer.stop();
+			::LogMessage("Switched back to Idle by the RF timer");
 		}
 
 		netTimer.clock(elapsed);
 		if (netTimer.isRunning() && netTimer.hasExpired()) {
-			::LogMessage("Switched back to Idle");
 			m_fromNetwork->reset();
 			resetToNetworks();
 			data.reset();
 			direction = DIRECTION::NONE;
+			toMode    = DATA_MODE::NONE;
 			data.setDirection(direction);
 			netTimer.stop();
+			::LogMessage("Switched back to Idle by the Net timer");
 		}
 
 		watchdog.clock(elapsed);
 		if (watchdog.isRunning() && watchdog.hasExpired()) {
-			::LogMessage("The watchdog timer has expired");
 			m_fromNetwork->reset();
 			resetToNetworks();
 			data.reset();
 			direction = DIRECTION::NONE;
 			data.setDirection(direction);
 			watchdog.stop();
+			::LogMessage("The watchdog timer has expired");
 		}
 	}
 

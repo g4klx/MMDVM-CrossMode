@@ -35,6 +35,8 @@ public:
 
 	static unsigned int countBits(unsigned int v);
 
+	static std::string getModeName(DATA_MODE mode);
+
 	static std::string createTimestamp();
 
 private:
