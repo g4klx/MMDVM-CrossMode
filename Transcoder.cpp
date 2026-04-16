@@ -183,7 +183,7 @@ bool CTranscoder::setConversion(uint8_t inMode, uint8_t outMode)
 		return false;
 
 	case TYPE_ACK:
-		LogDebug("Transcoder conversion modes - set");
+		LogDebug("Transcoder conversion modes - set from %s to %s", CUtils::getModeName(DATA_MODE(inMode)).c_str(), CUtils::getModeName(DATA_MODE(outMode)).c_str());
 		return true;
 
 	default:
@@ -240,10 +240,12 @@ uint16_t CTranscoder::read(uint8_t* buffer, uint16_t timeout)
 					return len;
 			}
 		} else {
-			unsigned long elapsed = stopwatch.elapsed() / 1000U;
-			if (elapsed > timeout) {
-				LogError("Transcoder read has timed out after %u ms", timeout);
-				return len;
+			if (timeout > 0U) {
+				unsigned long elapsed = stopwatch.elapsed();
+				if (elapsed > timeout) {
+					LogError("Transcoder read has timed out after %u ms", timeout);
+					return len;
+				}
 			}
 		}
 

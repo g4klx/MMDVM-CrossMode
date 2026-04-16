@@ -322,6 +322,23 @@ void CDStarNetwork::clock(unsigned int ms)
 	if (::memcmp(buffer, "DSRP", 4U) != 0)
 		return;
 
+	// Only store interesting data
+	switch (buffer[4U]) {
+		case 0x00U:			// NETWORK_TEXT;
+		case 0x01U:			// NETWORK_TEMPTEXT;
+		case 0x04U:			// NETWORK_STATUS1..5
+		case 0x0AU:			// PING
+		case 0x24U:			// NETWORK_DD_DATA
+			return;
+
+		case 0x20U:			// NETWORK_HEADER
+		case 0x21U:			// NETWORK_DATA
+			break;
+
+		default:
+			return;
+	}
+
 	uint16_t len = length;
 	m_buffer.add((uint8_t*)&len, sizeof(uint16_t));
 
@@ -383,7 +400,7 @@ bool CDStarNetwork::read(CData& data)
 					m_inId = 0U;
 					data.setEnd();
 				} else {
-					data.setData(buffer + 10U);
+					data.setData(buffer + 9U);
 				}
 
 				return true;

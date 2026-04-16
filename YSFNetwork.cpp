@@ -471,8 +471,10 @@ bool CYSFNetwork::read(CData& data)
 	CYSFFICH fich;
 	fich.decode(buffer + 35U);
 
-	if (fich.getDT() != YSF_DT_VD_MODE2)
+	if (fich.getDT() != YSF_DT_VD_MODE2) {
+		LogMessage("Not VD_MODE2, DT = 0x%X", fich.getDT());
 		return true;
+	}
 
 	switch (fich.getFI()) {
 	case YSF_FI_HEADER:
@@ -484,6 +486,7 @@ bool CYSFNetwork::read(CData& data)
 		data.setEnd();
 		return true;
 	default:
+		LogMessage("YSF Unknown block type, FI=0x%X", fich.getFI());
 		return false;
 	}
 
@@ -491,7 +494,6 @@ bool CYSFNetwork::read(CData& data)
 	payload.processVDMode2Audio(buffer + 35U, m_audio);
 
 	data.setData(m_audio + 0U);
-
 	m_audioCount = 1U;
 
 	return true;

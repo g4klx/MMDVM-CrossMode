@@ -273,7 +273,7 @@ int CMMDVMCrossMode::run()
 	}
 
 	CStopWatch stopwatch;
-	CTimer watchdog(1000U, 0U, 500U);
+	CTimer watchdog(1000U, 1U);
 
 	DIRECTION direction = DIRECTION::NONE;
 	DATA_MODE toMode = DATA_MODE::NONE;
@@ -281,10 +281,10 @@ int CMMDVMCrossMode::run()
 	CTimer rfTimer(1000U, m_conf.getRFModeHang());
 	CTimer netTimer(1000U, m_conf.getNetModeHang());
 
-	LogMessage("CrossMode-%s is starting", VERSION);
+	LogMessage("MMDVM-CrossMode-%s is starting", VERSION);
 	LogMessage("Built %s %s (GitID #%.7s)", __TIME__, __DATE__, gitversion);
 
-	writeJSONMessage("CrossMode is starting");
+	writeJSONMessage("MMDVM-CrossMode is starting");
 
 	stopwatch.start();
 
@@ -300,9 +300,11 @@ int CMMDVMCrossMode::run()
 				DATA_MODE mode = data.getToMode();
 				if (mode != toMode) {
 					toMode = mode;
-					::LogMessage("Switched by RF activity to %s", CUtils::getModeName(toMode).c_str());
+					::LogMessage("Switched by RF activity from %s to %s", CUtils::getModeName(fromMode).c_str(), CUtils::getModeName(toMode).c_str());
 				}
 			}
+
+			drainToNetworks();
 
 			if (data.isTranscode()) {
 				if (data.hasData() || data.isEnd())
@@ -322,6 +324,8 @@ int CMMDVMCrossMode::run()
 				watchdog.start();
 			}
 
+			drainFromNetwork();
+
 			if (data.isTranscode()) {
 				if (data.hasData() || data.isEnd())
 					m_fromNetwork->writeData(data);
@@ -337,6 +341,9 @@ int CMMDVMCrossMode::run()
 			if (ret) {
 				direction = DIRECTION::FROM_TO;
 				data.setDirection(direction);
+				netTimer.stop();
+				rfTimer.start();
+				watchdog.start();
 				break;
 			}
 
@@ -345,7 +352,10 @@ int CMMDVMCrossMode::run()
 				direction = DIRECTION::TO_FROM;
 				data.setDirection(direction);
 				data.setToMode(toMode);
-				::LogMessage("Switched by Net activity to %s", CUtils::getModeName(toMode).c_str());
+				rfTimer.stop();
+				netTimer.start();
+				watchdog.start();
+				::LogMessage("Switched by Net activity from %s to %s", CUtils::getModeName(toMode).c_str(), CUtils::getModeName(fromMode).c_str());
 				break;
 			}
 
@@ -406,8 +416,8 @@ int CMMDVMCrossMode::run()
 		}
 	}
 
-	LogInfo("CrossMode is stopping");
-	writeJSONMessage("CrossMode is stopping");
+	LogInfo("MMDVM-CrossMode is stopping");
+	writeJSONMessage("MMDVM-CrossMode is stopping");
 
 	data.close();
 
@@ -734,6 +744,17 @@ void CMMDVMCrossMode::resetToNetworks()
 {
 	for (auto& it : m_toNetworks)
 		it.second->reset();
+}
+
+void CMMDVMCrossMode::drainFromNetwork()
+{
+	m_fromNetwork->read();
+}
+
+void CMMDVMCrossMode::drainToNetworks()
+{
+	for (auto& it : m_toNetworks)
+		it.second->read();
 }
 
 void CMMDVMCrossMode::clockToNetworks(unsigned int ms)

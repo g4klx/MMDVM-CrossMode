@@ -48,6 +48,8 @@ private:
 	bool readToNetwork(DATA_MODE mode, CData& data);
 	bool writeToNetworkData(DATA_MODE mode, CData& data);
 	bool writeToNetworkRaw(DATA_MODE mode, CData& data);
+	void drainFromNetwork();
+	void drainToNetworks();
 	void resetToNetworks();
 	void clockToNetworks(unsigned int ms);
 	void closeToNetworks();
