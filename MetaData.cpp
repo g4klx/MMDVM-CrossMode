@@ -833,7 +833,7 @@ void CMetaData::setYSF(NETWORK network, const uint8_t* source, uint8_t dgId)
 	} else {
 		if (m_fromMode == DATA_MODE::DSTAR) {
 			std::string dest = find(m_dstarYSFDests, dgId);
-			if (dgId != NULL_DGID) {
+			if (dest != NULL_CALLSIGN) {
 				LogDebug("YSF <= D-Star, %s>%u -> %s>%s", srcCallsign.c_str(), dgId, srcCallsign.c_str(), dest.c_str());
 
 				m_srcCallsign = srcCallsign;
