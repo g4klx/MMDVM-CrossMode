@@ -156,7 +156,6 @@
   <ItemGroup>
     <ClInclude Include="BPTC19696.h" />
     <ClInclude Include="CRC.h" />
-    <ClInclude Include="Data.h" />
     <ClInclude Include="Conf.h" />
     <ClInclude Include="Defines.h" />
     <ClInclude Include="DMRDefines.h" />
@@ -169,6 +168,7 @@
     <ClInclude Include="Hamming.h" />
     <ClInclude Include="Log.h" />
     <ClInclude Include="DMRLookup.h" />
+    <ClInclude Include="MetaData.h" />
     <ClInclude Include="MMDVM-CrossMode.h" />
     <ClInclude Include="MQTTConnection.h" />
     <ClInclude Include="Network.h" />
@@ -203,7 +203,6 @@
   <ItemGroup>
     <ClCompile Include="BPTC19696.cpp" />
     <ClCompile Include="CRC.cpp" />
-    <ClCompile Include="Data.cpp" />
     <ClCompile Include="Conf.cpp" />
     <ClCompile Include="DMRLC.cpp" />
     <ClCompile Include="DMRNetwork.cpp" />
@@ -213,6 +212,7 @@
     <ClCompile Include="Hamming.cpp" />
     <ClCompile Include="Log.cpp" />
     <ClCompile Include="DMRLookup.cpp" />
+    <ClCompile Include="MetaData.cpp" />
     <ClCompile Include="MMDVM-CrossMode.cpp" />
     <ClCompile Include="MQTTConnection.cpp" />
     <ClCompile Include="Network.cpp" />

@@ -16,8 +16,8 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#if !defined(Data_H)
-#define	Data_H
+#if !defined(MetaData_H)
+#define	MetaData_H
 
 #include "TranscoderDefines.h"
 #include "Transcoder.h"
@@ -30,10 +30,10 @@
 #include <vector>
 #include <tuple>
 
-class CData {
+class CMetaData {
 public:
-	CData(const std::string& callsign, uint32_t dmrId, uint16_t nxdnId, bool debug);
-	~CData();
+	CMetaData(const std::string& callsign, uint32_t dmrId, uint16_t nxdnId, bool debug);
+	~CMetaData();
 
 	void setUARTConnection(const std::string& port, uint32_t speed);
 	void setUDPConnection(const std::string& remoteAddress, uint16_t remotePort, const std::string& localAddress, uint16_t localPort);

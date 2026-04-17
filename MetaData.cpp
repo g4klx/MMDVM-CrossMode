@@ -16,7 +16,7 @@
  *	 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#include "Data.h"
+#include "MetaData.h"
 
 #include "DStarDefines.h"
 #include "YSFDefines.h"
@@ -33,7 +33,7 @@ const uint8_t  NULL_SLOT = 0U;
 const uint16_t NULL_ID16 = 0xFFFFU;
 const uint32_t NULL_ID32 = 0xFFFFFFFFU;
 
-CData::CData(const std::string& callsign, uint32_t dmrId, uint16_t nxdnId, bool debug) :
+CMetaData::CMetaData(const std::string& callsign, uint32_t dmrId, uint16_t nxdnId, bool debug) :
 m_transcoder(debug),
 m_defaultCallsign(callsign),
 m_defaultDMRId(dmrId),
@@ -99,44 +99,44 @@ m_count(0U)
 	m_rawData = new uint8_t[1000U];
 }
 
-CData::~CData()
+CMetaData::~CMetaData()
 {
 	delete[] m_data;
 	delete[] m_rawData;
 }
 
-void CData::setUARTConnection(const std::string& port, uint32_t speed)
+void CMetaData::setUARTConnection(const std::string& port, uint32_t speed)
 {
 	m_transcoder.setUARTConnection(port, speed);
 }
 
-void CData::setUDPConnection(const std::string& remoteAddress, uint16_t remotePort, const std::string& localAddress, uint16_t localPort)
+void CMetaData::setUDPConnection(const std::string& remoteAddress, uint16_t remotePort, const std::string& localAddress, uint16_t localPort)
 {
 	m_transcoder.setUDPConnection(remoteAddress, remotePort, localAddress, localPort);
 }
 
-bool CData::setFromMode(DATA_MODE mode)
+bool CMetaData::setFromMode(DATA_MODE mode)
 {
 	m_fromMode = mode;
 
 	return true;
 }
 
-bool CData::setToMode(DATA_MODE mode)
+bool CMetaData::setToMode(DATA_MODE mode)
 {
 	m_toMode = mode;
 
 	return setTranscoder();
 }
 
-bool CData::setDirection(DIRECTION direction)
+bool CMetaData::setDirection(DIRECTION direction)
 {
 	m_direction = direction;
 
 	return setTranscoder();
 }
 
-bool CData::setTranscoder()
+bool CMetaData::setTranscoder()
 {
 	uint8_t transFromMode;
 	uint8_t transToMode;
@@ -193,7 +193,7 @@ bool CData::setTranscoder()
 	}
 }
 
-void CData::setThroughModes(bool toDStar, bool toDMR1, bool toDMR2, bool toYSF, bool toP25, bool toNXDN, bool toFM)
+void CMetaData::setThroughModes(bool toDStar, bool toDMR1, bool toDMR2, bool toYSF, bool toP25, bool toNXDN, bool toFM)
 {
 	m_toDStar = toDStar;
 	m_toDMR1  = toDMR1;
@@ -204,154 +204,154 @@ void CData::setThroughModes(bool toDStar, bool toDMR1, bool toDMR2, bool toYSF, 
 	m_toFM    = toFM;
 }
 
-bool CData::setDMRLookup(const std::string& filename, unsigned int reloadTime)
+bool CMetaData::setDMRLookup(const std::string& filename, unsigned int reloadTime)
 {
 	return m_dmrLookup.load(filename, reloadTime);
 }
 
-bool CData::setNXDNLookup(const std::string& filename, unsigned int reloadTime)
+bool CMetaData::setNXDNLookup(const std::string& filename, unsigned int reloadTime)
 {
 	return m_nxdnLookup.load(filename, reloadTime);
 }
 
-DATA_MODE CData::getToMode() const
+DATA_MODE CMetaData::getToMode() const
 {
 	return m_toMode;
 }
 
-void CData::setDStarDMRDests(const std::vector<std::tuple<std::string, uint8_t, uint32_t>>& dests)
+void CMetaData::setDStarDMRDests(const std::vector<std::tuple<std::string, uint8_t, uint32_t>>& dests)
 {
 	m_dstarDMRDests = dests;
 }
 
-void CData::setDStarYSFDests(const std::vector<std::pair<std::string, uint8_t>>& dests)
+void CMetaData::setDStarYSFDests(const std::vector<std::pair<std::string, uint8_t>>& dests)
 {
 	m_dstarYSFDests = dests;
 }
 
-void CData::setDStarP25Dests(const std::vector<std::pair<std::string, uint32_t>>& dests)
+void CMetaData::setDStarP25Dests(const std::vector<std::pair<std::string, uint32_t>>& dests)
 {
 	m_dstarP25Dests = dests;
 }
 
-void CData::setDStarNXDNDests(const std::vector<std::pair<std::string, uint16_t>>& dests)
+void CMetaData::setDStarNXDNDests(const std::vector<std::pair<std::string, uint16_t>>& dests)
 {
 	m_dstarNXDNDests = dests;
 }
 
-void CData::setDStarFMDest(const std::string& dest)
+void CMetaData::setDStarFMDest(const std::string& dest)
 {
 	m_dstarFMDest = dest;
 }
 
-void CData::setDMRDStarTGs(const std::vector<std::tuple<uint8_t, uint32_t, std::string>>& tgs)
+void CMetaData::setDMRDStarTGs(const std::vector<std::tuple<uint8_t, uint32_t, std::string>>& tgs)
 {
 	m_dmrDStarTGs = tgs;
 }
 
-void CData::setDMRYSFTGs(const std::vector<std::tuple<uint8_t, uint32_t, uint8_t>>& tgs)
+void CMetaData::setDMRYSFTGs(const std::vector<std::tuple<uint8_t, uint32_t, uint8_t>>& tgs)
 {
 	m_dmrYSFTGs = tgs;
 }
 
-void CData::setDMRP25TGs(const std::vector<std::tuple<uint8_t, uint32_t, uint32_t>>& tgs)
+void CMetaData::setDMRP25TGs(const std::vector<std::tuple<uint8_t, uint32_t, uint32_t>>& tgs)
 {
 	m_dmrP25TGs = tgs;
 }
 
-void CData::setDMRNXDNTGs(const std::vector<std::tuple<uint8_t, uint32_t, uint16_t>>& tgs)
+void CMetaData::setDMRNXDNTGs(const std::vector<std::tuple<uint8_t, uint32_t, uint16_t>>& tgs)
 {
 	m_dmrNXDNTGs = tgs;
 }
 
-void CData::setDMRFMTG(const std::pair<uint8_t, uint32_t>& tg)
+void CMetaData::setDMRFMTG(const std::pair<uint8_t, uint32_t>& tg)
 {
 	m_dmrFMTG = tg;
 }
 
-void CData::setYSFDStarDGIds(const std::vector<std::pair<uint8_t, std::string>>& dgIds)
+void CMetaData::setYSFDStarDGIds(const std::vector<std::pair<uint8_t, std::string>>& dgIds)
 {
 	m_ysfDStarDGIds = dgIds;
 }
 
-void CData::setYSFDMRDGIds(const std::vector<std::tuple<uint8_t, uint8_t, uint32_t>>& dgIds)
+void CMetaData::setYSFDMRDGIds(const std::vector<std::tuple<uint8_t, uint8_t, uint32_t>>& dgIds)
 {
 	m_ysfDMRDGIds = dgIds;
 }
 
-void CData::setYSFP25DGIds(const std::vector<std::pair<uint8_t, uint32_t>>& dgIds)
+void CMetaData::setYSFP25DGIds(const std::vector<std::pair<uint8_t, uint32_t>>& dgIds)
 {
 	m_ysfP25DGIds = dgIds;
 }
 
-void CData::setYSFNXDNDGIds(const std::vector<std::pair<uint8_t, uint16_t>>& dgIds)
+void CMetaData::setYSFNXDNDGIds(const std::vector<std::pair<uint8_t, uint16_t>>& dgIds)
 {
 	m_ysfNXDNDGIds = dgIds;
 }
 
-void CData::setYSFFMDGId(uint8_t dgId)
+void CMetaData::setYSFFMDGId(uint8_t dgId)
 {
 	m_ysfFMDGId = dgId;
 }
 
-void CData::setP25DStarTGs(const std::vector<std::pair<uint32_t, std::string>>& tgs)
+void CMetaData::setP25DStarTGs(const std::vector<std::pair<uint32_t, std::string>>& tgs)
 {
 	m_p25DStarTGs = tgs;
 }
 
-void CData::setP25DMRTGs(const std::vector<std::tuple<uint32_t, uint8_t, uint32_t>>& tgs)
+void CMetaData::setP25DMRTGs(const std::vector<std::tuple<uint32_t, uint8_t, uint32_t>>& tgs)
 {
 	m_p25DMRTGs = tgs;
 }
 
-void CData::setP25YSFTGs(const std::vector<std::pair<uint32_t, uint8_t>>& tgs)
+void CMetaData::setP25YSFTGs(const std::vector<std::pair<uint32_t, uint8_t>>& tgs)
 {
 	m_p25YSFTGs = tgs;
 }
 
-void CData::setP25NXDNTGs(const std::vector<std::pair<uint32_t, uint16_t>>& tgs)
+void CMetaData::setP25NXDNTGs(const std::vector<std::pair<uint32_t, uint16_t>>& tgs)
 {
 	m_p25NXDNTGs = tgs;
 }
 
-void CData::setP25FMTG(uint32_t tg)
+void CMetaData::setP25FMTG(uint32_t tg)
 {
 	m_p25FMTG = tg;
 }
 
-void CData::setNXDNDStarTGs(const std::vector<std::pair<uint16_t, std::string>>& tgs)
+void CMetaData::setNXDNDStarTGs(const std::vector<std::pair<uint16_t, std::string>>& tgs)
 {
 	m_nxdnDStarTGs = tgs;
 }
 
-void CData::setNXDNDMRTGs(const std::vector<std::tuple<uint16_t, uint8_t, uint32_t>>& tgs)
+void CMetaData::setNXDNDMRTGs(const std::vector<std::tuple<uint16_t, uint8_t, uint32_t>>& tgs)
 {
 	m_nxdnDMRTGs = tgs;
 }
 
-void CData::setNXDNYSFTGs(const std::vector<std::pair<uint16_t, uint8_t>>& tgs)
+void CMetaData::setNXDNYSFTGs(const std::vector<std::pair<uint16_t, uint8_t>>& tgs)
 {
 	m_nxdnYSFTGs = tgs;
 }
 
-void CData::setNXDNP25TGs(const std::vector<std::pair<uint16_t, uint32_t>>& tgs)
+void CMetaData::setNXDNP25TGs(const std::vector<std::pair<uint16_t, uint32_t>>& tgs)
 {
 	m_nxdnP25TGs = tgs;
 }
 
-void CData::setNXDNFMTG(uint16_t tg)
+void CMetaData::setNXDNFMTG(uint16_t tg)
 {
 	m_nxdnFMTG = tg;
 }
 
-bool CData::open()
+bool CMetaData::open()
 {
 	writeJSONStatus(DATA_MODE::NONE, DATA_MODE::NONE);
 
 	return m_transcoder.open();
 }
 
-void CData::setDStar(NETWORK network, const uint8_t* source, const uint8_t* destination)
+void CMetaData::setDStar(NETWORK network, const uint8_t* source, const uint8_t* destination)
 {
 	assert(source != nullptr);
 	assert(destination != nullptr);
@@ -530,7 +530,7 @@ void CData::setDStar(NETWORK network, const uint8_t* source, const uint8_t* dest
 	}
 }
 
-void CData::setDMR(NETWORK network, uint8_t slot, uint32_t source, uint32_t destination, bool group)
+void CMetaData::setDMR(NETWORK network, uint8_t slot, uint32_t source, uint32_t destination, bool group)
 {
 	assert((slot == 1U) || (slot == 2U));
 	assert(source > 0U);
@@ -734,7 +734,7 @@ void CData::setDMR(NETWORK network, uint8_t slot, uint32_t source, uint32_t dest
 	}
 }
 
-void CData::setYSF(NETWORK network, const uint8_t* source, uint8_t dgId)
+void CMetaData::setYSF(NETWORK network, const uint8_t* source, uint8_t dgId)
 {
 	assert(source != nullptr);
 
@@ -911,7 +911,7 @@ void CData::setYSF(NETWORK network, const uint8_t* source, uint8_t dgId)
 	}
 }
 
-void CData::setP25(NETWORK network, uint32_t source, uint32_t destination, bool group)
+void CMetaData::setP25(NETWORK network, uint32_t source, uint32_t destination, bool group)
 {
 	assert(source > 0U);
 	assert(destination > 0U);
@@ -1092,7 +1092,7 @@ void CData::setP25(NETWORK network, uint32_t source, uint32_t destination, bool 
 	}
 }
 
-void CData::setNXDN(NETWORK network, uint16_t source, uint16_t destination, bool group)
+void CMetaData::setNXDN(NETWORK network, uint16_t source, uint16_t destination, bool group)
 {
 	assert(source > 0U);
 	assert(destination > 0U);
@@ -1274,7 +1274,7 @@ void CData::setNXDN(NETWORK network, uint16_t source, uint16_t destination, bool
 }
 
 // XXX FIXME this'll need rework for the new FM network protocol
-void CData::setFM(NETWORK network)
+void CMetaData::setFM(NETWORK network)
 {
 	if (network == NETWORK::FROM) {
 		if (m_toMode == DATA_MODE::NONE) {
@@ -1349,7 +1349,7 @@ void CData::setFM(NETWORK network)
 	}
 }
 
-void CData::setRaw(const uint8_t* data, uint16_t length)
+void CMetaData::setRaw(const uint8_t* data, uint16_t length)
 {
 	assert(data != nullptr);
 	assert(length > 0U);
@@ -1358,7 +1358,7 @@ void CData::setRaw(const uint8_t* data, uint16_t length)
 	m_rawLength = length;
 }
 
-bool CData::setData(const uint8_t* data)
+bool CMetaData::setData(const uint8_t* data)
 {
 	assert(data != nullptr);
 
@@ -1371,12 +1371,12 @@ bool CData::setData(const uint8_t* data)
 	return true;
 }
 
-void CData::setEnd()
+void CMetaData::setEnd()
 {
 	m_end = true;
 }
 
-void CData::getDStar(NETWORK network, uint8_t* source, uint8_t* destination) const
+void CMetaData::getDStar(NETWORK network, uint8_t* source, uint8_t* destination) const
 {
 	assert(source != nullptr);
 	assert(destination != nullptr);
@@ -1385,7 +1385,7 @@ void CData::getDStar(NETWORK network, uint8_t* source, uint8_t* destination) con
 	stringToBytes(destination, DSTAR_LONG_CALLSIGN_LENGTH, m_dstCallsign);
 }
 
-void CData::getDMR(NETWORK network, uint8_t& slot, uint32_t& source, uint32_t& destination, bool& group) const
+void CMetaData::getDMR(NETWORK network, uint8_t& slot, uint32_t& source, uint32_t& destination, bool& group) const
 {
 	slot        = m_slot;
 	source      = m_srcId;
@@ -1393,7 +1393,7 @@ void CData::getDMR(NETWORK network, uint8_t& slot, uint32_t& source, uint32_t& d
 	group       = m_group;
 }
 
-void CData::getYSF(NETWORK network, uint8_t* source, uint8_t* destination, uint8_t& dgId) const
+void CMetaData::getYSF(NETWORK network, uint8_t* source, uint8_t* destination, uint8_t& dgId) const
 {
 	assert(source != nullptr);
 
@@ -1403,28 +1403,28 @@ void CData::getYSF(NETWORK network, uint8_t* source, uint8_t* destination, uint8
 	dgId = m_dgId;
 }
 
-void CData::getP25(NETWORK network, uint32_t& source, uint32_t& destination, bool& group) const
+void CMetaData::getP25(NETWORK network, uint32_t& source, uint32_t& destination, bool& group) const
 {
 	source      = m_srcId;
 	destination = m_dstId;
 	group       = m_group;
 }
 
-void CData::getNXDN(NETWORK network, uint16_t& source, uint16_t& destination, bool& group) const
+void CMetaData::getNXDN(NETWORK network, uint16_t& source, uint16_t& destination, bool& group) const
 {
 	source      = m_srcId;
 	destination = m_dstId;
 	group       = m_group;
 }
 
-void CData::setFM(const uint8_t* source)
+void CMetaData::setFM(const uint8_t* source)
 {
 	assert(source != nullptr);
 
 	m_srcCallsign = bytesToString(source, ::strlen((char*)source));
 }
 
-void CData::getFM(uint8_t* source) const
+void CMetaData::getFM(uint8_t* source) const
 {
 	assert(source != nullptr);
 
@@ -1434,17 +1434,17 @@ void CData::getFM(uint8_t* source) const
 	source[length] = 0x00U;
 }
 
-bool CData::hasRaw() const
+bool CMetaData::hasRaw() const
 {
 	return m_rawLength > 0U;
 }
 
-bool CData::hasData() const
+bool CMetaData::hasData() const
 {
 	return m_length > 0U;
 }
 
-uint16_t CData::getRaw(uint8_t* data)
+uint16_t CMetaData::getRaw(uint8_t* data)
 {
 	assert(data != nullptr);
 
@@ -1458,7 +1458,7 @@ uint16_t CData::getRaw(uint8_t* data)
 	return 0U;
 }
 
-bool CData::getData(uint8_t* data)
+bool CMetaData::getData(uint8_t* data)
 {
 	assert(data != nullptr);
 
@@ -1473,7 +1473,7 @@ bool CData::getData(uint8_t* data)
 	return false;
 }
 
-bool CData::isEnd() const
+bool CMetaData::isEnd() const
 {
 	if (m_count > 0U)
 		return false;
@@ -1481,12 +1481,12 @@ bool CData::isEnd() const
 	return m_end;
 }
 
-bool CData::isTranscode() const
+bool CMetaData::isTranscode() const
 {
 	return m_fromMode != m_toMode;
 }
 
-void CData::reset()
+void CMetaData::reset()
 {
 	m_end       = false;
 	m_length    = 0U;
@@ -1498,7 +1498,7 @@ void CData::reset()
 	writeJSONStatus(DATA_MODE::NONE, DATA_MODE::NONE);
 }
 
-void CData::clock(unsigned int ms)
+void CMetaData::clock(unsigned int ms)
 {
 	m_length = m_transcoder.read(m_data);
 
@@ -1506,13 +1506,13 @@ void CData::clock(unsigned int ms)
 	m_nxdnLookup.clock(ms);
 }
 
-void CData::close()
+void CMetaData::close()
 {
 	m_transcoder.close();
 }
 
 // uint8_t <=> std::string
-uint8_t CData::find(const std::vector<std::pair<std::string, uint8_t>>& mapping, const std::string& dest) const
+uint8_t CMetaData::find(const std::vector<std::pair<std::string, uint8_t>>& mapping, const std::string& dest) const
 {
 	for (const auto& it : mapping) {
 		if (it.first == dest)
@@ -1522,7 +1522,7 @@ uint8_t CData::find(const std::vector<std::pair<std::string, uint8_t>>& mapping,
 	return NULL_DGID;
 }
 
-std::string CData::find(const std::vector<std::pair<std::string, uint8_t>>& mapping, uint8_t dgId) const
+std::string CMetaData::find(const std::vector<std::pair<std::string, uint8_t>>& mapping, uint8_t dgId) const
 {
 	for (const auto& it : mapping) {
 		if (it.second == dgId)
@@ -1532,7 +1532,7 @@ std::string CData::find(const std::vector<std::pair<std::string, uint8_t>>& mapp
 	return NULL_CALLSIGN;
 }
 
-uint8_t CData::find(const std::vector<std::pair<uint8_t, std::string>>& mapping, const std::string& dest) const
+uint8_t CMetaData::find(const std::vector<std::pair<uint8_t, std::string>>& mapping, const std::string& dest) const
 {
 	for (const auto& it : mapping) {
 		if (it.second == dest)
@@ -1542,7 +1542,7 @@ uint8_t CData::find(const std::vector<std::pair<uint8_t, std::string>>& mapping,
 	return NULL_DGID;
 }
 
-std::string CData::find(const std::vector<std::pair<uint8_t, std::string>>& mapping, uint8_t dgId) const
+std::string CMetaData::find(const std::vector<std::pair<uint8_t, std::string>>& mapping, uint8_t dgId) const
 {
 	for (const auto& it : mapping) {
 		if (it.first == dgId)
@@ -1553,7 +1553,7 @@ std::string CData::find(const std::vector<std::pair<uint8_t, std::string>>& mapp
 }
 
 // uint16_t <=> std::string
-uint16_t CData::find(const std::vector<std::pair<std::string, uint16_t>>& mapping, const std::string& dest) const
+uint16_t CMetaData::find(const std::vector<std::pair<std::string, uint16_t>>& mapping, const std::string& dest) const
 {
 	for (const auto& it : mapping) {
 		if (it.first == dest)
@@ -1563,7 +1563,7 @@ uint16_t CData::find(const std::vector<std::pair<std::string, uint16_t>>& mappin
 	return NULL_ID16;
 }
 
-std::string CData::find(const std::vector<std::pair<std::string, uint16_t>>& mapping, uint16_t tgId) const
+std::string CMetaData::find(const std::vector<std::pair<std::string, uint16_t>>& mapping, uint16_t tgId) const
 {
 	for (const auto& it : mapping) {
 		if (it.second == tgId)
@@ -1573,7 +1573,7 @@ std::string CData::find(const std::vector<std::pair<std::string, uint16_t>>& map
 	return NULL_CALLSIGN;
 }
 
-uint16_t CData::find(const std::vector<std::pair<uint16_t, std::string>>& mapping, const std::string& dest) const
+uint16_t CMetaData::find(const std::vector<std::pair<uint16_t, std::string>>& mapping, const std::string& dest) const
 {
 	for (const auto& it : mapping) {
 		if (it.second == dest)
@@ -1583,7 +1583,7 @@ uint16_t CData::find(const std::vector<std::pair<uint16_t, std::string>>& mappin
 	return NULL_ID16;
 }
 
-std::string CData::find(const std::vector<std::pair<uint16_t, std::string>>& mapping, uint16_t tgId) const
+std::string CMetaData::find(const std::vector<std::pair<uint16_t, std::string>>& mapping, uint16_t tgId) const
 {
 	for (const auto& it : mapping) {
 		if (it.first == tgId)
@@ -1594,7 +1594,7 @@ std::string CData::find(const std::vector<std::pair<uint16_t, std::string>>& map
 }
 
 // uint32_t <=> std::string
-uint32_t CData::find(const std::vector<std::pair<std::string, uint32_t>>& mapping, const std::string& dest) const
+uint32_t CMetaData::find(const std::vector<std::pair<std::string, uint32_t>>& mapping, const std::string& dest) const
 {
 	for (const auto& it : mapping) {
 		if (it.first == dest)
@@ -1604,7 +1604,7 @@ uint32_t CData::find(const std::vector<std::pair<std::string, uint32_t>>& mappin
 	return NULL_ID32;
 }
 
-std::string CData::find(const std::vector<std::pair<std::string, uint32_t>>& mapping, uint32_t tgId) const
+std::string CMetaData::find(const std::vector<std::pair<std::string, uint32_t>>& mapping, uint32_t tgId) const
 {
 	for (const auto& it : mapping) {
 		if (it.second == tgId)
@@ -1614,7 +1614,7 @@ std::string CData::find(const std::vector<std::pair<std::string, uint32_t>>& map
 	return NULL_CALLSIGN;
 }
 
-uint32_t CData::find(const std::vector<std::pair<uint32_t, std::string>>& mapping, const std::string& dest) const
+uint32_t CMetaData::find(const std::vector<std::pair<uint32_t, std::string>>& mapping, const std::string& dest) const
 {
 	for (const auto& it : mapping) {
 		if (it.second == dest)
@@ -1624,7 +1624,7 @@ uint32_t CData::find(const std::vector<std::pair<uint32_t, std::string>>& mappin
 	return NULL_ID32;
 }
 
-std::string CData::find(const std::vector<std::pair<uint32_t, std::string>>& mapping, uint32_t tgId) const
+std::string CMetaData::find(const std::vector<std::pair<uint32_t, std::string>>& mapping, uint32_t tgId) const
 {
 	for (const auto& it : mapping) {
 		if (it.first == tgId)
@@ -1635,7 +1635,7 @@ std::string CData::find(const std::vector<std::pair<uint32_t, std::string>>& map
 }
 
 // <uint8_t, uint32_t> <=> std::string
-std::pair<uint8_t, uint32_t> CData::find(const std::vector<std::tuple<std::string, uint8_t, uint32_t>>& mapping, const std::string& dest) const
+std::pair<uint8_t, uint32_t> CMetaData::find(const std::vector<std::tuple<std::string, uint8_t, uint32_t>>& mapping, const std::string& dest) const
 {
 	for (const auto& it : mapping) {
 		if (std::get<0>(it) == dest)
@@ -1645,7 +1645,7 @@ std::pair<uint8_t, uint32_t> CData::find(const std::vector<std::tuple<std::strin
 	return std::make_pair(NULL_SLOT, NULL_ID32);
 }
 
-std::string CData::find(const std::vector<std::tuple<std::string, uint8_t, uint32_t>>& mapping, uint8_t slot, uint32_t tgId) const
+std::string CMetaData::find(const std::vector<std::tuple<std::string, uint8_t, uint32_t>>& mapping, uint8_t slot, uint32_t tgId) const
 {
 	for (const auto& it : mapping) {
 		if ((std::get<1>(it) == slot) && (std::get<2>(it) == tgId))
@@ -1655,7 +1655,7 @@ std::string CData::find(const std::vector<std::tuple<std::string, uint8_t, uint3
 	return NULL_CALLSIGN;
 }
 
-std::string CData::find(const std::vector<std::tuple<uint8_t, uint32_t, std::string>>& mapping, uint8_t slot, uint32_t tgid) const
+std::string CMetaData::find(const std::vector<std::tuple<uint8_t, uint32_t, std::string>>& mapping, uint8_t slot, uint32_t tgid) const
 {
 	for (const auto& it : mapping) {
 		if ((std::get<0>(it) == slot) && (std::get<1>(it) == tgid))
@@ -1665,7 +1665,7 @@ std::string CData::find(const std::vector<std::tuple<uint8_t, uint32_t, std::str
 	return NULL_CALLSIGN;
 }
 
-std::pair<uint8_t, uint32_t> CData::find(const std::vector<std::tuple<uint8_t, uint32_t, std::string>>& mapping, const std::string& dest) const
+std::pair<uint8_t, uint32_t> CMetaData::find(const std::vector<std::tuple<uint8_t, uint32_t, std::string>>& mapping, const std::string& dest) const
 {
 	for (const auto& it : mapping) {
 		if (std::get<2>(it) == dest)
@@ -1676,7 +1676,7 @@ std::pair<uint8_t, uint32_t> CData::find(const std::vector<std::tuple<uint8_t, u
 }
 
 // <uint8_t, uint32_t> <=> uint16_t
-std::pair<uint8_t, uint32_t> CData::find(const std::vector<std::tuple<uint16_t, uint8_t, uint32_t>>& mapping, uint16_t tgId) const
+std::pair<uint8_t, uint32_t> CMetaData::find(const std::vector<std::tuple<uint16_t, uint8_t, uint32_t>>& mapping, uint16_t tgId) const
 {
 	for (const auto& it : mapping) {
 		if (std::get<0>(it) == tgId)
@@ -1686,7 +1686,7 @@ std::pair<uint8_t, uint32_t> CData::find(const std::vector<std::tuple<uint16_t, 
 	return std::make_pair(NULL_SLOT, NULL_ID32);
 }
 
-uint16_t CData::find(const std::vector<std::tuple<uint16_t, uint8_t, uint32_t>>& mapping, uint8_t slot, uint32_t tgId) const
+uint16_t CMetaData::find(const std::vector<std::tuple<uint16_t, uint8_t, uint32_t>>& mapping, uint8_t slot, uint32_t tgId) const
 {
 	for (const auto& it : mapping) {
 		if ((std::get<1>(it) == slot) && (std::get<2>(it) == tgId))
@@ -1696,7 +1696,7 @@ uint16_t CData::find(const std::vector<std::tuple<uint16_t, uint8_t, uint32_t>>&
 	return NULL_ID16;
 }
 
-uint16_t CData::find(const std::vector<std::tuple<uint8_t, uint32_t, uint16_t>>& mapping, uint8_t slot, uint32_t tgid) const
+uint16_t CMetaData::find(const std::vector<std::tuple<uint8_t, uint32_t, uint16_t>>& mapping, uint8_t slot, uint32_t tgid) const
 {
 	for (const auto& it : mapping) {
 		if ((std::get<0>(it) == slot) && (std::get<1>(it) == tgid))
@@ -1706,7 +1706,7 @@ uint16_t CData::find(const std::vector<std::tuple<uint8_t, uint32_t, uint16_t>>&
 	return NULL_ID16;
 }
 
-std::pair<uint8_t, uint32_t> CData::find(const std::vector<std::tuple<uint8_t, uint32_t, uint16_t>>& mapping, uint16_t tgId) const
+std::pair<uint8_t, uint32_t> CMetaData::find(const std::vector<std::tuple<uint8_t, uint32_t, uint16_t>>& mapping, uint16_t tgId) const
 {
 	for (const auto& it : mapping) {
 		if (std::get<2>(it) == tgId)
@@ -1717,7 +1717,7 @@ std::pair<uint8_t, uint32_t> CData::find(const std::vector<std::tuple<uint8_t, u
 }
 
 // <uint8_t, uint32_t> <=> uint32_t
-std::pair<uint8_t, uint32_t> CData::find(const std::vector<std::tuple<uint32_t, uint8_t, uint32_t>>& mapping, uint32_t tgId) const
+std::pair<uint8_t, uint32_t> CMetaData::find(const std::vector<std::tuple<uint32_t, uint8_t, uint32_t>>& mapping, uint32_t tgId) const
 {
 	for (const auto& it : mapping) {
 		if (std::get<0>(it) == tgId)
@@ -1727,7 +1727,7 @@ std::pair<uint8_t, uint32_t> CData::find(const std::vector<std::tuple<uint32_t, 
 	return std::make_pair(NULL_SLOT, NULL_ID32);
 }
 
-uint32_t CData::find(const std::vector<std::tuple<uint32_t, uint8_t, uint32_t>>& mapping, uint8_t slot, uint32_t tgId) const
+uint32_t CMetaData::find(const std::vector<std::tuple<uint32_t, uint8_t, uint32_t>>& mapping, uint8_t slot, uint32_t tgId) const
 {
 	for (const auto& it : mapping) {
 		if ((std::get<1>(it) == slot) && (std::get<2>(it) == tgId))
@@ -1737,7 +1737,7 @@ uint32_t CData::find(const std::vector<std::tuple<uint32_t, uint8_t, uint32_t>>&
 	return NULL_ID32;
 }
 
-uint32_t CData::find(const std::vector<std::tuple<uint8_t, uint32_t, uint32_t>>& mapping, uint8_t slot, uint32_t tgid) const
+uint32_t CMetaData::find(const std::vector<std::tuple<uint8_t, uint32_t, uint32_t>>& mapping, uint8_t slot, uint32_t tgid) const
 {
 	for (const auto& it : mapping) {
 		if ((std::get<0>(it) == slot) && (std::get<1>(it) == tgid))
@@ -1747,7 +1747,7 @@ uint32_t CData::find(const std::vector<std::tuple<uint8_t, uint32_t, uint32_t>>&
 	return NULL_ID32;
 }
 
-std::pair<uint8_t, uint32_t> CData::find(const std::vector<std::tuple<uint8_t, uint32_t, uint32_t>>& mapping, uint32_t tgId) const
+std::pair<uint8_t, uint32_t> CMetaData::find(const std::vector<std::tuple<uint8_t, uint32_t, uint32_t>>& mapping, uint32_t tgId) const
 {
 	for (const auto& it : mapping) {
 		if (std::get<2>(it) == tgId)
@@ -1758,7 +1758,7 @@ std::pair<uint8_t, uint32_t> CData::find(const std::vector<std::tuple<uint8_t, u
 }
 
 // uint8_t <=> uint16_t
-uint8_t CData::find(const std::vector<std::pair<uint8_t, uint16_t>>& mapping, uint16_t tgId) const
+uint8_t CMetaData::find(const std::vector<std::pair<uint8_t, uint16_t>>& mapping, uint16_t tgId) const
 {
 	for (const auto& it : mapping) {
 		if (it.second == tgId)
@@ -1768,7 +1768,7 @@ uint8_t CData::find(const std::vector<std::pair<uint8_t, uint16_t>>& mapping, ui
 	return NULL_DGID;
 }
 
-uint16_t CData::find(const std::vector<std::pair<uint8_t, uint16_t>>& mapping, uint8_t dgId) const
+uint16_t CMetaData::find(const std::vector<std::pair<uint8_t, uint16_t>>& mapping, uint8_t dgId) const
 {
 	for (const auto& it : mapping) {
 		if (it.first == dgId)
@@ -1778,7 +1778,7 @@ uint16_t CData::find(const std::vector<std::pair<uint8_t, uint16_t>>& mapping, u
 	return NULL_ID16;
 }
 
-uint8_t CData::find(const std::vector<std::pair<uint16_t, uint8_t>>& mapping, uint16_t tgId) const
+uint8_t CMetaData::find(const std::vector<std::pair<uint16_t, uint8_t>>& mapping, uint16_t tgId) const
 {
 	for (const auto& it : mapping) {
 		if (it.first == tgId)
@@ -1788,7 +1788,7 @@ uint8_t CData::find(const std::vector<std::pair<uint16_t, uint8_t>>& mapping, ui
 	return NULL_DGID;
 }
 
-uint16_t CData::find(const std::vector<std::pair<uint16_t, uint8_t>>& mapping, uint8_t dgId) const
+uint16_t CMetaData::find(const std::vector<std::pair<uint16_t, uint8_t>>& mapping, uint8_t dgId) const
 {
 	for (const auto& it : mapping) {
 		if (it.second == dgId)
@@ -1799,7 +1799,7 @@ uint16_t CData::find(const std::vector<std::pair<uint16_t, uint8_t>>& mapping, u
 }
 
 // uint32_t <=> uint16_t
-uint32_t CData::find(const std::vector<std::pair<uint32_t, uint16_t>>& mapping, uint16_t tgId) const
+uint32_t CMetaData::find(const std::vector<std::pair<uint32_t, uint16_t>>& mapping, uint16_t tgId) const
 {
 	for (const auto& it : mapping) {
 		if (it.second == tgId)
@@ -1809,7 +1809,7 @@ uint32_t CData::find(const std::vector<std::pair<uint32_t, uint16_t>>& mapping, 
 	return NULL_ID32;
 }
 
-uint16_t CData::find(const std::vector<std::pair<uint32_t, uint16_t>>& mapping, uint32_t tgId) const
+uint16_t CMetaData::find(const std::vector<std::pair<uint32_t, uint16_t>>& mapping, uint32_t tgId) const
 {
 	for (const auto& it : mapping) {
 		if (it.first == tgId)
@@ -1819,7 +1819,7 @@ uint16_t CData::find(const std::vector<std::pair<uint32_t, uint16_t>>& mapping, 
 	return NULL_ID16;
 }
 
-uint32_t CData::find(const std::vector<std::pair<uint16_t, uint32_t>>& mapping, uint16_t tgId) const
+uint32_t CMetaData::find(const std::vector<std::pair<uint16_t, uint32_t>>& mapping, uint16_t tgId) const
 {
 	for (const auto& it : mapping) {
 		if (it.first == tgId)
@@ -1829,7 +1829,7 @@ uint32_t CData::find(const std::vector<std::pair<uint16_t, uint32_t>>& mapping, 
 	return NULL_ID32;
 }
 
-uint16_t CData::find(const std::vector<std::pair<uint16_t, uint32_t>>& mapping, uint32_t tgId) const
+uint16_t CMetaData::find(const std::vector<std::pair<uint16_t, uint32_t>>& mapping, uint32_t tgId) const
 {
 	for (const auto& it : mapping) {
 		if (it.second == tgId)
@@ -1840,7 +1840,7 @@ uint16_t CData::find(const std::vector<std::pair<uint16_t, uint32_t>>& mapping, 
 }
 
 // uint32_t <=> uint8_t
-uint32_t CData::find(const std::vector<std::pair<uint32_t, uint8_t>>& mapping, uint8_t dgId) const
+uint32_t CMetaData::find(const std::vector<std::pair<uint32_t, uint8_t>>& mapping, uint8_t dgId) const
 {
 	for (const auto& it : mapping) {
 		if (it.second == dgId)
@@ -1850,7 +1850,7 @@ uint32_t CData::find(const std::vector<std::pair<uint32_t, uint8_t>>& mapping, u
 	return NULL_ID32;
 }
 
-uint8_t CData::find(const std::vector<std::pair<uint32_t, uint8_t>>& mapping, uint32_t tgId) const
+uint8_t CMetaData::find(const std::vector<std::pair<uint32_t, uint8_t>>& mapping, uint32_t tgId) const
 {
 	for (const auto& it : mapping) {
 		if (it.first == tgId)
@@ -1860,7 +1860,7 @@ uint8_t CData::find(const std::vector<std::pair<uint32_t, uint8_t>>& mapping, ui
 	return NULL_DGID;
 }
 
-uint32_t CData::find(const std::vector<std::pair<uint8_t, uint32_t>>& mapping, uint8_t dgId) const
+uint32_t CMetaData::find(const std::vector<std::pair<uint8_t, uint32_t>>& mapping, uint8_t dgId) const
 {
 	for (const auto& it : mapping) {
 		if (it.first == dgId)
@@ -1870,7 +1870,7 @@ uint32_t CData::find(const std::vector<std::pair<uint8_t, uint32_t>>& mapping, u
 	return NULL_ID32;
 }
 
-uint8_t CData::find(const std::vector<std::pair<uint8_t, uint32_t>>& mapping, uint32_t tgId) const
+uint8_t CMetaData::find(const std::vector<std::pair<uint8_t, uint32_t>>& mapping, uint32_t tgId) const
 {
 	for (const auto& it : mapping) {
 		if (it.second == tgId)
@@ -1881,7 +1881,7 @@ uint8_t CData::find(const std::vector<std::pair<uint8_t, uint32_t>>& mapping, ui
 }
 
 // <uint8_t, uint32_t> <=> uint32_t
-uint8_t CData::find(const std::vector<std::tuple<uint8_t, uint8_t, uint32_t>>& mapping, uint8_t slot, uint32_t tgId) const
+uint8_t CMetaData::find(const std::vector<std::tuple<uint8_t, uint8_t, uint32_t>>& mapping, uint8_t slot, uint32_t tgId) const
 {
 	for (const auto& it : mapping) {
 		if ((std::get<1>(it) == slot) && (std::get<2>(it) == tgId))
@@ -1891,7 +1891,7 @@ uint8_t CData::find(const std::vector<std::tuple<uint8_t, uint8_t, uint32_t>>& m
 	return NULL_DGID;
 }
 
-std::pair<uint8_t, uint32_t> CData::find(const std::vector<std::tuple<uint8_t, uint8_t, uint32_t>>& mapping, uint8_t dgId) const
+std::pair<uint8_t, uint32_t> CMetaData::find(const std::vector<std::tuple<uint8_t, uint8_t, uint32_t>>& mapping, uint8_t dgId) const
 {
 	for (const auto& it : mapping) {
 		if (std::get<0>(it) == dgId)
@@ -1902,7 +1902,7 @@ std::pair<uint8_t, uint32_t> CData::find(const std::vector<std::tuple<uint8_t, u
 }
 
 // <uint8_t, uint32_t> <=> uint8_t
-uint8_t CData::find(const std::vector<std::tuple<uint8_t, uint32_t, uint8_t>>& mapping, uint8_t slot, uint32_t tgid) const
+uint8_t CMetaData::find(const std::vector<std::tuple<uint8_t, uint32_t, uint8_t>>& mapping, uint8_t slot, uint32_t tgid) const
 {
 	for (const auto& it : mapping) {
 		if ((std::get<0>(it) == slot) && (std::get<1>(it) == tgid))
@@ -1912,7 +1912,7 @@ uint8_t CData::find(const std::vector<std::tuple<uint8_t, uint32_t, uint8_t>>& m
 	return NULL_DGID;
 }
 
-std::pair<uint8_t, uint32_t> CData::find(const std::vector<std::tuple<uint8_t, uint32_t, uint8_t>>& mapping, uint8_t dgId) const
+std::pair<uint8_t, uint32_t> CMetaData::find(const std::vector<std::tuple<uint8_t, uint32_t, uint8_t>>& mapping, uint8_t dgId) const
 {
 	for (const auto& it : mapping) {
 		if (std::get<2>(it) == dgId)
@@ -1922,7 +1922,7 @@ std::pair<uint8_t, uint32_t> CData::find(const std::vector<std::tuple<uint8_t, u
 	return std::make_pair(NULL_SLOT, NULL_ID32);
 }
 
-std::string CData::bytesToString(const uint8_t* str, size_t length) const
+std::string CMetaData::bytesToString(const uint8_t* str, size_t length) const
 {
 	assert(str != nullptr);
 
@@ -1938,7 +1938,7 @@ std::string CData::bytesToString(const uint8_t* str, size_t length) const
 	return callsign;
 }
 
-void CData::stringToBytes(uint8_t* str, size_t length, const std::string& callsign) const
+void CMetaData::stringToBytes(uint8_t* str, size_t length, const std::string& callsign) const
 {
 	assert(str != nullptr);
 
@@ -1952,7 +1952,7 @@ void CData::stringToBytes(uint8_t* str, size_t length, const std::string& callsi
 		str[i] = callsign[i];
 }
 
-void CData::writeJSONStatus(DATA_MODE fromMode, DATA_MODE toMode, uint32_t fromId, uint32_t toId, bool fromGroup, bool toGroup, const std::string& fromCS, const std::string& toCS, uint8_t fromSlot, uint8_t toSlot)
+void CMetaData::writeJSONStatus(DATA_MODE fromMode, DATA_MODE toMode, uint32_t fromId, uint32_t toId, bool fromGroup, bool toGroup, const std::string& fromCS, const std::string& toCS, uint8_t fromSlot, uint8_t toSlot)
 {
 	nlohmann::json json;
 

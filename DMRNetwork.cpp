@@ -106,7 +106,7 @@ bool CDMRNetwork::open()
 	return true;
 }
 
-bool CDMRNetwork::writeRaw(CData& data)
+bool CDMRNetwork::writeRaw(CMetaData& data)
 {
 	if (m_addrLen == 0U)
 		return false;
@@ -127,7 +127,7 @@ bool CDMRNetwork::writeRaw(CData& data)
 	return m_socket.write(buffer, length, m_addr, m_addrLen);
 }
 
-bool CDMRNetwork::read(CData& data)
+bool CDMRNetwork::read(CMetaData& data)
 {
 	switch (m_audioCount) {
 	case 1U:
@@ -211,7 +211,7 @@ bool CDMRNetwork::read()
 	return true;
 }
 
-bool CDMRNetwork::writeData(CData& data)
+bool CDMRNetwork::writeData(CMetaData& data)
 {
 	if (m_addrLen == 0U)
 		return false;
@@ -269,7 +269,7 @@ bool CDMRNetwork::writeData(CData& data)
 	}
 }
 
-bool CDMRNetwork::writeHeader(CData& data)
+bool CDMRNetwork::writeHeader(CMetaData& data)
 {
 	NETWORK network = NETWORK::FROM;
 	uint8_t slot = 0U;
@@ -332,7 +332,7 @@ bool CDMRNetwork::writeHeader(CData& data)
 	return m_socket.write(buffer, HOMEBREW_DATA_PACKET_LENGTH, m_addr, m_addrLen);
 }
 
-bool CDMRNetwork::writeAudio(CData& data)
+bool CDMRNetwork::writeAudio(CMetaData& data)
 {
 	NETWORK network = NETWORK::FROM;
 	uint8_t slot = 0U;
@@ -438,7 +438,7 @@ bool CDMRNetwork::writeAudio(CData& data)
 	return m_socket.write(buffer, HOMEBREW_DATA_PACKET_LENGTH, m_addr, m_addrLen);
 }
 
-bool CDMRNetwork::writeTrailer(CData& data)
+bool CDMRNetwork::writeTrailer(CMetaData& data)
 {
 	NETWORK network = NETWORK::FROM;
 	uint8_t slot = 0U;

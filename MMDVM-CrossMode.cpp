@@ -231,7 +231,7 @@ int CMMDVMCrossMode::run()
 	if (!ret)
 		return 1;
 
-	CData data(m_conf.getCallsign(), m_conf.getDMRId(), m_conf.getNXDNId(), m_conf.getTranscoderDebug());
+	CMetaData data(m_conf.getCallsign(), m_conf.getDMRId(), m_conf.getNXDNId(), m_conf.getTranscoderDebug());
 
 	std::string protocol = m_conf.getTranscoderProtocol();
 	if (protocol == "uart") {
@@ -498,7 +498,7 @@ bool CMMDVMCrossMode::createFromNetwork(DATA_MODE mode)
 	return true;
 }
 
-bool CMMDVMCrossMode::createToNetworks(DATA_MODE fromMode, CData& data)
+bool CMMDVMCrossMode::createToNetworks(DATA_MODE fromMode, CMetaData& data)
 {
 	closeToNetworks();
 
@@ -708,7 +708,7 @@ DATA_MODE CMMDVMCrossMode::hasToNetworkGotData() const
 	return DATA_MODE::NONE;
 }
 
-bool CMMDVMCrossMode::readToNetwork(DATA_MODE mode, CData& data)
+bool CMMDVMCrossMode::readToNetwork(DATA_MODE mode, CMetaData& data)
 {
 	bool ret = false;
 
@@ -722,7 +722,7 @@ bool CMMDVMCrossMode::readToNetwork(DATA_MODE mode, CData& data)
 	return ret;
 }
 
-bool CMMDVMCrossMode::writeToNetworkData(DATA_MODE mode, CData& data)
+bool CMMDVMCrossMode::writeToNetworkData(DATA_MODE mode, CMetaData& data)
 {
 	const auto& it = m_toNetworks.find(mode);
 	if (it == m_toNetworks.end())
@@ -731,7 +731,7 @@ bool CMMDVMCrossMode::writeToNetworkData(DATA_MODE mode, CData& data)
 	return it->second->writeData(data);
 }
 
-bool CMMDVMCrossMode::writeToNetworkRaw(DATA_MODE mode, CData& data)
+bool CMMDVMCrossMode::writeToNetworkRaw(DATA_MODE mode, CMetaData& data)
 {
 	const auto& it = m_toNetworks.find(mode);
 	if (it == m_toNetworks.end())
@@ -793,7 +793,7 @@ DATA_MODE CMMDVMCrossMode::getFromMode() const
 		return DATA_MODE::NONE;
 }
 
-void CMMDVMCrossMode::loadModeTranslationTables(DATA_MODE fromMode, CData& data)
+void CMMDVMCrossMode::loadModeTranslationTables(DATA_MODE fromMode, CMetaData& data)
 {
 	if (fromMode == DATA_MODE::DSTAR) {
 		if (m_conf.getDStarDMREnable())
@@ -861,7 +861,7 @@ void CMMDVMCrossMode::loadModeTranslationTables(DATA_MODE fromMode, CData& data)
 	}
 }
 
-bool CMMDVMCrossMode::loadIdLookupTables(CData& data)
+bool CMMDVMCrossMode::loadIdLookupTables(CMetaData& data)
 {
 	std::string dmrFileName  = m_conf.getDMRLookupFile();
 	std::string nxdnFileName = m_conf.getNXDNLookupFile();

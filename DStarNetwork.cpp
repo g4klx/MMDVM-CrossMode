@@ -117,7 +117,7 @@ bool CDStarNetwork::open()
 	return m_socket.open(m_addr);
 }
 
-bool CDStarNetwork::writeRaw(CData& data)
+bool CDStarNetwork::writeRaw(CMetaData& data)
 {
 	if (m_addrLen == 0U)
 		return false;
@@ -138,7 +138,7 @@ bool CDStarNetwork::writeRaw(CData& data)
 	return m_socket.write(buffer, length, m_addr, m_addrLen);
 }
 
-bool CDStarNetwork::writeData(CData& data)
+bool CDStarNetwork::writeData(CMetaData& data)
 {
 	if (m_addrLen == 0U)
 		return false;
@@ -164,7 +164,7 @@ bool CDStarNetwork::writeData(CData& data)
 	return true;
 }
 
-bool CDStarNetwork::writeHeader(const CData& data)
+bool CDStarNetwork::writeHeader(const CMetaData& data)
 {
 	createHeader(data);
 
@@ -200,7 +200,7 @@ bool CDStarNetwork::writeHeader(const CData& data)
 	return m_socket.write(buffer, 49U, m_addr, m_addrLen);
 }
 
-bool CDStarNetwork::writeBody(CData& data)
+bool CDStarNetwork::writeBody(CMetaData& data)
 {
 	uint8_t buffer[30U];
 
@@ -233,7 +233,7 @@ bool CDStarNetwork::writeBody(CData& data)
 	return m_socket.write(buffer, length, m_addr, m_addrLen);
 }
 
-bool CDStarNetwork::writeTrailer(CData& data)
+bool CDStarNetwork::writeTrailer(CMetaData& data)
 {
 	uint8_t buffer[30U];
 
@@ -345,7 +345,7 @@ void CDStarNetwork::clock(unsigned int ms)
 	m_buffer.add(buffer, len);
 }
 
-bool CDStarNetwork::read(CData& data)
+bool CDStarNetwork::read(CMetaData& data)
 {
 	if (m_buffer.empty())
 		return false;
@@ -451,7 +451,7 @@ void CDStarNetwork::close()
 		LogMessage("Closing the D-Star TO network");
 }
 
-void CDStarNetwork::createHeader(const CData& data)
+void CDStarNetwork::createHeader(const CMetaData& data)
 {
 	::memset(m_header, ' ', DSTAR_HEADER_LENGTH_BYTES);
 

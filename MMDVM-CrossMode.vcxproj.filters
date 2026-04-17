@@ -47,7 +47,7 @@
     <ClInclude Include="Version.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Data.h">
+    <ClInclude Include="MetaData.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DStarNetwork.h">
@@ -175,7 +175,7 @@
     <ClCompile Include="Utils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Data.cpp">
+    <ClCompile Include="MetaData.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="DStarNetwork.cpp">

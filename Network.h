@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2024 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2024,2026 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 #if !defined(Network_H)
 #define	Network_H
 
-#include "Data.h"
+#include "MetaData.h"
 
 class INetwork {
 public:
@@ -27,10 +27,10 @@ public:
 
 	virtual bool open() = 0;
 
-	virtual bool writeRaw(CData& data) = 0;
-	virtual bool writeData(CData& data) = 0;
+	virtual bool writeRaw(CMetaData& data) = 0;
+	virtual bool writeData(CMetaData& data) = 0;
 
-	virtual bool read(CData& data) = 0;
+	virtual bool read(CMetaData& data) = 0;
 	virtual bool read() = 0;
 
 	virtual bool hasData() = 0;

@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2015,2016,2017,2018,2020,2021,2024 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2015,2016,2017,2018,2020,2021,2024,2026 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -25,7 +25,7 @@
 #include "Timer.h"
 #include "RingBuffer.h"
 #include "DMRLC.h"
-#include "Data.h"
+#include "MetaData.h"
 
 #include <string>
 #include <cstdint>
@@ -39,10 +39,10 @@ public:
 
 	virtual bool open();
 
-	virtual bool writeRaw(CData& data);
-	virtual bool writeData(CData& data);
+	virtual bool writeRaw(CMetaData& data);
+	virtual bool writeData(CMetaData& data);
 
-	virtual bool read(CData& data);
+	virtual bool read(CMetaData& data);
 	virtual bool read();
 
 	virtual bool hasData();
@@ -71,9 +71,9 @@ private:
 	uint16_t         m_seqNo;
 	uint8_t          m_N;
 
-	bool writeHeader(CData& data);
-	bool writeAudio(CData& data);
-	bool writeTrailer(CData& data);
+	bool writeHeader(CMetaData& data);
+	bool writeAudio(CMetaData& data);
+	bool writeTrailer(CMetaData& data);
 	bool writePing();
 };
 

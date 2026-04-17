@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2009-2014,2016,2020,2021,2024 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2009-2014,2016,2020,2021,2024,2026 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -36,10 +36,10 @@ public:
 
 	virtual bool open();
 
-	virtual bool writeRaw(CData& data);
-	virtual bool writeData(CData& data);
+	virtual bool writeRaw(CMetaData& data);
+	virtual bool writeData(CMetaData& data);
 
-	virtual bool read(CData& data);
+	virtual bool read(CMetaData& data);
 	virtual bool read();
 
 	virtual bool hasData();
@@ -65,10 +65,10 @@ private:
 	uint8_t          m_audioCount;
 	uint8_t          m_fn;
 
-	bool writeHeader(CData& data);
-	bool writeCommunication(CData& data);
-	bool writeTerminator(CData& data);
-	void processHeader(const uint8_t* buffer, CData& data, uint8_t dgId);
+	bool writeHeader(CMetaData& data);
+	bool writeCommunication(CMetaData& data);
+	bool writeTerminator(CMetaData& data);
+	void processHeader(const uint8_t* buffer, CMetaData& data, uint8_t dgId);
 	bool writePoll();
 };
 

@@ -19,9 +19,9 @@
 #if !defined(MMDVM_CrossMode_H)
 #define	MMDVM_CrossMode_H
 
+#include "MetaData.h"
 #include "Network.h"
 #include "Defines.h"
-#include "Data.h"
 #include "Conf.h"
 
 #include <string>
@@ -43,19 +43,19 @@ private:
 
 	bool createFromNetwork(DATA_MODE mode);
 
-	bool createToNetworks(DATA_MODE fromMode, CData& data);
+	bool createToNetworks(DATA_MODE fromMode, CMetaData& data);
 	DATA_MODE hasToNetworkGotData() const;
-	bool readToNetwork(DATA_MODE mode, CData& data);
-	bool writeToNetworkData(DATA_MODE mode, CData& data);
-	bool writeToNetworkRaw(DATA_MODE mode, CData& data);
+	bool readToNetwork(DATA_MODE mode, CMetaData& data);
+	bool writeToNetworkData(DATA_MODE mode, CMetaData& data);
+	bool writeToNetworkRaw(DATA_MODE mode, CMetaData& data);
 	void drainFromNetwork();
 	void drainToNetworks();
 	void resetToNetworks();
 	void clockToNetworks(unsigned int ms);
 	void closeToNetworks();
 
-	bool loadIdLookupTables(CData& data);
-	void loadModeTranslationTables(DATA_MODE fromMode, CData& data);
+	bool loadIdLookupTables(CMetaData& data);
+	void loadModeTranslationTables(DATA_MODE fromMode, CMetaData& data);
 
 	void writeJSONMessage(const std::string& message);
 };

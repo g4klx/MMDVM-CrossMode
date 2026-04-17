@@ -81,7 +81,7 @@ bool CNXDNNetwork::open()
 	return m_socket.open(m_addr);
 }
 
-bool CNXDNNetwork::writeRaw(CData& data)
+bool CNXDNNetwork::writeRaw(CMetaData& data)
 {
 	if (m_addrLen == 0U)
 		return false;
@@ -102,7 +102,7 @@ bool CNXDNNetwork::writeRaw(CData& data)
 	return m_socket.write(buffer, length, m_addr, m_addrLen);
 }
 
-bool CNXDNNetwork::writeData(CData& data)
+bool CNXDNNetwork::writeData(CMetaData& data)
 {
 	if (m_addrLen == 0U)
 		return false;
@@ -150,7 +150,7 @@ bool CNXDNNetwork::writeData(CData& data)
 	}
 }
 
-bool CNXDNNetwork::writeHeader(CData& data)
+bool CNXDNNetwork::writeHeader(CMetaData& data)
 {
 	uint8_t buffer[110U];
 	::memset(buffer, 0x00U, 110U);
@@ -200,7 +200,7 @@ bool CNXDNNetwork::writeHeader(CData& data)
 	return m_socket.write(buffer, 102U, m_addr, m_addrLen);
 }
 
-bool CNXDNNetwork::writeBody(CData& data)
+bool CNXDNNetwork::writeBody(CMetaData& data)
 {
 	uint8_t buffer[110U];
 	::memset(buffer, 0x00U, 110U);
@@ -281,7 +281,7 @@ bool CNXDNNetwork::writeBody(CData& data)
 	return m_socket.write(buffer, 102U, m_addr, m_addrLen);
 }
 
-bool CNXDNNetwork::writeTrailer(CData& data)
+bool CNXDNNetwork::writeTrailer(CMetaData& data)
 {
 	uint8_t buffer[110U];
 	::memset(buffer, 0x00U, 110U);
@@ -366,7 +366,7 @@ void CNXDNNetwork::clock(unsigned int ms)
 	m_buffer.add(buffer, length);
 }
 
-bool CNXDNNetwork::read(CData& data)
+bool CNXDNNetwork::read(CMetaData& data)
 {
 	switch (m_audioCount) {
 	case 1U:

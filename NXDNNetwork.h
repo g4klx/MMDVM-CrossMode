@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2009-2014,2016,2018,2020,2024 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2009-2014,2016,2018,2020,2024,2026 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -34,10 +34,10 @@ public:
 
 	virtual bool open();
 
-	virtual bool writeRaw(CData& data);
-	virtual bool writeData(CData& data);
+	virtual bool writeRaw(CMetaData& data);
+	virtual bool writeData(CMetaData& data);
 
-	virtual bool read(CData& data);
+	virtual bool read(CMetaData& data);
 	virtual bool read();
 
 	virtual bool hasData();
@@ -60,9 +60,9 @@ private:
 	uint8_t          m_audioCount;
 	uint8_t          m_maxAudio;
 
-	bool writeHeader(CData& data);
-	bool writeBody(CData& data);
-	bool writeTrailer(CData& data);
+	bool writeHeader(CMetaData& data);
+	bool writeBody(CMetaData& data);
+	bool writeTrailer(CMetaData& data);
 };
 
 #endif

@@ -83,7 +83,7 @@ bool CYSFNetwork::open()
 	return m_socket.open(m_addr);
 }
 
-bool CYSFNetwork::writeRaw(CData& data)
+bool CYSFNetwork::writeRaw(CMetaData& data)
 {
 	if (m_addrLen == 0U)
 		return false;
@@ -104,7 +104,7 @@ bool CYSFNetwork::writeRaw(CData& data)
 	return m_socket.write(buffer, length, m_addr, m_addrLen);
 }
 
-bool CYSFNetwork::writeData(CData& data)
+bool CYSFNetwork::writeData(CMetaData& data)
 {
 	if (m_addrLen == 0U)
 		return false;
@@ -182,7 +182,7 @@ bool CYSFNetwork::writeData(CData& data)
 	}
 }
 
-bool CYSFNetwork::writeHeader(CData& data)
+bool CYSFNetwork::writeHeader(CMetaData& data)
 {
 	uint8_t buffer[200U];
 
@@ -237,7 +237,7 @@ bool CYSFNetwork::writeHeader(CData& data)
 	return m_socket.write(buffer, 155U, m_addr, m_addrLen);
 }
 
-bool CYSFNetwork::writeCommunication(CData& data)
+bool CYSFNetwork::writeCommunication(CMetaData& data)
 {
 	uint8_t buffer[200U];
 
@@ -315,7 +315,7 @@ bool CYSFNetwork::writeCommunication(CData& data)
 	return m_socket.write(buffer, 155U, m_addr, m_addrLen);
 }
 
-bool CYSFNetwork::writeTerminator(CData& data)
+bool CYSFNetwork::writeTerminator(CMetaData& data)
 {
 	uint8_t buffer[200U];
 
@@ -437,7 +437,7 @@ void CYSFNetwork::clock(unsigned int ms)
 	m_buffer.add(buffer, 155U);
 }
 
-bool CYSFNetwork::read(CData& data)
+bool CYSFNetwork::read(CMetaData& data)
 {
 	switch (m_audioCount) {
 	case 1U:
@@ -510,7 +510,7 @@ bool CYSFNetwork::read()
 	return true;
 }
 
-void CYSFNetwork::processHeader(const uint8_t* buffer, CData& data, uint8_t dgId)
+void CYSFNetwork::processHeader(const uint8_t* buffer, CMetaData& data, uint8_t dgId)
 {
 	assert(buffer != nullptr);
 

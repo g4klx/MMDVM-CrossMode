@@ -69,7 +69,7 @@ bool CFMNetwork::open()
 	return m_socket.open(m_addr);
 }
 
-bool CFMNetwork::writeRaw(CData& data)
+bool CFMNetwork::writeRaw(CMetaData& data)
 {
 	if (m_addrLen == 0U)
 		return false;
@@ -90,7 +90,7 @@ bool CFMNetwork::writeRaw(CData& data)
 	return m_socket.write(buffer, length, m_addr, m_addrLen);
 }
 
-bool CFMNetwork::writeData(CData& data)
+bool CFMNetwork::writeData(CMetaData& data)
 {
 	if (m_addrLen == 0U)
 		return false;
@@ -160,7 +160,7 @@ void CFMNetwork::clock(unsigned int ms)
 	m_buffer.add(buffer, len);
 }
 
-bool CFMNetwork::read(CData& data)
+bool CFMNetwork::read(CMetaData& data)
 {
 	if (m_buffer.empty())
 		return false;
@@ -220,7 +220,7 @@ void CFMNetwork::close()
 		LogMessage("Closing the FM TO network");
 }
 
-bool CFMNetwork::writeStart(CData& data)
+bool CFMNetwork::writeStart(CMetaData& data)
 {
 	uint8_t buffer[20U];
 	::memset(buffer, 0x00U, 20U);

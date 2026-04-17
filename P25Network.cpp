@@ -70,7 +70,7 @@ bool CP25Network::open()
 	return m_socket.open(m_addr);
 }
 
-bool CP25Network::writeRaw(CData& data)
+bool CP25Network::writeRaw(CMetaData& data)
 {
 	if (m_addrLen == 0U)
 		return false;
@@ -91,7 +91,7 @@ bool CP25Network::writeRaw(CData& data)
 	return m_socket.write(buffer, length, m_addr, m_addrLen);
 }
 
-bool CP25Network::writeData(CData& data)
+bool CP25Network::writeData(CMetaData& data)
 {
 	if (m_addrLen == 0U)
 		return false;
@@ -316,7 +316,7 @@ void CP25Network::clock(unsigned int ms)
 	m_buffer.add(buffer, length);
 }
 
-bool CP25Network::read(CData& data)
+bool CP25Network::read(CMetaData& data)
 {
 	if (m_buffer.empty())
 		return false;
