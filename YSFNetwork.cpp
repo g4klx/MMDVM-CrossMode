@@ -471,9 +471,19 @@ bool CYSFNetwork::read(CMetaData& data)
 	CYSFFICH fich;
 	fich.decode(buffer + 35U);
 
-	if (fich.getDT() != YSF_DT_VD_MODE2) {
-		LogMessage("Not VD_MODE2, DT = 0x%X", fich.getDT());
-		return true;
+	switch (fich.getDT()) {
+		case YSF_DT_VD_MODE1:
+			CUtils::dump(2U, "DT_VD_MODE1", buffer, 155U);
+			return false;
+		case YSF_DT_DATA_FR_MODE:
+			CUtils::dump(2U, "DT_DATA_FR_MODE", buffer, 155U);
+			return false;
+		case YSF_DT_VD_MODE2:
+			// We can handle this
+			break;
+		default:
+			CUtils::dump(2U, "DT_VOICE_FR_MODE", buffer, 155U);
+			return false;
 	}
 
 	switch (fich.getFI()) {
