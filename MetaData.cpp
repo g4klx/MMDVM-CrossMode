@@ -455,7 +455,7 @@ void CMetaData::setDStar(NETWORK network, const uint8_t* source, const uint8_t* 
 			if (slotTG.second != NULL_ID32) {
 				uint32_t srcId = m_dmrLookup.lookup(srcCallsign);
 				if (srcId != NULL_ID32) {
-					LogDebug("D-Star <= DMR, %s>%s -> %u>%u:TG%u", srcCallsign.c_str(), dstCallsign.c_str(), srcId, slotTG.first, slotTG.second);
+					LogDebug("DMR <= D-Star, %u>%u:TG%u <- %s>%s", srcId, slotTG.first, slotTG.second, srcCallsign.c_str(), dstCallsign.c_str());
 
 					m_slot   = slotTG.first;
 					m_srcId  = srcId;
@@ -469,7 +469,7 @@ void CMetaData::setDStar(NETWORK network, const uint8_t* source, const uint8_t* 
 		if (m_fromMode == DATA_MODE::YSF) {
 			uint8_t dgId = find(m_ysfDStarDGIds, dstCallsign);
 			if (dgId != NULL_DGID) {
-				LogDebug("D-Star <= YSF, %s>%s -> %s>%u", srcCallsign.c_str(), dstCallsign.c_str(), srcCallsign.c_str(), dgId);
+				LogDebug("YSF <= D-Star, %s>%u <- %s>%s", srcCallsign.c_str(), dgId, srcCallsign.c_str(), dstCallsign.c_str());
 
 				m_srcCallsign = srcCallsign;
 				m_dgId        = dgId;
@@ -482,7 +482,7 @@ void CMetaData::setDStar(NETWORK network, const uint8_t* source, const uint8_t* 
 			if (tg != NULL_ID32) {
 				uint32_t id = m_dmrLookup.lookup(srcCallsign);
 				if (id != NULL_ID32) {
-					LogDebug("D-Star <= P25, %s>%s -> %u>TG%u", srcCallsign.c_str(), dstCallsign.c_str(), id, tg);
+					LogDebug("P25 <= D-Star, %u>TG%u <- %s>%s", id, tg, srcCallsign.c_str(), dstCallsign.c_str());
 
 					m_srcId  = id;
 					m_dstId  = tg;
@@ -497,7 +497,7 @@ void CMetaData::setDStar(NETWORK network, const uint8_t* source, const uint8_t* 
 			if (tg != NULL_ID16) {
 				uint16_t id = m_nxdnLookup.lookup(srcCallsign);
 				if (id != NULL_ID16) {
-					LogDebug("D-Star <= NXDN, %s>%s -> %u>TG%u", srcCallsign.c_str(), dstCallsign.c_str(), id, tg);
+					LogDebug("NXDN <= D-Star, %u>TG%u <- %s>%s", id, tg, srcCallsign.c_str(), dstCallsign.c_str());
 
 					m_srcId  = id;
 					m_dstId  = tg;
@@ -509,7 +509,7 @@ void CMetaData::setDStar(NETWORK network, const uint8_t* source, const uint8_t* 
 
 		else if (m_fromMode == DATA_MODE::FM) {
 			if (dstCallsign == m_dstarFMDest) {
-				LogDebug("D-Star <= FM, -> %s>%s", srcCallsign.c_str(), dstCallsign.c_str());
+				LogDebug("FM <= D-Star, <- %s>%s", srcCallsign.c_str(), dstCallsign.c_str());
 
 				m_toMode = DATA_MODE::DSTAR;
 			}
@@ -517,7 +517,7 @@ void CMetaData::setDStar(NETWORK network, const uint8_t* source, const uint8_t* 
 
 		else if (m_fromMode == DATA_MODE::DSTAR) {
 			if (m_toDStar) {
-				LogDebug("D-Star <= D-Star, %s>%s -> %s>%s", srcCallsign.c_str(), dstCallsign.c_str(), srcCallsign.c_str(), dstCallsign.c_str());
+				LogDebug("D-Star <= D-Star, %s>%s <- %s>%s", srcCallsign.c_str(), dstCallsign.c_str(), srcCallsign.c_str(), dstCallsign.c_str());
 
 				m_srcCallsign = srcCallsign;
 				m_dstCallsign = dstCallsign;
@@ -646,7 +646,7 @@ void CMetaData::setDMR(NETWORK network, uint8_t slot, uint32_t source, uint32_t 
 				if (src == NULL_CALLSIGN)
 					return;
 
-				LogDebug("DMR <= D-Star, %u>%u:TG%u -> %s>%s", source, slot, destination, src.c_str(), dest.c_str());
+				LogDebug("D-Star <= DMR, %s>%s <- %u>%u:TG%u", src.c_str(), dest.c_str(), source, slot, destination);
 
 				m_srcCallsign = src;
 				m_dstCallsign = dest;
@@ -661,7 +661,7 @@ void CMetaData::setDMR(NETWORK network, uint8_t slot, uint32_t source, uint32_t 
 				if (src == NULL_CALLSIGN)
 					return;
 
-				LogDebug("DMR <= YSF, %u>%u:TG%u -> %s>%u", source, slot, destination, src.c_str(), dgId);
+				LogDebug("YSF <= DMR, %s>%u <- %u>%u:TG%u", src.c_str(), dgId, source, slot, destination);
 
 				m_srcCallsign = src;
 				m_dgId        = dgId;
@@ -672,7 +672,7 @@ void CMetaData::setDMR(NETWORK network, uint8_t slot, uint32_t source, uint32_t 
 		else if (m_fromMode == DATA_MODE::P25) {
 			uint32_t tg = find(m_p25DMRTGs, slot, destination);
 			if (tg != NULL_ID32) {
-				LogDebug("DMR <= P25, %u>%u:TG%u -> %u>TG%u", source, slot, destination, source, tg);
+				LogDebug("P25 <= DMR, %u>TG%u <- %u>%u:TG%u", source, tg, source, slot, destination);
 
 				m_srcId  = source;
 				m_dstId  = tg;
@@ -688,7 +688,7 @@ void CMetaData::setDMR(NETWORK network, uint8_t slot, uint32_t source, uint32_t 
 				if (src != NULL_CALLSIGN) {
 					uint16_t id = m_nxdnLookup.lookup(src);
 					if (id != NULL_ID16) {
-						LogDebug("DMR <= NXDN, %u>%u:TG%u -> %u>TG%u", source, slot, destination, id, tg);
+						LogDebug("NXDN <= DMR, %u>TG%u <- %u>%u:TG%u", id, tg, source, slot, destination);
 
 						m_srcId  = id;
 						m_dstId  = tg;
@@ -702,7 +702,7 @@ void CMetaData::setDMR(NETWORK network, uint8_t slot, uint32_t source, uint32_t 
 		if (m_fromMode == DATA_MODE::FM) {
 			std::pair<uint8_t, uint32_t> tg = std::make_pair(slot, destination);
 			if (tg == m_dmrFMTG) {
-				LogDebug("DMR <= FM, -> %u>%u:TG%u", source, slot, destination);
+				LogDebug("FM <= DMR, <- %u>%u:TG%u", source, slot, destination);
 
 				m_toMode = DATA_MODE::DMR;
 			}
@@ -710,7 +710,7 @@ void CMetaData::setDMR(NETWORK network, uint8_t slot, uint32_t source, uint32_t 
 
 		else if (m_fromMode == DATA_MODE::DMR) {
 			if ((slot == 1U) && m_toDMR1) {
-				LogDebug("DMR <= DMR, %u>%u:TG%u -> %u>%u:TG%u", source, slot, destination, source, slot, destination);
+				LogDebug("DMR <= DMR, %u>%u:TG%u <- %u>%u:TG%u", source, slot, destination, source, slot, destination);
 
 				m_slot   = slot;
 				m_srcId  = source;
@@ -719,7 +719,7 @@ void CMetaData::setDMR(NETWORK network, uint8_t slot, uint32_t source, uint32_t 
 				m_toMode = DATA_MODE::DMR;
 			}
 			if ((slot == 2U) && m_toDMR2) {
-				LogDebug("DMR <= DMR, %u>%u:TG%u -> %u>%u:TG%u", source, slot, destination, source, slot, destination);
+				LogDebug("DMR <= DMR, %u>%u:TG%u <- %u>%u:TG%u", source, slot, destination, source, slot, destination);
 
 				m_slot   = slot;
 				m_srcId  = source;
@@ -834,7 +834,7 @@ void CMetaData::setYSF(NETWORK network, const uint8_t* source, uint8_t dgId)
 		if (m_fromMode == DATA_MODE::DSTAR) {
 			std::string dest = find(m_dstarYSFDests, dgId);
 			if (dest != NULL_CALLSIGN) {
-				LogDebug("YSF <= D-Star, %s>%u -> %s>%s", srcCallsign.c_str(), dgId, srcCallsign.c_str(), dest.c_str());
+				LogDebug("D-Star <= YSF, %s>%s <- %s>%u", srcCallsign.c_str(), dest.c_str(), srcCallsign.c_str(), dgId);
 
 				m_srcCallsign = srcCallsign;
 				m_dstCallsign = dest;
@@ -847,7 +847,7 @@ void CMetaData::setYSF(NETWORK network, const uint8_t* source, uint8_t dgId)
 			if (slotTG.second != NULL_ID32) {
 				uint32_t srcId = m_dmrLookup.lookup(srcCallsign);
 				if (srcId != NULL_ID32) {
-					LogDebug("YSF <= DMR, %s>%u -> %u>%u:TG%u", srcCallsign.c_str(), dgId, srcId, slotTG.first, slotTG.second);
+					LogDebug("DMR <= YSF, %u>%u:TG%u <- %s>%u", srcId, slotTG.first, slotTG.second, srcCallsign.c_str(), dgId);
 
 					m_slot   = slotTG.first;
 					m_srcId  = srcId;
@@ -863,7 +863,7 @@ void CMetaData::setYSF(NETWORK network, const uint8_t* source, uint8_t dgId)
 			if (tg != NULL_ID32) {
 				uint32_t id = m_dmrLookup.lookup(srcCallsign);
 				if (id != NULL_ID32) {
-					LogDebug("YSF <= P25, %s>%u -> %u>TG%u", srcCallsign.c_str(), dgId, id, tg);
+					LogDebug("P25 <= YSF, %u>TG%u <- %s>%u", id, tg, srcCallsign.c_str(), dgId);
 
 					m_srcId  = id;
 					m_dstId  = tg;
@@ -878,7 +878,7 @@ void CMetaData::setYSF(NETWORK network, const uint8_t* source, uint8_t dgId)
 			if (tg != NULL_ID16) {
 				uint16_t id = m_nxdnLookup.lookup(srcCallsign);
 				if (id != NULL_ID16) {
-					LogDebug("YSF <= NXDN, %s>%u -> %u>TG%u", srcCallsign.c_str(), dgId, id, tg);
+					LogDebug("NXDN <= YSF, %u>TG%u <- %s>%u", id, tg, srcCallsign.c_str(), dgId);
 
 					m_srcId  = id;
 					m_dstId  = tg;
@@ -890,7 +890,7 @@ void CMetaData::setYSF(NETWORK network, const uint8_t* source, uint8_t dgId)
 
 		if (m_fromMode == DATA_MODE::FM) {
 			if (dgId == m_ysfFMDGId) {
-				LogDebug("YSF <= FM, %s>%u ->", srcCallsign.c_str(), dgId);
+				LogDebug("FM <= YSF, <- %s>%u", srcCallsign.c_str(), dgId);
 
 				m_toMode = DATA_MODE::YSF;
 			}
@@ -898,7 +898,7 @@ void CMetaData::setYSF(NETWORK network, const uint8_t* source, uint8_t dgId)
 
 		else if (m_fromMode == DATA_MODE::YSF) {
 			if (m_toYSF) {
-				LogDebug("YSF <= YSF, %s>%u -> %s>%u", srcCallsign.c_str(), dgId, srcCallsign.c_str(), dgId);
+				LogDebug("YSF <= YSF, %s>%u <- %s>%u", srcCallsign.c_str(), dgId, srcCallsign.c_str(), dgId);
 
 				m_srcCallsign = srcCallsign;
 				m_dgId        = dgId;
@@ -1014,7 +1014,7 @@ void CMetaData::setP25(NETWORK network, uint32_t source, uint32_t destination, b
 				if (src == NULL_CALLSIGN)
 					return;
 
-				LogDebug("P25 <= D-Star, %u>TG%u -> %s>%s", source, destination, src.c_str(), dest.c_str());
+				LogDebug("D-Star <= P25, %s>%s <- %u>TG%u", src.c_str(), dest.c_str(), source, destination);
 
 				m_srcCallsign = src;
 				m_dstCallsign = dest;
@@ -1025,7 +1025,7 @@ void CMetaData::setP25(NETWORK network, uint32_t source, uint32_t destination, b
 		else if (m_fromMode == DATA_MODE::DMR) {
 			std::pair<uint8_t, uint32_t> slotTG = find(m_dmrP25TGs, destination);
 			if (slotTG.second != NULL_ID32) {
-				LogDebug("P25 <= DMR, %u>TG%u -> %u>%u:TG%u", source, destination, source, slotTG.first, slotTG.second);
+				LogDebug("DMR <= P25, %u>%u:TG%u <- %u>TG%u", source, slotTG.first, slotTG.second, source, destination);
 
 				m_slot   = slotTG.first;
 				m_srcId  = source;
@@ -1042,7 +1042,7 @@ void CMetaData::setP25(NETWORK network, uint32_t source, uint32_t destination, b
 				if (src == NULL_CALLSIGN)
 					return;
 
-				LogDebug("P25 <= YSF, %u>TG%u -> %s>%u", source, destination, src.c_str(), dgId);
+				LogDebug("YSF <= P25, %s>%u <- %u>TG%u", src.c_str(), dgId, source, destination);
 
 				m_srcCallsign = src;
 				m_dgId        = dgId;
@@ -1057,7 +1057,7 @@ void CMetaData::setP25(NETWORK network, uint32_t source, uint32_t destination, b
 				if (src != NULL_CALLSIGN) {
 					uint16_t id = m_nxdnLookup.lookup(src);
 					if (id != NULL_ID16) {
-						LogDebug("P25 <= NXDN, %u>TG%u -> %u>TG%u", source, destination, id, tg);
+						LogDebug("NXDN <= P25, %u>TG%u <- %u>TG%u", id, tg, source, destination);
 
 						m_srcId  = id;
 						m_dstId  = tg;
@@ -1070,7 +1070,7 @@ void CMetaData::setP25(NETWORK network, uint32_t source, uint32_t destination, b
 
 		if (m_fromMode == DATA_MODE::FM) {
 			if (destination == m_p25FMTG) {
-				LogDebug("P25 <= FM, -> %u>TG%u", source, destination);
+				LogDebug("FM <= P25, <- %u>TG%u", source, destination);
 
 				m_toMode = DATA_MODE::P25;
 			}
@@ -1078,7 +1078,7 @@ void CMetaData::setP25(NETWORK network, uint32_t source, uint32_t destination, b
 
 		else if (m_fromMode == DATA_MODE::P25) {
 			if (m_toP25) {
-				LogDebug("P25 <= P25, %u>TG%u -> %u>TG%u", source, destination, source, destination);
+				LogDebug("P25 <= P25, %u>TG%u <- %u>TG%u", source, destination, source, destination);
 
 				m_srcId  = source;
 				m_dstId  = destination;
@@ -1195,7 +1195,7 @@ void CMetaData::setNXDN(NETWORK network, uint16_t source, uint16_t destination, 
 				if (src == NULL_CALLSIGN)
 					return;
 
-				LogDebug("NXDN <= D-Star, %u>TG%u -> %s>%s", source, destination, src.c_str(), dest.c_str());
+				LogDebug("D-Star <= NXDN, %s>%s <- %u>TG%u", src.c_str(), dest.c_str(), source, destination);
 
 				m_srcCallsign = src;
 				m_dstCallsign = dest;
@@ -1206,7 +1206,7 @@ void CMetaData::setNXDN(NETWORK network, uint16_t source, uint16_t destination, 
 		else if (m_fromMode == DATA_MODE::DMR) {
 			std::pair<uint8_t, uint32_t> slotTG = find(m_dmrNXDNTGs, destination);
 			if (slotTG.second != NULL_ID32) {
-				LogDebug("NXDN <= DMR, %u>TG%u -> %u>%u:TG%u", source, destination, source, slotTG.first, slotTG.second);
+				LogDebug("DMR <= NXDN, %u>%u:TG%u <- %u>TG%u", source, slotTG.first, slotTG.second, source, destination);
 
 				m_slot   = slotTG.first;
 				m_srcId  = source;
@@ -1223,7 +1223,7 @@ void CMetaData::setNXDN(NETWORK network, uint16_t source, uint16_t destination, 
 				if (src == NULL_CALLSIGN)
 					return;
 
-				LogDebug("NXDN <= YSF, %u>TG%u -> %s>%u", source, destination, src.c_str(), dgId);
+				LogDebug("YSF <= NXDN, %s>%u <- %u>TG%u", src.c_str(), dgId, source, destination);
 
 				m_srcCallsign = src;
 				m_dgId        = dgId;
@@ -1238,7 +1238,7 @@ void CMetaData::setNXDN(NETWORK network, uint16_t source, uint16_t destination, 
 				if (src != NULL_CALLSIGN) {
 					uint32_t id = m_dmrLookup.lookup(src);
 					if (id != NULL_ID32) {
-						LogDebug("NXDN <= P25, %u>TG%u -> %u>TG%u", source, destination, id, tg);
+						LogDebug("P25 <= NXDN, %u>TG%u <- %u>TG%u", id, tg, source, destination);
 
 						m_srcId  = id;
 						m_dstId  = tg;
@@ -1251,7 +1251,7 @@ void CMetaData::setNXDN(NETWORK network, uint16_t source, uint16_t destination, 
 
 		if (m_fromMode == DATA_MODE::FM) {
 			if (destination == m_nxdnFMTG) {
-				LogDebug("NXDN <= FM, -> %u>TG%u", source, destination);
+				LogDebug("FM <= NXDN, <- %u>TG%u", source, destination);
 
 				m_toMode = DATA_MODE::NXDN;
 			}
@@ -1259,7 +1259,7 @@ void CMetaData::setNXDN(NETWORK network, uint16_t source, uint16_t destination, 
 
 		else if (m_fromMode == DATA_MODE::NXDN) {
 			if (m_toNXDN) {
-				LogDebug("NXDN <= NXDN, %u>TG%u -> %u>TG%u", source, destination, source, destination);
+				LogDebug("NXDN <= NXDN, %u>TG%u <- %u>TG%u", source, destination, source, destination);
 
 				m_srcId  = source;
 				m_dstId  = destination;
@@ -1279,7 +1279,7 @@ void CMetaData::setFM(NETWORK network)
 	if (network == NETWORK::FROM) {
 		if (m_toMode == DATA_MODE::NONE) {
 			if (m_toFM) {
-				LogDebug("FM => FM, %s ->", m_defaultCallsign.c_str());
+				LogDebug("FM => FM, ->");
 
 				m_toMode = DATA_MODE::FM;
 
@@ -1289,7 +1289,7 @@ void CMetaData::setFM(NETWORK network)
 	} else {
 		if (m_fromMode == DATA_MODE::DSTAR) {
 			if (m_dstarFMDest != NULL_CALLSIGN) {
-				LogDebug("D-Star <= FM, %s>%s ->", m_defaultCallsign.c_str(), m_dstarFMDest.c_str());
+				LogDebug("D-Star <= FM, %s>%s <-", m_defaultCallsign.c_str(), m_dstarFMDest.c_str());
 
 				m_srcCallsign = m_defaultCallsign;
 				m_dstCallsign = m_dstarFMDest;
@@ -1299,7 +1299,7 @@ void CMetaData::setFM(NETWORK network)
 
 		if (m_fromMode == DATA_MODE::DMR) {
 			if (m_dmrFMTG.second != NULL_ID32) {
-				LogDebug("DMR <= FM, %u>%u:%u ->", m_defaultDMRId, m_dmrFMTG.first, m_dmrFMTG.second);
+				LogDebug("DMR <= FM, %u>%u:%u <-", m_defaultDMRId, m_dmrFMTG.first, m_dmrFMTG.second);
 
 				m_srcId  = m_defaultDMRId;
 				m_dstId  = m_dmrFMTG.second;
@@ -1311,7 +1311,7 @@ void CMetaData::setFM(NETWORK network)
 
 		else if (m_fromMode == DATA_MODE::YSF) {
 			if (m_ysfFMDGId != NULL_DGID) {
-				LogDebug("YSF <= FM, %s>%u ->", m_defaultCallsign.c_str(), m_ysfFMDGId);
+				LogDebug("YSF <= FM, %s>%u <-", m_defaultCallsign.c_str(), m_ysfFMDGId);
 
 				m_srcCallsign = m_defaultCallsign;
 				m_dgId        = m_ysfFMDGId;
@@ -1321,7 +1321,7 @@ void CMetaData::setFM(NETWORK network)
 
 		else if (m_fromMode == DATA_MODE::P25) {
 			if (m_p25FMTG != NULL_ID32) {
-				LogDebug("P25 <= FM, %s>%u ->", m_defaultCallsign.c_str(), m_p25FMTG);
+				LogDebug("P25 <= FM, %s>%u <-", m_defaultCallsign.c_str(), m_p25FMTG);
 
 				m_srcId  = m_defaultDMRId;
 				m_dstId  = m_p25FMTG;
@@ -1331,7 +1331,7 @@ void CMetaData::setFM(NETWORK network)
 
 		else if (m_fromMode == DATA_MODE::NXDN) {
 			if (m_nxdnFMTG != NULL_ID16) {
-				LogDebug("NXDN <= FM, %s>%u ->", m_defaultCallsign.c_str(), m_nxdnFMTG);
+				LogDebug("NXDN <= FM, %s>%u <-", m_defaultCallsign.c_str(), m_nxdnFMTG);
 
 				m_srcId  = m_defaultNXDNId;
 				m_dstId  = m_nxdnFMTG;
@@ -1341,7 +1341,7 @@ void CMetaData::setFM(NETWORK network)
 
 		else if (m_fromMode == DATA_MODE::FM) {
 			if (m_toFM) {
-				LogDebug("FM <= FM, %s ->", m_defaultCallsign.c_str());
+				LogDebug("FM <= FM, <-");
 
 				m_toMode = DATA_MODE::FM;
 			}
