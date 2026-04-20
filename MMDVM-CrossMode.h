@@ -35,27 +35,33 @@ public:
 	int run();
 
 private:
-	CConf     m_conf;
-	INetwork* m_fromNetwork;
+	CConf                          m_conf;
+	std::map<DATA_MODE, INetwork*> m_fromNetworks;
 	std::map<DATA_MODE, INetwork*> m_toNetworks;
 
-	DATA_MODE getFromMode() const;
-
-	bool createFromNetwork(DATA_MODE mode);
-
-	bool createToNetworks(DATA_MODE fromMode, CMetaData& data);
+	bool createFromNetworks();
+	bool createToNetworks();
+	void setThroughModes(CMetaData& data);
+	
 	DATA_MODE hasToNetworkGotData() const;
+	DATA_MODE hasFromNetworkGotData() const;
+	bool readFromNetwork(DATA_MODE mode, CMetaData& data);
 	bool readToNetwork(DATA_MODE mode, CMetaData& data);
+	bool writeFromNetworkData(DATA_MODE mode, CMetaData& data);
 	bool writeToNetworkData(DATA_MODE mode, CMetaData& data);
+	bool writeFromNetworkRaw(DATA_MODE mode, CMetaData& data);
 	bool writeToNetworkRaw(DATA_MODE mode, CMetaData& data);
-	void drainFromNetwork();
+	void drainFromNetworks();
 	void drainToNetworks();
+	void resetFromNetworks();
 	void resetToNetworks();
+	void clockFromNetworks(unsigned int ms);
 	void clockToNetworks(unsigned int ms);
+	void closeFromNetworks();
 	void closeToNetworks();
 
 	bool loadIdLookupTables(CMetaData& data);
-	void loadModeTranslationTables(DATA_MODE fromMode, CMetaData& data);
+	void loadModeTranslationTables(CMetaData& data);
 
 	void writeJSONMessage(const std::string& message);
 };
