@@ -324,14 +324,14 @@ int CMMDVMCrossMode::run()
 
 		default:
 			fromMode = hasFromNetworkGotData();
-			if (ret) {
+			if (fromMode != DATA_MODE::NONE) {
 				direction = DIRECTION::FROM_TO;
 				data.setDirection(direction);
 				data.setFromMode(fromMode);
 				netTimer.stop();
 				rfTimer.start();
 				watchdog.start();
-				::LogMessage("Switched by RF activity from %s to %s", CUtils::getModeName(fromMode).c_str(), CUtils::getModeName(toMode).c_str());
+				::LogMessage("Switched by RF activity from mode %s", CUtils::getModeName(fromMode).c_str());
 				break;
 			}
 
@@ -343,7 +343,7 @@ int CMMDVMCrossMode::run()
 				rfTimer.stop();
 				netTimer.start();
 				watchdog.start();
-				::LogMessage("Switched by Net activity from %s to %s", CUtils::getModeName(toMode).c_str(), CUtils::getModeName(fromMode).c_str());
+				::LogMessage("Switched by Net activity to mode %s", CUtils::getModeName(toMode).c_str());
 				break;
 			}
 
