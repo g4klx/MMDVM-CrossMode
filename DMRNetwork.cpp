@@ -243,8 +243,9 @@ bool CDMRNetwork::writeData(CMetaData& data)
 	case 2U:
 		if (data.hasData()) {
 			data.getData(m_audio + DMR_NXDN_DATA_LENGTH + DMR_NXDN_DATA_LENGTH);
-			m_audioCount = 3U;
+			m_audioCount = 0U;
 		}
+
 		break;
 
 	default:
@@ -546,6 +547,10 @@ void CDMRNetwork::clock(unsigned int ms)
 		else
 			CUtils::dump(1U, "DMR TO Network Received", m_buffer, length);
 	}
+
+	// We only want data packets being passed on
+	if (::memcmp(m_buffer, "DMRD", 4U) != 0)
+		return;
 
 	uint8_t len = length;
 	m_rxData.add(&len, 1U);
