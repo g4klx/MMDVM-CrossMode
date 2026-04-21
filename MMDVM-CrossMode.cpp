@@ -242,10 +242,6 @@ int CMMDVMCrossMode::run()
 	DATA_MODE fromMode  = DATA_MODE::NONE;
 	DATA_MODE toMode    = DATA_MODE::NONE;
 
-	data.setFromMode(fromMode);
-	data.setToMode(toMode);
-	data.setDirection(direction);
-
 	ret = createFromNetworks();
 	if (!ret)
 		return 1;
@@ -374,8 +370,8 @@ int CMMDVMCrossMode::run()
 			resetToNetworks();
 			data.reset();
 			direction = DIRECTION::NONE;
+			fromMode  = DATA_MODE::NONE;
 			toMode    = DATA_MODE::NONE;
-			data.setDirection(direction);
 			rfTimer.stop();
 			::LogMessage("Switched back to Idle by the RF timer");
 		}
@@ -386,8 +382,8 @@ int CMMDVMCrossMode::run()
 			resetToNetworks();
 			data.reset();
 			direction = DIRECTION::NONE;
+			fromMode  = DATA_MODE::NONE;
 			toMode    = DATA_MODE::NONE;
-			data.setDirection(direction);
 			netTimer.stop();
 			::LogMessage("Switched back to Idle by the Net timer");
 		}
@@ -398,7 +394,8 @@ int CMMDVMCrossMode::run()
 			resetToNetworks();
 			data.reset();
 			direction = DIRECTION::NONE;
-			data.setDirection(direction);
+			fromMode  = DATA_MODE::NONE;
+			toMode    = DATA_MODE::NONE;
 			watchdog.stop();
 			::LogMessage("The watchdog timer has expired");
 		}

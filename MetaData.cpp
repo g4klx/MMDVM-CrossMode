@@ -214,6 +214,11 @@ bool CMetaData::setNXDNLookup(const std::string& filename, unsigned int reloadTi
 	return m_nxdnLookup.load(filename, reloadTime);
 }
 
+DATA_MODE CMetaData::getFromMode() const
+{
+	return m_fromMode;
+}
+
 DATA_MODE CMetaData::getToMode() const
 {
 	return m_toMode;
@@ -1492,6 +1497,7 @@ void CMetaData::reset()
 	m_length    = 0U;
 	m_count     = 0U;
 	m_rawLength = 0U;
+	m_fromMode  = DATA_MODE::NONE;
 	m_toMode    = DATA_MODE::NONE;
 	m_direction = DIRECTION::NONE;
 

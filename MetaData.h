@@ -42,12 +42,13 @@ public:
 	bool setToMode(DATA_MODE mode);
 	bool setDirection(DIRECTION direction);
 
+	DATA_MODE getFromMode() const;
+	DATA_MODE getToMode() const;
+
 	void setThroughModes(bool toDStar, bool toDMR1, bool toDMR2, bool toYSF, bool toP25, bool toNXDN, bool toFM);
 
 	bool setDMRLookup(const std::string& filename, unsigned int reloadTime);
 	bool setNXDNLookup(const std::string& filename, unsigned int reloadTime);
-
-	DATA_MODE getToMode() const;
 
 	void setDStarDMRDests(const std::vector<std::tuple<std::string, uint8_t, uint32_t>>& dests);
 	void setDStarYSFDests(const std::vector<std::pair<std::string, uint8_t>>& dests);
