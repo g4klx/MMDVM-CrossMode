@@ -473,16 +473,16 @@ bool CYSFNetwork::read(CMetaData& data)
 
 	switch (fich.getDT()) {
 		case YSF_DT_VD_MODE1:
-			CUtils::dump(2U, "DT_VD_MODE1", buffer, 155U);
+			CUtils::dump(1U, "DT_VD_MODE1", buffer, 155U);
 			return false;
 		case YSF_DT_DATA_FR_MODE:
-			CUtils::dump(2U, "DT_DATA_FR_MODE", buffer, 155U);
+			CUtils::dump(1U, "DT_DATA_FR_MODE", buffer, 155U);
 			return false;
 		case YSF_DT_VD_MODE2:
 			// We can handle this
 			break;
 		default:
-			CUtils::dump(2U, "DT_VOICE_FR_MODE", buffer, 155U);
+			CUtils::dump(1U, "DT_VOICE_FR_MODE", buffer, 155U);
 			return false;
 	}
 
