@@ -281,19 +281,45 @@ int CMMDVMCrossMode::run()
 		case DIRECTION::FROM_TO:
 			ret = readFromNetwork(fromMode, data);
 			if (ret) {
-				netTimer.stop();
-				rfTimer.start();
-				watchdog.start();
+				if (toMode == DATA_MODE::NONE) {
+					toMode = data.getToMode();
+					if (toMode == DATA_MODE::NONE) {
+						// Not a valid cross-mode combination
+						resetFromNetworks();
+						resetToNetworks();
+
+						data.reset();
+
+						direction = DIRECTION::NONE;
+						data.setDirection(direction);
+
+						netTimer.stop();
+						rfTimer.stop();
+						watchdog.stop();
+					} else {
+						// Valid
+						::LogMessage("Switched by RF activity FROM %s TO %s", CUtils::getModeName(fromMode).c_str(), CUtils::getModeName(toMode).c_str());
+						data.setTranscoder();
+					}
+				}
+
+				if (toMode != DATA_MODE::NONE) {
+					netTimer.stop();
+					rfTimer.start();
+					watchdog.start();
+				}
 			}
 
 			drainToNetworks();
 
-			if (data.isTranscode()) {
-				if (data.hasData() || data.isEnd())
-					writeToNetworkData(toMode, data);
-			} else {
-				if (data.hasRaw())
-					writeToNetworkRaw(toMode, data);
+			if (toMode != DATA_MODE::NONE) {
+				if (data.isTranscode()) {
+					if (data.hasData() || data.isEnd())
+						writeToNetworkData(toMode, data);
+				} else {
+					if (data.hasRaw())
+						writeToNetworkRaw(toMode, data);
+				}
 			}
 
 			break;
@@ -301,19 +327,45 @@ int CMMDVMCrossMode::run()
 		case DIRECTION::TO_FROM:
 			ret = readToNetwork(toMode, data);
 			if (ret) {
-				rfTimer.stop();
-				netTimer.start();
-				watchdog.start();
+				if (fromMode == DATA_MODE::NONE) {
+					fromMode = data.getFromMode();
+					if (fromMode == DATA_MODE::NONE) {
+						// Not a valid cross-mode combination
+						resetFromNetworks();
+						resetToNetworks();
+
+						data.reset();
+
+						direction = DIRECTION::NONE;
+						data.setDirection(direction);
+
+						netTimer.stop();
+						rfTimer.stop();
+						watchdog.stop();
+					} else {
+						// Valid
+						::LogMessage("Switched by Net activity FROM %s TO %s", CUtils::getModeName(fromMode).c_str(), CUtils::getModeName(toMode).c_str());
+						data.setTranscoder();
+					}
+				}
+
+				if (fromMode != DATA_MODE::NONE) {
+					rfTimer.stop();
+					netTimer.start();
+					watchdog.start();
+				}
 			}
 
 			drainFromNetworks();
 
-			if (data.isTranscode()) {
-				if (data.hasData() || data.isEnd())
-					writeFromNetworkData(fromMode, data);
-			} else {
-				if (data.hasRaw())
-					writeFromNetworkRaw(fromMode, data);
+			if (fromMode != DATA_MODE::NONE) {
+				if (data.isTranscode()) {
+					if (data.hasData() || data.isEnd())
+						writeFromNetworkData(fromMode, data);
+				} else {
+					if (data.hasRaw())
+						writeFromNetworkRaw(fromMode, data);
+				}
 			}
 
 			break;
@@ -323,11 +375,9 @@ int CMMDVMCrossMode::run()
 			if (fromMode != DATA_MODE::NONE) {
 				direction = DIRECTION::FROM_TO;
 				data.setDirection(direction);
-				data.setFromMode(fromMode);
 				netTimer.stop();
 				rfTimer.start();
 				watchdog.start();
-				::LogMessage("Switched by RF activity from mode %s", CUtils::getModeName(fromMode).c_str());
 				break;
 			}
 
@@ -335,11 +385,9 @@ int CMMDVMCrossMode::run()
 			if (toMode != DATA_MODE::NONE) {
 				direction = DIRECTION::TO_FROM;
 				data.setDirection(direction);
-				data.setToMode(toMode);
 				rfTimer.stop();
 				netTimer.start();
 				watchdog.start();
-				::LogMessage("Switched by Net activity to mode %s", CUtils::getModeName(toMode).c_str());
 				break;
 			}
 

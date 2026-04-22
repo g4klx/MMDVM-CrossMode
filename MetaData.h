@@ -38,9 +38,9 @@ public:
 	void setUARTConnection(const std::string& port, uint32_t speed);
 	void setUDPConnection(const std::string& remoteAddress, uint16_t remotePort, const std::string& localAddress, uint16_t localPort);
 
-	bool setFromMode(DATA_MODE mode);
-	bool setToMode(DATA_MODE mode);
 	bool setDirection(DIRECTION direction);
+
+	bool setTranscoder();
 
 	DATA_MODE getFromMode() const;
 	DATA_MODE getToMode() const;
@@ -182,8 +182,6 @@ private:
 	uint8_t*    m_rawData;
 	uint16_t    m_rawLength;
 	uint16_t    m_count;
-
-	bool setTranscoder();
 
 	// uint8_t <=> std::string
 	uint8_t find(const std::vector<std::pair<std::string, uint8_t>>& mapping, const std::string& dest) const;
