@@ -1,13 +1,12 @@
 {
 	"$defs": {
 		"mode": {"type": "string", "enum": ["none", "D-Star", "DMR", "YSF", "P25", "NXDN", "FM"]},
-		"dstar_callsign": {"type": "string", "minLength": 8, "maxLength": 8},
-		"dmr_slot": {"type": "integer", "enum": [1, 2]},
-		"dmr_id": {"type": "integer", "minimum": 1, "maximum": 16777215},
-		"destination_type": {"type": "string", "enum": ["group", "individual"]},
+		"direction": {"type": "string", "enum": ["FROM -> TO", "FROM <- TO"]},
+		"callsign": {"type": "string", "minLength": 8, "maxLength": 10},
+		"slot": {"type": "integer", "enum": [1, 2]},
+		"id": {"type": "integer", "minimum": 1, "maximum": 16777215},
+		"group": {"type": "string", "enum": ["yes", "no"]},
 		"dg-id": {"type": "integer", "minimum": 0, "maximum": 99},
-		"p25_id": {"type": "integer", "minimum": 1, "maximum": 65535},
-		"nxdn_id": {"type": "integer", "minimum": 1, "maximum": 65535},
 		"timestamp": {"type": "string"}
 	},
 
@@ -21,22 +20,22 @@
 	"Status": {
 		"type": "object",
 		"timestamp": {"$ref": "#/$defs/timestamp"},
-		"from_mode": {"$ref": "#/$defs/mode"},
-		"to_mode": {"$ref": "#/$defs/mode"},
-		"from_dstar_callsign": {"$ref": "#/$refs/dstar_callsign"},
-		"to_dstar_callsign": {"$ref": "#/$refs/dstar_callsign"},
-		"from_dmr_slot": {"$ref": "#/$refs/dmr_slot"},
-		"from_dmr_id": {"$ref": "#/$refs/dmr_id"},
-		"to_dmr_slot": {"$ref": "#/$refs/dmr_slot"},
-		"to_dmr_id": {"$ref": "#/$refs/dmr_id"},
-		"from_dg-id": {"$ref": "#/$refs/dg-id"},
-		"to_dg-id": {"$ref": "#/$refs/dg-id"},
-		"from_p25_id": {"$ref": "#/$refs/p25_id"},
-		"to_p25_id": {"$ref": "#/$refs/p25_id"},
-		"from_nxdn_id": {"$ref": "#/$refs/nxdn_id"},
-		"to_nxdn_id": {"$ref": "#/$refs/nxdn_id"},
-		"from_destination_type": {"$refs": "#/$refs/destination_type"},
-		"to_destination_type": {"$refs": "#/$refs/destination_type"},
-		"required": ["timestamp", "from_mode", "to_mode"]
+		"direction": {"$ref": "#/$defs/direction"},
+		"from": {"type": "Destination"},
+		"to": {"type": "Destination"},
+		"required": ["timestamp"]
+	},
+	
+	"Destination" : {
+		"type": "object",
+		"mode": {"$ref": "#/$defs/mode"},
+		"src_callsign": {"$ref": "#/$defs/callsign"},
+		"dst_callsign": {"$ref": "#/$defs/callsign"},
+		"slot": {"$ref": "#/$defs/slot"},
+		"src_id": {"$ref": "#/$defs/id"},
+		"dst_id": {"$ref": "#/$defs/id"},
+		"dg-id": {"$ref": "#/$defs/dg-id"},
+		"group": {"$ref": "#/$defs/type"},
+		"required": ["mode"]
 	}
 }

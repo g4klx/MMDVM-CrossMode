@@ -463,8 +463,13 @@ bool CConf::read()
 			if (::strcmp(key, "Id") == 0)
 				m_nxdnId = uint16_t(::atoi(value));
 		} else if (section == SECTION::DSTAR_DSTAR) {
-			if (::strcmp(key, "Enable") == 0)
+			if (::strcmp(key, "Enable") == 0) {
 				m_dstarDStarEnable = ::atoi(value) == 1;
+#if defined(TRACE_CONFIG)
+				if (m_dstarDStarEnable)
+					::fprintf(stdout, "D-Star => D-Star, mapping remainder\n");
+#endif
+			}
 		} else if (section == SECTION::DSTAR_DMR) {
 			if (::strcmp(key, "Enable") == 0) {
 				m_dstarDMREnable = ::atoi(value) == 1;
@@ -588,10 +593,20 @@ bool CConf::read()
 				m_dmrDStarTGs.push_back(std::tuple<uint8_t, uint32_t, std::string>(slotTG.first, slotTG.second, dest));
 			}
 		} else if (section == SECTION::DMR_DMR) {
-			if (::strcmp(key, "Enable1") == 0)
+			if (::strcmp(key, "Enable1") == 0) {
 				m_dmrDMREnable1 = ::atoi(value) == 1;
-			else if (::strcmp(key, "Enable2") == 0)
+#if defined(TRACE_CONFIG)
+				if (m_dmrDMREnable1)
+					::fprintf(stdout, "DMR => DMR, mapping slot 1 remainder\n");
+#endif
+			}
+			if (::strcmp(key, "Enable2") == 0) {
 				m_dmrDMREnable2 = ::atoi(value) == 1;
+#if defined(TRACE_CONFIG)
+				if (m_dmrDMREnable2)
+					::fprintf(stdout, "DMR => DMR, mapping slot 2 remainder\n");
+#endif
+			}
 		} else if (section == SECTION::DMR_YSF) {
 			if (::strcmp(key, "Enable") == 0) {
 				m_dmrYSFEnable = ::atoi(value) == 1;
@@ -712,8 +727,13 @@ bool CConf::read()
 				m_ysfDMRDGIds.push_back(std::tuple<uint8_t, uint8_t, uint32_t>(dgId, slotTG.first, slotTG.second));
 			}
 		} else if (section == SECTION::YSF_YSF) {
-			if (::strcmp(key, "Enable") == 0)
+			if (::strcmp(key, "Enable") == 0) {
 				m_ysfYSFEnable = ::atoi(value) == 1;
+#if defined(TRACE_CONFIG)
+				if (m_ysfYSFEnable)
+					::fprintf(stdout, "YSF => YSF, mapping remainder\n");
+#endif
+			}
 		} else if (section == SECTION::YSF_P25) {
 			if (::strcmp(key, "Enable") == 0) {
 				m_ysfP25Enable = ::atoi(value) == 1;
@@ -824,8 +844,13 @@ bool CConf::read()
 				m_p25YSFTGs.push_back(std::pair<uint32_t, uint8_t>(tg, dgId));
 			}
 		} else if (section == SECTION::P25_P25) {
-			if (::strcmp(key, "Enable") == 0)
+			if (::strcmp(key, "Enable") == 0) {
 				m_p25P25Enable = ::atoi(value) == 1;
+#if defined(TRACE_CONFIG)
+				if (m_p25P25Enable)
+					::fprintf(stdout, "P25 => P25, mapping remainder\n");
+#endif
+			}
 		} else if (section == SECTION::P25_NXDN) {
 			if (::strcmp(key, "Enable") == 0) {
 				m_p25NXDNEnable = ::atoi(value) == 1;
@@ -936,8 +961,13 @@ bool CConf::read()
 				m_nxdnP25TGs.push_back(std::pair<uint16_t, uint32_t>(tg1, tg2));
 			}
 		} else if (section == SECTION::NXDN_NXDN) {
-			if (::strcmp(key, "Enable") == 0)
+			if (::strcmp(key, "Enable") == 0) {
 				m_nxdnNXDNEnable = ::atoi(value) == 1;
+#if defined(TRACE_CONFIG)
+				if (m_nxdnNXDNEnable)
+					::fprintf(stdout, "NXDN => NXDN, mapping remainder\n");
+#endif
+			}
 		} else if (section == SECTION::NXDN_FM) {
 			if (::strcmp(key, "Enable") == 0) {
 				m_nxdnFMEnable = ::atoi(value) == 1;

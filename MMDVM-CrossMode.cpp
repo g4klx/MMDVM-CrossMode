@@ -320,6 +320,9 @@ int CMMDVMCrossMode::run()
 					if (data.hasRaw())
 						writeToNetworkRaw(toMode, data);
 				}
+				
+				if (data.isEnd())
+					watchdog.stop();
 			}
 
 			break;
@@ -366,6 +369,9 @@ int CMMDVMCrossMode::run()
 					if (data.hasRaw())
 						writeFromNetworkRaw(fromMode, data);
 				}
+				
+				if (data.isEnd())
+					watchdog.stop();
 			}
 
 			break;

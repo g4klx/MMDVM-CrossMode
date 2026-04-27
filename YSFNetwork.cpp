@@ -195,12 +195,10 @@ bool CYSFNetwork::writeHeader(CMetaData& data)
 		buffer[i + 4U] = m_callsign.at(i);
 
 	uint8_t source[YSF_CALLSIGN_LENGTH];
-	uint8_t destination[YSF_CALLSIGN_LENGTH];
 	uint8_t dgId = 0U;
-	data.getYSF(m_network, source, destination, dgId);
+	data.getYSF(m_network, source, dgId);
 
-	::memcpy(buffer + 14U, source,      YSF_CALLSIGN_LENGTH);
-	::memcpy(buffer + 24U, destination, YSF_CALLSIGN_LENGTH);
+	::memcpy(buffer + 14U, source, YSF_CALLSIGN_LENGTH);
 
 	buffer[34U] = 0x00U;
 
@@ -222,7 +220,7 @@ bool CYSFNetwork::writeHeader(CMetaData& data)
 	fich.encode(buffer + 35U);
 
 	CYSFPayload payload;
-	payload.createHeaderData(buffer + 35U, source, destination, YSF_NULL_CALLSIGN1, YSF_NULL_CALLSIGN1);
+	payload.createHeaderData(buffer + 35U, source, YSF_NULL_CALLSIGN2, YSF_NULL_CALLSIGN1, YSF_NULL_CALLSIGN1);
 
 	m_seqNo++;
 	m_fn = 0U;
@@ -250,12 +248,10 @@ bool CYSFNetwork::writeCommunication(CMetaData& data)
 		buffer[i + 4U] = m_callsign.at(i);
 
 	uint8_t source[YSF_CALLSIGN_LENGTH];
-	uint8_t destination[YSF_CALLSIGN_LENGTH];
 	uint8_t dgId = 0U;
-	data.getYSF(m_network, source, destination, dgId);
+	data.getYSF(m_network, source, dgId);
 
-	::memcpy(buffer + 14U, source,      YSF_CALLSIGN_LENGTH);
-	::memcpy(buffer + 24U, destination, YSF_CALLSIGN_LENGTH);
+	::memcpy(buffer + 14U, source, YSF_CALLSIGN_LENGTH);
 
 	buffer[34U] = (m_seqNo & 0x7FU) << 1;
 
@@ -287,7 +283,7 @@ bool CYSFNetwork::writeCommunication(CMetaData& data)
 		payload.createVDMode2Data(buffer + 35U, YSF_NULL_CALLSIGN1);
 		break;
 	case 0U:	// Destination
-		payload.createVDMode2Data(buffer + 35U, destination);
+		payload.createVDMode2Data(buffer + 35U, YSF_NULL_CALLSIGN2);
 		break;
 	case 1U:	// Source
 		payload.createVDMode2Data(buffer + 35U, source);
@@ -328,12 +324,10 @@ bool CYSFNetwork::writeTerminator(CMetaData& data)
 		buffer[i + 4U] = m_callsign.at(i);
 
 	uint8_t source[YSF_CALLSIGN_LENGTH];
-	uint8_t destination[YSF_CALLSIGN_LENGTH];
 	uint8_t dgId = 0U;
-	data.getYSF(m_network, source, destination, dgId);
+	data.getYSF(m_network, source, dgId);
 
-	::memcpy(buffer + 14U, source,      YSF_CALLSIGN_LENGTH);
-	::memcpy(buffer + 24U, destination, YSF_CALLSIGN_LENGTH);
+	::memcpy(buffer + 14U, source, YSF_CALLSIGN_LENGTH);
 
 	buffer[34U]  = (m_seqNo & 0x7FU) << 1;
 	buffer[34U] |= 0x01U;
@@ -356,9 +350,7 @@ bool CYSFNetwork::writeTerminator(CMetaData& data)
 	fich.encode(buffer + 35U);
 
 	CYSFPayload payload;
-	payload.createHeaderData(buffer + 35U, source, destination, YSF_NULL_CALLSIGN1, YSF_NULL_CALLSIGN1);
-
-	LogMessage("END");
+	payload.createHeaderData(buffer + 35U, source, YSF_NULL_CALLSIGN2, YSF_NULL_CALLSIGN1, YSF_NULL_CALLSIGN1);
 
 	if (m_debug) {
 		if (m_network == NETWORK::FROM)

@@ -73,16 +73,9 @@ m_nxdnDMRTGs(),
 m_nxdnYSFTGs(),
 m_nxdnP25TGs(),
 m_nxdnFMTG(),
-m_fromMode(DATA_MODE::NONE),
-m_toMode(DATA_MODE::NONE),
 m_direction(DIRECTION::NONE),
-m_srcCallsign(),
-m_dstCallsign(),
-m_dgId(NULL_DGID),
-m_slot(NULL_SLOT),
-m_srcId(NULL_ID32),
-m_dstId(NULL_ID32),
-m_group(false),
+m_from(),
+m_to(),
 m_end(false),
 m_data(nullptr),
 m_length(0U),
@@ -127,7 +120,7 @@ bool CMetaData::setTranscoder()
 	uint8_t transFromMode;
 	uint8_t transToMode;
 
-	switch (m_fromMode) {
+	switch (m_from.m_mode) {
 	case DATA_MODE::DSTAR:
 		transFromMode = MODE_DSTAR;
 		break;
@@ -148,7 +141,7 @@ bool CMetaData::setTranscoder()
 		return false;
 	}
 
-	switch (m_toMode) {
+	switch (m_to.m_mode) {
 	case DATA_MODE::DSTAR:
 		transToMode = MODE_DSTAR;
 		break;
@@ -202,12 +195,12 @@ bool CMetaData::setNXDNLookup(const std::string& filename, unsigned int reloadTi
 
 DATA_MODE CMetaData::getFromMode() const
 {
-	return m_fromMode;
+	return m_from.m_mode;
 }
 
 DATA_MODE CMetaData::getToMode() const
 {
-	return m_toMode;
+	return m_to.m_mode;
 }
 
 void CMetaData::setDStarDMRDests(const std::vector<std::tuple<std::string, uint8_t, uint32_t>>& dests)
@@ -337,8 +330,6 @@ void CMetaData::setNXDNFMTG(uint16_t tg)
 
 bool CMetaData::open()
 {
-	writeJSONStatus(DATA_MODE::NONE, DATA_MODE::NONE);
-
 	return m_transcoder.open();
 }
 
@@ -351,105 +342,133 @@ void CMetaData::setDStar(NETWORK network, const uint8_t* source, const uint8_t* 
 	std::string dstCallsign = bytesToString(destination, DSTAR_LONG_CALLSIGN_LENGTH);
 
 	if (network == NETWORK::FROM) {
-		m_fromMode = DATA_MODE::NONE;
-		m_toMode   = DATA_MODE::NONE;
+		m_from.reset();
+		m_to.reset();
 
 		std::pair<uint8_t, uint32_t> dst = find(m_dstarDMRDests, dstCallsign);
 		if (dst.second != NULL_ID32) {
 			uint32_t srcId = m_dmrLookup.lookup(srcCallsign);
-			if (srcId == NULL_ID32)
-				return;
+			if (srcId != NULL_ID32) {
+				LogDebug("D-Star => DMR, %s>%s -> %u>%u:TG%u", srcCallsign.c_str(), dstCallsign.c_str(), srcId, dst.first, dst.second);
 
-			LogDebug("D-Star => DMR, %s>%s -> %u>%u:TG%u", srcCallsign.c_str(), dstCallsign.c_str(), srcId, dst.first, dst.second);
+				m_from.m_mode            = DATA_MODE::DSTAR;
+				m_from.DStar.srcCallsign = srcCallsign;
+				m_from.DStar.dstCallsign = dstCallsign;
 
-			m_slot     = dst.first;
-			m_dstId    = dst.second;
-			m_srcId    = srcId;
-			m_group    = true;
-			m_fromMode = DATA_MODE::DSTAR;
-			m_toMode   = DATA_MODE::DMR;
+				m_to.m_mode    = DATA_MODE::DMR;
+				m_to.DMR.group = true;
+				m_to.DMR.slot  = dst.first;
+				m_to.DMR.dstId = dst.second;
+				m_to.DMR.srcId = srcId;
 
-			writeJSONStatus(DATA_MODE::DSTAR, DATA_MODE::DMR, 0U, m_dstId, false, true, dstCallsign, "", 0U, m_slot);
+				m_direction = DIRECTION::FROM_TO;
+
+				writeJSONStatus();
+			}
 		}
 
-		if (m_toMode == DATA_MODE::NONE) {
+		if (m_to.m_mode == DATA_MODE::NONE) {
 			uint8_t dgId = find(m_dstarYSFDests, dstCallsign);
 			if (dgId != NULL_DGID) {
 				LogDebug("D-Star => YSF, %s>%s -> %s>%u", srcCallsign.c_str(), dstCallsign.c_str(), srcCallsign.c_str(), dgId);
 
-				m_dgId        = dgId;
-				m_srcCallsign = srcCallsign;
-				m_fromMode    = DATA_MODE::DSTAR;
-				m_toMode      = DATA_MODE::YSF;
+				m_from.m_mode            = DATA_MODE::DSTAR;
+				m_from.DStar.srcCallsign = srcCallsign;
+				m_from.DStar.dstCallsign = dstCallsign;
 
-				writeJSONStatus(DATA_MODE::DSTAR, DATA_MODE::YSF, 0U, m_dgId, false, false, dstCallsign);
+				m_to.m_mode       = DATA_MODE::YSF;
+				m_to.YSF.dgId     = dgId;
+				m_to.YSF.callsign = srcCallsign;
+
+				m_direction = DIRECTION::FROM_TO;
+
+				writeJSONStatus();
 			}
 		}
 
-		if (m_toMode == DATA_MODE::NONE) {
+		if (m_to.m_mode == DATA_MODE::NONE) {
 			uint32_t dstId = find(m_dstarP25Dests, dstCallsign);
 			if (dstId != NULL_ID32) {
 				uint32_t srcId = m_dmrLookup.lookup(srcCallsign);
-				if (srcId == NULL_ID32)
-					return;
+				if (srcId != NULL_ID32) {
+					LogDebug("D-Star => P25, %s>%s -> %u>TG%u", srcCallsign.c_str(), dstCallsign.c_str(), srcId, dstId);
 
-				LogDebug("D-Star => P25, %s>%s -> %u>TG%u", srcCallsign.c_str(), dstCallsign.c_str(), srcId, dstId);
+					m_from.m_mode            = DATA_MODE::DSTAR;
+					m_from.DStar.srcCallsign = srcCallsign;
+					m_from.DStar.dstCallsign = dstCallsign;
 
-				m_dstId    = dstId;
-				m_srcId    = srcId;
-				m_group    = true;
-				m_fromMode = DATA_MODE::DSTAR;
-				m_toMode   = DATA_MODE::P25;
+					m_to.m_mode    = DATA_MODE::P25;
+					m_to.P25.dstId = dstId;
+					m_to.P25.srcId = srcId;
+					m_to.P25.group = true;
 
-				writeJSONStatus(DATA_MODE::DSTAR, DATA_MODE::P25, 0U, m_dstId, false, true, dstCallsign);
+					m_direction = DIRECTION::FROM_TO;
+
+					writeJSONStatus();
+				}
 			}
 		}
 
-		if (m_toMode == DATA_MODE::NONE) {
+		if (m_to.m_mode == DATA_MODE::NONE) {
 			uint16_t dstId = find(m_dstarNXDNDests, dstCallsign);
 			if (dstId != NULL_ID16) {
 				uint16_t srcId = m_nxdnLookup.lookup(srcCallsign);
-				if (srcId == NULL_ID16)
-					return;
+				if (srcId != NULL_ID16) {
+					LogDebug("D-Star => NXDN, %s>%s -> %u>TG%u", srcCallsign.c_str(), dstCallsign.c_str(), srcId, dstId);
 
-				LogDebug("D-Star => NXDN, %s>%s -> %u>TG%u", srcCallsign.c_str(), dstCallsign.c_str(), srcId, dstId);
+					m_from.m_mode            = DATA_MODE::DSTAR;
+					m_from.DStar.srcCallsign = srcCallsign;
+					m_from.DStar.dstCallsign = dstCallsign;
 
-				m_dstId    = dstId;
-				m_srcId    = srcId;
-				m_group    = true;
-				m_fromMode = DATA_MODE::DSTAR;
-				m_toMode   = DATA_MODE::NXDN;
+					m_to.m_mode     = DATA_MODE::NXDN;
+					m_to.NXDN.dstId = dstId;
+					m_to.NXDN.srcId = srcId;
+					m_to.NXDN.group = true;
 
-				writeJSONStatus(DATA_MODE::DSTAR, DATA_MODE::NXDN, 0U, m_dstId, false, true, dstCallsign);
+					m_direction = DIRECTION::FROM_TO;
+
+					writeJSONStatus();
+				}
 			}
 		}
 
-		if (m_toMode == DATA_MODE::NONE) {
+		if (m_to.m_mode == DATA_MODE::NONE) {
 			if (dstCallsign == m_dstarFMDest) {
-				LogDebug("D-Star => FM, %s>%s ->", srcCallsign.c_str(), dstCallsign.c_str());
+				LogDebug("D-Star => FM, %s>%s -> %s", srcCallsign.c_str(), dstCallsign.c_str(), srcCallsign.c_str());
 
-				m_fromMode = DATA_MODE::DSTAR;
-				m_toMode   = DATA_MODE::FM;
+				m_from.m_mode            = DATA_MODE::DSTAR;
+				m_from.DStar.srcCallsign = srcCallsign;
+				m_from.DStar.dstCallsign = dstCallsign;
 
-				writeJSONStatus(DATA_MODE::DSTAR, DATA_MODE::FM, 0U, 0U, false, false, dstCallsign);
+				m_to.m_mode      = DATA_MODE::FM;
+				m_to.FM.callsign = srcCallsign;
+
+				m_direction = DIRECTION::FROM_TO;
+
+				writeJSONStatus();
 			}
 		}
 
-		if (m_toMode == DATA_MODE::NONE) {
+		if (m_to.m_mode == DATA_MODE::NONE) {
 			if (m_toDStar) {
 				LogDebug("D-Star => D-Star, %s>%s -> %s>%s", srcCallsign.c_str(), dstCallsign.c_str(), srcCallsign.c_str(), dstCallsign.c_str());
 
-				m_srcCallsign = srcCallsign;
-				m_dstCallsign = dstCallsign;
-				m_fromMode    = DATA_MODE::DSTAR;
-				m_toMode      = DATA_MODE::DSTAR;
+				m_from.m_mode            = DATA_MODE::DSTAR;
+				m_from.DStar.srcCallsign = srcCallsign;
+				m_from.DStar.dstCallsign = dstCallsign;
 
-				writeJSONStatus(DATA_MODE::DSTAR, DATA_MODE::DSTAR, 0U, 0U, false, false, dstCallsign, dstCallsign);
+				m_to.m_mode            = DATA_MODE::DSTAR;
+				m_to.DStar.srcCallsign = srcCallsign;
+				m_to.DStar.dstCallsign = dstCallsign;
+
+				m_direction = DIRECTION::FROM_TO;
+
+				writeJSONStatus();
 			}
 		}
 	} else {
-		m_fromMode = DATA_MODE::NONE;
-		m_toMode   = DATA_MODE::NONE;
+		m_from.reset();
+		m_to.reset();
 
 		std::pair<uint8_t, uint32_t> slotTG = find(m_dmrDStarTGs, dstCallsign);
 		if (slotTG.second != NULL_ID32) {
@@ -457,76 +476,119 @@ void CMetaData::setDStar(NETWORK network, const uint8_t* source, const uint8_t* 
 			if (srcId != NULL_ID32) {
 				LogDebug("DMR <= D-Star, %u>%u:TG%u <- %s>%s", srcId, slotTG.first, slotTG.second, srcCallsign.c_str(), dstCallsign.c_str());
 
-				m_slot     = slotTG.first;
-				m_srcId    = srcId;
-				m_dstId    = slotTG.second;
-				m_group    = true;
-				m_fromMode = DATA_MODE::DMR;
-				m_toMode   = DATA_MODE::DSTAR;
+				m_from.m_mode    = DATA_MODE::DMR;
+				m_from.DMR.slot  = slotTG.first;
+				m_from.DMR.srcId = srcId;
+				m_from.DMR.dstId = slotTG.second;
+				m_from.DMR.group = true;
+
+				m_to.m_mode            = DATA_MODE::DSTAR;
+				m_to.DStar.srcCallsign = srcCallsign;
+				m_to.DStar.dstCallsign = dstCallsign;
+
+				m_direction = DIRECTION::TO_FROM;
+
+				writeJSONStatus();
 			}
 		}
 
-		if (m_fromMode == DATA_MODE::NONE) {
+		if (m_from.m_mode == DATA_MODE::NONE) {
 			uint8_t dgId = find(m_ysfDStarDGIds, dstCallsign);
 			if (dgId != NULL_DGID) {
 				LogDebug("YSF <= D-Star, %s>%u <- %s>%s", srcCallsign.c_str(), dgId, srcCallsign.c_str(), dstCallsign.c_str());
 
-				m_srcCallsign = srcCallsign;
-				m_dgId        = dgId;
-				m_fromMode    = DATA_MODE::YSF;
-				m_toMode      = DATA_MODE::DSTAR;
+				m_from.m_mode       = DATA_MODE::YSF;
+				m_from.YSF.callsign = srcCallsign;
+				m_from.YSF.dgId     = dgId;
+
+				m_to.m_mode            = DATA_MODE::DSTAR;
+				m_to.DStar.srcCallsign = srcCallsign;
+				m_to.DStar.dstCallsign = dstCallsign;
+
+				m_direction = DIRECTION::TO_FROM;
+
+				writeJSONStatus();
 			}
 		}
 
-		if (m_fromMode == DATA_MODE::NONE) {
+		if (m_from.m_mode == DATA_MODE::NONE) {
 			uint32_t tg = find(m_p25DStarTGs, dstCallsign);
 			if (tg != NULL_ID32) {
 				uint32_t id = m_dmrLookup.lookup(srcCallsign);
 				if (id != NULL_ID32) {
 					LogDebug("P25 <= D-Star, %u>TG%u <- %s>%s", id, tg, srcCallsign.c_str(), dstCallsign.c_str());
 
-					m_srcId    = id;
-					m_dstId    = tg;
-					m_group    = true;
-					m_fromMode = DATA_MODE::P25;
-					m_toMode   = DATA_MODE::DSTAR;
+					m_from.m_mode    = DATA_MODE::P25;
+					m_from.P25.srcId = id;
+					m_from.P25.dstId = tg;
+					m_from.P25.group = true;
+
+					m_to.m_mode            = DATA_MODE::DSTAR;
+					m_to.DStar.srcCallsign = srcCallsign;
+					m_to.DStar.dstCallsign = dstCallsign;
+
+					m_direction = DIRECTION::TO_FROM;
+
+					writeJSONStatus();
 				}
 			}
 		}
 
-		if (m_fromMode == DATA_MODE::NONE) {
+		if (m_from.m_mode == DATA_MODE::NONE) {
 			uint16_t tg = find(m_nxdnDStarTGs, dstCallsign);
 			if (tg != NULL_ID16) {
 				uint16_t id = m_nxdnLookup.lookup(srcCallsign);
 				if (id != NULL_ID16) {
 					LogDebug("NXDN <= D-Star, %u>TG%u <- %s>%s", id, tg, srcCallsign.c_str(), dstCallsign.c_str());
 
-					m_srcId    = id;
-					m_dstId    = tg;
-					m_group    = true;
-					m_fromMode = DATA_MODE::NXDN;
-					m_toMode   = DATA_MODE::DSTAR;
+					m_from.m_mode     = DATA_MODE::NXDN;
+					m_from.NXDN.srcId = id;
+					m_from.NXDN.dstId = tg;
+					m_from.NXDN.group = true;
+
+					m_to.m_mode            = DATA_MODE::DSTAR;
+					m_to.DStar.srcCallsign = srcCallsign;
+					m_to.DStar.dstCallsign = dstCallsign;
+
+					m_direction = DIRECTION::TO_FROM;
+
+					writeJSONStatus();
 				}
 			}
 		}
 
-		else if (m_fromMode == DATA_MODE::NONE) {
+		if (m_from.m_mode == DATA_MODE::NONE) {
 			if (dstCallsign == m_dstarFMDest) {
-				LogDebug("FM <= D-Star, <- %s>%s", srcCallsign.c_str(), dstCallsign.c_str());
+				LogDebug("FM <= D-Star, %s <- %s>%s", srcCallsign.c_str(), srcCallsign.c_str(), dstCallsign.c_str());
 
-				m_fromMode   = DATA_MODE::FM;
-				m_toMode     = DATA_MODE::DSTAR;
+				m_from.m_mode      = DATA_MODE::FM;
+				m_from.FM.callsign = srcCallsign;
+
+				m_to.m_mode            = DATA_MODE::DSTAR;
+				m_to.DStar.srcCallsign = srcCallsign;
+				m_to.DStar.dstCallsign = dstCallsign;
+
+				m_direction = DIRECTION::TO_FROM;
+
+				writeJSONStatus();
 			}
 		}
 
-		else if (m_fromMode == DATA_MODE::NONE) {
+		if (m_from.m_mode == DATA_MODE::NONE) {
 			if (m_toDStar) {
 				LogDebug("D-Star <= D-Star, %s>%s <- %s>%s", srcCallsign.c_str(), dstCallsign.c_str(), srcCallsign.c_str(), dstCallsign.c_str());
 
-				m_srcCallsign = srcCallsign;
-				m_dstCallsign = dstCallsign;
-				m_fromMode    = DATA_MODE::DSTAR;
-				m_toMode      = DATA_MODE::DSTAR;
+				m_from.m_mode            = DATA_MODE::DSTAR;
+				m_from.DStar.srcCallsign = srcCallsign;
+				m_from.DStar.dstCallsign = dstCallsign;
+
+				m_to.m_mode            = DATA_MODE::DSTAR;
+				m_to.DStar.srcCallsign = srcCallsign;
+				m_to.DStar.dstCallsign = dstCallsign;
+
+				m_direction = DIRECTION::TO_FROM;
+
+				writeJSONStatus();
 			}
 		}
 	}
@@ -539,8 +601,8 @@ void CMetaData::setDMR(NETWORK network, uint8_t slot, uint32_t source, uint32_t 
 	assert(destination > 0U);
 
 	if (network == NETWORK::FROM) {
-		m_fromMode = DATA_MODE::NONE;
-		m_toMode   = DATA_MODE::NONE;
+		m_from.reset();
+		m_to.reset();
 
 		std::string dst = find(m_dmrDStarTGs, slot, destination);
 		if (dst != NULL_CALLSIGN) {
@@ -548,48 +610,69 @@ void CMetaData::setDMR(NETWORK network, uint8_t slot, uint32_t source, uint32_t 
 			if (src != NULL_CALLSIGN) {
 				LogDebug("DMR => D-Star, %u>%u:TG%u -> %s>%s", source, slot, destination, src.c_str(), dst.c_str());
 
-				m_srcCallsign = src;
-				m_dstCallsign = dst;
-				m_fromMode    = DATA_MODE::DMR;
-				m_toMode      = DATA_MODE::DSTAR;
+				m_from.m_mode    = DATA_MODE::DMR;
+				m_from.DMR.slot  = slot;
+				m_from.DMR.srcId = source;
+				m_from.DMR.dstId = destination;
+				m_from.DMR.group = true;
 
-				writeJSONStatus(DATA_MODE::DMR, DATA_MODE::DSTAR, destination, 0U, true, false, "", m_dstCallsign, slot);
+				m_to.m_mode            = DATA_MODE::DSTAR;
+				m_to.DStar.srcCallsign = src;
+				m_to.DStar.dstCallsign = dst;
+
+				m_direction = DIRECTION::FROM_TO;
+
+				writeJSONStatus();
 			}
 		}
 
-		if (m_toMode == DATA_MODE::NONE) {
+		if (m_to.m_mode == DATA_MODE::NONE) {
 			uint8_t dgId = find(m_dmrYSFTGs, slot, destination);
 			if (dgId != NULL_DGID) {
 				std::string src = m_dmrLookup.lookup(source);
 				if (src != NULL_CALLSIGN) {
 					LogDebug("DMR => YSF, %u>%u:TG%u -> %s>%u", source, slot, destination, src.c_str(), dgId);
 
-					m_srcCallsign = src;
-					m_dgId        = dgId;
-					m_fromMode    = DATA_MODE::DMR;
-					m_toMode      = DATA_MODE::YSF;
+					m_from.m_mode    = DATA_MODE::DMR;
+					m_from.DMR.slot  = slot;
+					m_from.DMR.srcId = source;
+					m_from.DMR.dstId = destination;
+					m_from.DMR.group = true;
 
-					writeJSONStatus(DATA_MODE::DMR, DATA_MODE::YSF, destination, dgId, true, false, "", "", slot);
+					m_to.m_mode       = DATA_MODE::YSF;
+					m_to.YSF.callsign = src;
+					m_to.YSF.dgId     = dgId;
+
+					m_direction = DIRECTION::FROM_TO;
+
+					writeJSONStatus();
 				}
 			}
 		}
 
-		if (m_toMode == DATA_MODE::NONE) {
+		if (m_to.m_mode == DATA_MODE::NONE) {
 			uint32_t tg = find(m_dmrP25TGs, slot, destination);
 			if (tg != NULL_ID32) {
 				LogDebug("DMR => P25, %u>%u:TG%u -> %u>TG%u", source, slot, destination, source, tg);
 
-				m_srcId    = source;
-				m_dstId    = tg;
-				m_group    = true;
-				m_fromMode = DATA_MODE::DMR;
-				m_toMode   = DATA_MODE::P25;
+				m_from.m_mode    = DATA_MODE::DMR;
+				m_from.DMR.slot  = slot;
+				m_from.DMR.srcId = source;
+				m_from.DMR.dstId = destination;
+				m_from.DMR.group = true;
 
-				writeJSONStatus(DATA_MODE::DMR, DATA_MODE::P25, destination, tg, true, true, "", "", slot);
+				m_from.m_mode  = DATA_MODE::P25;
+				m_to.P25.srcId = source;
+				m_to.P25.dstId = tg;
+				m_to.P25.group = true;
+
+				m_direction = DIRECTION::FROM_TO;
+
+				writeJSONStatus();
 			}
 		}
 
-		if (m_toMode == DATA_MODE::NONE) {
+		if (m_to.m_mode == DATA_MODE::NONE) {
 			uint16_t tg = find(m_dmrNXDNTGs, slot, destination);
 			if (tg != NULL_ID16) {
 				std::string src = m_dmrLookup.lookup(source);
@@ -598,104 +681,164 @@ void CMetaData::setDMR(NETWORK network, uint8_t slot, uint32_t source, uint32_t 
 					if (id != NULL_ID16) {
 						LogDebug("DMR => NXDN, %u>%u:TG%u -> %u>TG%u", source, slot, destination, id, tg);
 
-						m_srcId    = id;
-						m_dstId    = tg;
-						m_group    = true;
-						m_fromMode = DATA_MODE::DMR;
-						m_toMode   = DATA_MODE::NXDN;
+						m_from.m_mode    = DATA_MODE::DMR;
+						m_from.DMR.slot  = slot;
+						m_from.DMR.srcId = source;
+						m_from.DMR.dstId = destination;
+						m_from.DMR.group = true;
 
-						writeJSONStatus(DATA_MODE::DMR, DATA_MODE::NXDN, destination, tg, true, true, "", "", slot);
+						m_to.m_mode     = DATA_MODE::NXDN;
+						m_to.NXDN.srcId = id;
+						m_to.NXDN.dstId = tg;
+						m_to.NXDN.group = true;
+
+						m_direction = DIRECTION::FROM_TO;
+
+						writeJSONStatus();
 					}
 				}
 			}
 		}
 
-		if (m_toMode == DATA_MODE::NONE) {
+		if (m_to.m_mode == DATA_MODE::NONE) {
 			std::pair<uint8_t, uint32_t> tg = std::make_pair(slot, destination);
 			if (tg == m_dmrFMTG) {
-				LogDebug("DMR => FM, %u>%u:TG%u ->", source, slot, destination);
+				std::string src = m_dmrLookup.lookup(source);
+				if (src != NULL_CALLSIGN) {
+					LogDebug("DMR => FM, %u>%u:TG%u -> %s", source, slot, destination, src.c_str());
 
-				m_fromMode = DATA_MODE::DMR;
-				m_toMode   = DATA_MODE::FM;
+					m_from.m_mode    = DATA_MODE::DMR;
+					m_from.DMR.slot  = slot;
+					m_from.DMR.srcId = source;
+					m_from.DMR.dstId = destination;
+					m_from.DMR.group = true;
 
-				writeJSONStatus(DATA_MODE::DMR, DATA_MODE::FM, destination, 0U, true, false, "", "", slot);
+					m_to.m_mode      = DATA_MODE::FM;
+					m_to.FM.callsign = src;
+
+					m_direction = DIRECTION::FROM_TO;
+
+					writeJSONStatus();
+				}
 			}
 		}
 
-		if (m_toMode == DATA_MODE::NONE) {
+		if (m_to.m_mode == DATA_MODE::NONE) {
 			if ((slot == 1U) && m_toDMR1) {
 				LogDebug("DMR => DMR, %u>%u:TG%u -> %u>%u:TG%u", source, slot, destination, source, slot, destination);
 
-				m_slot     = slot;
-				m_srcId    = source;
-				m_dstId    = destination;
-				m_group    = group;
-				m_fromMode = DATA_MODE::DMR;
-				m_toMode   = DATA_MODE::DMR;
+				m_from.m_mode    = DATA_MODE::DMR;
+				m_from.DMR.slot  = slot;
+				m_from.DMR.srcId = source;
+				m_from.DMR.dstId = destination;
+				m_from.DMR.group = true;
 
-				writeJSONStatus(DATA_MODE::DMR, DATA_MODE::DMR, destination, destination, true, true, "", "", slot, slot);
+				m_to.m_mode    = DATA_MODE::DMR;
+				m_to.DMR.slot  = slot;
+				m_to.DMR.srcId = source;
+				m_to.DMR.dstId = destination;
+				m_to.DMR.group = true;
+
+				m_direction = DIRECTION::FROM_TO;
+
+				writeJSONStatus();
 			}
+		}
+
+		if (m_to.m_mode == DATA_MODE::NONE) {
 			if ((slot == 2U) && m_toDMR2) {
 				LogDebug("DMR => DMR, %u>%u:TG%u -> %u>%u:TG%u", source, slot, destination, source, slot, destination);
 
-				m_slot     = slot;
-				m_srcId    = source;
-				m_dstId    = destination;
-				m_group    = group;
-				m_fromMode = DATA_MODE::DMR;
-				m_toMode   = DATA_MODE::DMR;
+				m_from.m_mode    = DATA_MODE::DMR;
+				m_from.DMR.slot  = slot;
+				m_from.DMR.srcId = source;
+				m_from.DMR.dstId = destination;
+				m_from.DMR.group = true;
 
-				writeJSONStatus(DATA_MODE::DMR, DATA_MODE::DMR, destination, destination, true, true, "", "", slot, slot);
+				m_to.m_mode    = DATA_MODE::DMR;
+				m_to.DMR.slot  = slot;
+				m_to.DMR.srcId = source;
+				m_to.DMR.dstId = destination;
+				m_to.DMR.group = true;
+
+				m_direction = DIRECTION::FROM_TO;
+
+				writeJSONStatus();
 			}
 		}
 	} else {
-		m_fromMode = DATA_MODE::NONE;
-		m_toMode   = DATA_MODE::NONE;
+		m_from.reset();
+		m_to.reset();
 
 		std::string dest = find(m_dstarDMRDests, slot, destination);
 		if (dest != NULL_CALLSIGN) {
 			std::string src = m_dmrLookup.lookup(source);
-			if (src == NULL_CALLSIGN)
-				return;
+			if (src != NULL_CALLSIGN) {
+				LogDebug("D-Star <= DMR, %s>%s <- %u>%u:TG%u", src.c_str(), dest.c_str(), source, slot, destination);
 
-			LogDebug("D-Star <= DMR, %s>%s <- %u>%u:TG%u", src.c_str(), dest.c_str(), source, slot, destination);
+				m_from.m_mode            = DATA_MODE::DSTAR;
+				m_from.DStar.srcCallsign = src;
+				m_from.DStar.dstCallsign = dest;
 
-			m_srcCallsign = src;
-			m_dstCallsign = dest;
-			m_fromMode    = DATA_MODE::DSTAR;
-			m_toMode      = DATA_MODE::DMR;
-		}
+				m_to.m_mode    = DATA_MODE::DMR;
+				m_to.DMR.slot  = slot;
+				m_to.DMR.srcId = source;
+				m_to.DMR.dstId = destination;
+				m_to.DMR.group = true;
 
-		else if (m_fromMode == DATA_MODE::NONE) {
-			uint8_t dgId = find(m_ysfDMRDGIds, slot, destination);
-			if (dgId != NULL_DGID) {
-				std::string src = m_dmrLookup.lookup(source);
-				if (src == NULL_CALLSIGN)
-					return;
+				m_direction = DIRECTION::TO_FROM;
 
-				LogDebug("YSF <= DMR, %s>%u <- %u>%u:TG%u", src.c_str(), dgId, source, slot, destination);
-
-				m_srcCallsign = src;
-				m_dgId        = dgId;
-				m_fromMode    = DATA_MODE::YSF;
-				m_toMode      = DATA_MODE::DMR;
+				writeJSONStatus();
 			}
 		}
 
-		else if (m_fromMode == DATA_MODE::NONE) {
+		if (m_from.m_mode == DATA_MODE::NONE) {
+			uint8_t dgId = find(m_ysfDMRDGIds, slot, destination);
+			if (dgId != NULL_DGID) {
+				std::string src = m_dmrLookup.lookup(source);
+				if (src != NULL_CALLSIGN) {
+					LogDebug("YSF <= DMR, %s>%u <- %u>%u:TG%u", src.c_str(), dgId, source, slot, destination);
+
+					m_from.m_mode       = DATA_MODE::YSF;
+					m_from.YSF.callsign = src;
+					m_from.YSF.dgId     = dgId;
+
+					m_to.m_mode    = DATA_MODE::DMR;
+					m_to.DMR.slot  = slot;
+					m_to.DMR.srcId = source;
+					m_to.DMR.dstId = destination;
+					m_to.DMR.group = true;
+
+					m_direction = DIRECTION::TO_FROM;
+
+					writeJSONStatus();
+				}
+			}
+		}
+
+		if (m_from.m_mode == DATA_MODE::NONE) {
 			uint32_t tg = find(m_p25DMRTGs, slot, destination);
 			if (tg != NULL_ID32) {
 				LogDebug("P25 <= DMR, %u>TG%u <- %u>%u:TG%u", source, tg, source, slot, destination);
 
-				m_srcId    = source;
-				m_dstId    = tg;
-				m_group    = true;
-				m_fromMode = DATA_MODE::P25;
-				m_toMode   = DATA_MODE::DMR;
+				m_from.m_mode    = DATA_MODE::P25;
+				m_from.P25.srcId = source;
+				m_from.P25.dstId = tg;
+				m_from.P25.group = true;
+
+				m_to.m_mode    = DATA_MODE::DMR;
+				m_to.DMR.slot  = slot;
+				m_to.DMR.srcId = source;
+				m_to.DMR.dstId = destination;
+				m_to.DMR.group = true;
+
+				m_direction = DIRECTION::TO_FROM;
+
+				writeJSONStatus();
 			}
 		}
 
-		else if (m_fromMode == DATA_MODE::NONE) {
+		if (m_from.m_mode == DATA_MODE::NONE) {
 			uint16_t tg = find(m_nxdnDMRTGs, slot, destination);
 			if (tg != NULL_ID16) {
 				std::string src = m_dmrLookup.lookup(source);
@@ -704,46 +847,89 @@ void CMetaData::setDMR(NETWORK network, uint8_t slot, uint32_t source, uint32_t 
 					if (id != NULL_ID16) {
 						LogDebug("NXDN <= DMR, %u>TG%u <- %u>%u:TG%u", id, tg, source, slot, destination);
 
-						m_srcId    = id;
-						m_dstId    = tg;
-						m_group    = true;
-						m_fromMode = DATA_MODE::NXDN;
-						m_toMode   = DATA_MODE::DMR;
+						m_from.m_mode     = DATA_MODE::NXDN;
+						m_from.NXDN.srcId = id;
+						m_from.NXDN.dstId = tg;
+						m_from.NXDN.group = true;
+
+						m_to.m_mode    = DATA_MODE::DMR;
+						m_to.DMR.slot  = slot;
+						m_to.DMR.srcId = source;
+						m_to.DMR.dstId = destination;
+						m_to.DMR.group = true;
+
+						m_direction = DIRECTION::TO_FROM;
+
+						writeJSONStatus();
 					}
 				}
 			}
 		}
 
-		if (m_fromMode == DATA_MODE::NONE) {
+		if (m_from.m_mode == DATA_MODE::NONE) {
 			std::pair<uint8_t, uint32_t> tg = std::make_pair(slot, destination);
 			if (tg == m_dmrFMTG) {
-				LogDebug("FM <= DMR, <- %u>%u:TG%u", source, slot, destination);
+				std::string src = m_dmrLookup.lookup(source);
+				if (src != NULL_CALLSIGN) {
+					LogDebug("FM <= DMR, %s <- %u>%u:TG%u", src.c_str(), source, slot, destination);
 
-				m_fromMode = DATA_MODE::FM;
-				m_toMode   = DATA_MODE::DMR;
+					m_from.m_mode      = DATA_MODE::FM;
+					m_from.FM.callsign = src;
+
+					m_to.m_mode    = DATA_MODE::DMR;
+					m_to.DMR.slot  = slot;
+					m_to.DMR.srcId = source;
+					m_to.DMR.dstId = destination;
+					m_to.DMR.group = true;
+
+					m_direction = DIRECTION::TO_FROM;
+
+					writeJSONStatus();
+				}
 			}
 		}
 
-		else if (m_fromMode == DATA_MODE::NONE) {
+		if (m_from.m_mode == DATA_MODE::NONE) {
 			if ((slot == 1U) && m_toDMR1) {
 				LogDebug("DMR <= DMR, %u>%u:TG%u <- %u>%u:TG%u", source, slot, destination, source, slot, destination);
 
-				m_slot     = slot;
-				m_srcId    = source;
-				m_dstId    = destination;
-				m_group    = group;
-				m_fromMode = DATA_MODE::DMR;
-				m_toMode   = DATA_MODE::DMR;
+				m_to.m_mode    = DATA_MODE::DMR;
+				m_to.DMR.slot  = slot;
+				m_to.DMR.srcId = source;
+				m_to.DMR.dstId = destination;
+				m_to.DMR.group = true;
+
+				m_from.m_mode    = DATA_MODE::DMR;
+				m_from.DMR.slot  = slot;
+				m_from.DMR.srcId = source;
+				m_from.DMR.dstId = destination;
+				m_from.DMR.group = true;
+
+				m_direction = DIRECTION::TO_FROM;
+
+				writeJSONStatus();
 			}
+		}
+
+		if (m_from.m_mode == DATA_MODE::NONE) {
 			if ((slot == 2U) && m_toDMR2) {
 				LogDebug("DMR <= DMR, %u>%u:TG%u <- %u>%u:TG%u", source, slot, destination, source, slot, destination);
 
-				m_slot     = slot;
-				m_srcId    = source;
-				m_dstId    = destination;
-				m_group    = group;
-				m_fromMode = DATA_MODE::DMR;
-				m_toMode   = DATA_MODE::DMR;
+				m_to.m_mode    = DATA_MODE::DMR;
+				m_to.DMR.slot  = slot;
+				m_to.DMR.srcId = source;
+				m_to.DMR.dstId = destination;
+				m_to.DMR.group = true;
+
+				m_from.m_mode    = DATA_MODE::DMR;
+				m_from.DMR.slot  = slot;
+				m_from.DMR.srcId = source;
+				m_from.DMR.dstId = destination;
+				m_from.DMR.group = true;
+
+				m_direction = DIRECTION::TO_FROM;
+
+				writeJSONStatus();
 			}
 		}
 	}
@@ -756,182 +942,253 @@ void CMetaData::setYSF(NETWORK network, const uint8_t* source, uint8_t dgId)
 	std::string srcCallsign = bytesToString(source, YSF_CALLSIGN_LENGTH);
 
 	if (network == NETWORK::FROM) {
-		m_fromMode = DATA_MODE::NONE;
-		m_toMode   = DATA_MODE::NONE;
+		m_from.reset();
+		m_to.reset();
 
 		std::string dest = find(m_ysfDStarDGIds, dgId);
-		LogDebug("YSF => D-Star, %s>%u -> %s>%s", srcCallsign.c_str(), dgId, srcCallsign.c_str(), dest.c_str());
-
 		if (dest != NULL_CALLSIGN) {
-			m_srcCallsign = srcCallsign;
-			m_dstCallsign = dest;
-			m_fromMode    = DATA_MODE::YSF;
-			m_toMode      = DATA_MODE::DSTAR;
+			LogDebug("YSF => D-Star, %s>%u -> %s>%s", srcCallsign.c_str(), dgId, srcCallsign.c_str(), dest.c_str());
 
-			writeJSONStatus(DATA_MODE::YSF, DATA_MODE::DSTAR, dgId, 0U, false, false, "", m_dstCallsign);
+			m_from.m_mode       = DATA_MODE::YSF;
+			m_from.YSF.callsign = srcCallsign;
+			m_from.YSF.dgId     = dgId;
+			
+			m_to.m_mode            = DATA_MODE::DSTAR;
+			m_to.DStar.srcCallsign = srcCallsign;
+			m_to.DStar.dstCallsign = dest;
+
+			m_direction = DIRECTION::FROM_TO;
+
+			writeJSONStatus();
 		}
 
-		if (m_toMode == DATA_MODE::NONE) {
+		if (m_to.m_mode == DATA_MODE::NONE) {
 			std::pair<uint8_t, uint32_t> dst = find(m_ysfDMRDGIds, dgId);
 			if (dst.second != NULL_ID32) {
 				uint32_t srcId = m_dmrLookup.lookup(srcCallsign);
-				if (srcId == NULL_ID32)
-					return;
+				if (srcId != NULL_ID32) {
+					LogDebug("YSF => DMR, %s>%u -> %u>%u:TG%u", srcCallsign.c_str(), dgId, srcId, dst.first, dst.second);
 
-				LogDebug("YSF => DMR, %s>%u -> %u>%u:TG%u", srcCallsign.c_str(), dgId, srcId, dst.first, dst.second);
+					m_from.m_mode       = DATA_MODE::YSF;
+					m_from.YSF.callsign = srcCallsign;
+					m_from.YSF.dgId     = dgId;
 
-				m_slot     = dst.first;
-				m_srcId    = srcId;
-				m_dstId    = dst.second;
-				m_group    = true;
-				m_fromMode = DATA_MODE::YSF;
-				m_toMode   = DATA_MODE::DMR;
+					m_to.m_mode    = DATA_MODE::DMR;
+					m_to.DMR.slot  = dst.first;
+					m_to.DMR.srcId = srcId;
+					m_to.DMR.dstId = dst.second;
+					m_to.DMR.group = true;
 
-				writeJSONStatus(DATA_MODE::YSF, DATA_MODE::DMR, dgId, m_dstId, false, true, "", "", 0U, m_slot);
+					m_direction = DIRECTION::FROM_TO;
+
+					writeJSONStatus();
+				}
 			}
 		}
 
-		if (m_toMode == DATA_MODE::NONE) {
+		if (m_to.m_mode == DATA_MODE::NONE) {
 			uint32_t dstId = find(m_ysfP25DGIds, dgId);
 			if (dstId != NULL_ID32) {
 				uint32_t srcId = m_dmrLookup.lookup(srcCallsign);
-				if (srcId == NULL_ID32)
-					return;
+				if (srcId != NULL_ID32) {
+					LogDebug("YSF => P25, %s>%u -> %u>TG%u", srcCallsign.c_str(), dgId, srcId, dstId);
 
-				LogDebug("YSF => P25, %s>%u -> %u>TG%u", srcCallsign.c_str(), dgId, srcId, dstId);
+					m_from.m_mode       = DATA_MODE::YSF;
+					m_from.YSF.callsign = srcCallsign;
+					m_from.YSF.dgId     = dgId;
 
-				m_srcId    = srcId;
-				m_dstId    = dstId;
-				m_group    = true;
-				m_fromMode = DATA_MODE::YSF;
-				m_toMode   = DATA_MODE::P25;
+					m_to.m_mode    = DATA_MODE::P25;
+					m_to.P25.srcId = srcId;
+					m_to.P25.dstId = dstId;
+					m_to.P25.group = true;
 
-				writeJSONStatus(DATA_MODE::YSF, DATA_MODE::P25, dgId, m_dstId, false, true);
+					m_direction = DIRECTION::FROM_TO;
+
+					writeJSONStatus();
+				}
 			}
 		}
 
-		if (m_toMode == DATA_MODE::NONE) {
+		if (m_to.m_mode == DATA_MODE::NONE) {
 			uint16_t dstId = find(m_ysfNXDNDGIds, dgId);
 			if (dstId != NULL_ID16) {
 				uint16_t srcId = m_nxdnLookup.lookup(srcCallsign);
-				if (srcId == NULL_ID16)
-					return;
+				if (srcId != NULL_ID16) {
+					LogDebug("YSF => NXDN, %s>%u -> %u>TG%u", srcCallsign.c_str(), dgId, srcId, dstId);
 
-				LogDebug("YSF => NXDN, %s>%u -> %u>TG%u", srcCallsign.c_str(), dgId, srcId, dstId);
+					m_from.m_mode       = DATA_MODE::YSF;
+					m_from.YSF.callsign = srcCallsign;
+					m_from.YSF.dgId     = dgId;
 
-				m_srcId    = srcId;
-				m_dstId    = dstId;
-				m_group    = true;
-				m_fromMode = DATA_MODE::YSF;
-				m_toMode   = DATA_MODE::NXDN;
+					m_to.m_mode     = DATA_MODE::NXDN;
+					m_to.NXDN.srcId = srcId;
+					m_to.NXDN.dstId = dstId;
+					m_to.NXDN.group = true;
 
-				writeJSONStatus(DATA_MODE::YSF, DATA_MODE::NXDN, dgId, m_dstId, false, true);
+					m_direction = DIRECTION::FROM_TO;
+
+					writeJSONStatus();
+				}
 			}
 		}
 
-		if (m_toMode == DATA_MODE::NONE) {
+		if (m_to.m_mode == DATA_MODE::NONE) {
 			if (dgId == m_ysfFMDGId) {
 				LogDebug("YSF => FM, %s>%u ->", srcCallsign.c_str(), dgId);
 
-				m_fromMode = DATA_MODE::YSF;
-				m_toMode   = DATA_MODE::FM;
+				m_from.m_mode       = DATA_MODE::YSF;
+				m_from.YSF.callsign = srcCallsign;
+				m_from.YSF.dgId     = dgId;
 
-				writeJSONStatus(DATA_MODE::YSF, DATA_MODE::FM, dgId);
+				m_to.m_mode      = DATA_MODE::FM;
+				m_to.FM.callsign = srcCallsign;
+
+				m_direction = DIRECTION::FROM_TO;
+
+				writeJSONStatus();
 			}
 		}
 
-		if (m_toMode == DATA_MODE::NONE) {
+		if (m_to.m_mode == DATA_MODE::NONE) {
 			if (m_toYSF) {
 				LogDebug("YSF => YSF, %s>%u -> %s>%u", srcCallsign.c_str(), dgId, srcCallsign.c_str(), dgId);
 
-				m_srcCallsign = srcCallsign;
-				m_dgId        = dgId;
-				m_fromMode    = DATA_MODE::YSF;
-				m_toMode      = DATA_MODE::YSF;
+				m_from.m_mode       = DATA_MODE::YSF;
+				m_from.YSF.callsign = srcCallsign;
+				m_from.YSF.dgId     = dgId;
 
-				writeJSONStatus(DATA_MODE::YSF, DATA_MODE::YSF, dgId, dgId);
+				m_to.m_mode       = DATA_MODE::YSF;
+				m_to.YSF.callsign = srcCallsign;
+				m_to.YSF.dgId     = dgId;
+
+				m_direction = DIRECTION::FROM_TO;
+
+				writeJSONStatus();
 			}
 		}
 	} else {
-		m_fromMode = DATA_MODE::NONE;
-		m_toMode   = DATA_MODE::NONE;
+		m_from.reset();
+		m_to.reset();
 
 		std::string dest = find(m_dstarYSFDests, dgId);
 		if (dest != NULL_CALLSIGN) {
 			LogDebug("D-Star <= YSF, %s>%s <- %s>%u", srcCallsign.c_str(), dest.c_str(), srcCallsign.c_str(), dgId);
 
-			m_srcCallsign = srcCallsign;
-			m_dstCallsign = dest;
-			m_fromMode    = DATA_MODE::DSTAR;
-			m_toMode      = DATA_MODE::YSF;
+			m_from.m_mode            = DATA_MODE::DSTAR;
+			m_from.DStar.srcCallsign = srcCallsign;
+			m_from.DStar.dstCallsign = dest;
+
+			m_to.m_mode       = DATA_MODE::YSF;
+			m_to.YSF.callsign = srcCallsign;
+			m_to.YSF.dgId     = dgId;
+
+			m_direction = DIRECTION::TO_FROM;
+
+			writeJSONStatus();
 		}
 
-		if (m_fromMode == DATA_MODE::NONE) {
+		if (m_from.m_mode == DATA_MODE::NONE) {
 			std::pair<uint8_t, uint32_t> slotTG = find(m_dmrYSFTGs, dgId);
 			if (slotTG.second != NULL_ID32) {
 				uint32_t srcId = m_dmrLookup.lookup(srcCallsign);
 				if (srcId != NULL_ID32) {
 					LogDebug("DMR <= YSF, %u>%u:TG%u <- %s>%u", srcId, slotTG.first, slotTG.second, srcCallsign.c_str(), dgId);
 
-					m_slot     = slotTG.first;
-					m_srcId    = srcId;
-					m_dstId    = slotTG.second;
-					m_group    = true;
-					m_fromMode = DATA_MODE::DMR;
-					m_toMode   = DATA_MODE::YSF;
+					m_from.m_mode    = DATA_MODE::DMR;
+					m_from.DMR.slot  = slotTG.first;
+					m_from.DMR.srcId = srcId;
+					m_from.DMR.dstId = slotTG.second;
+					m_from.DMR.group = true;
+
+					m_to.m_mode       = DATA_MODE::YSF;
+					m_to.YSF.callsign = srcCallsign;
+					m_to.YSF.dgId     = dgId;
+
+					m_direction = DIRECTION::TO_FROM;
+
+					writeJSONStatus();
 				}
 			}
 		}
 
-		if (m_fromMode == DATA_MODE::NONE) {
+		if (m_from.m_mode == DATA_MODE::NONE) {
 			uint32_t tg = find(m_p25YSFTGs, dgId);
 			if (tg != NULL_ID32) {
 				uint32_t id = m_dmrLookup.lookup(srcCallsign);
 				if (id != NULL_ID32) {
 					LogDebug("P25 <= YSF, %u>TG%u <- %s>%u", id, tg, srcCallsign.c_str(), dgId);
 
-					m_srcId    = id;
-					m_dstId    = tg;
-					m_group    = true;
-					m_fromMode = DATA_MODE::P25;
-					m_toMode   = DATA_MODE::YSF;
+					m_from.m_mode    = DATA_MODE::P25;
+					m_from.P25.srcId = id;
+					m_from.P25.dstId = tg;
+					m_from.P25.group = true;
+
+					m_to.m_mode       = DATA_MODE::YSF;
+					m_to.YSF.callsign = srcCallsign;
+					m_to.YSF.dgId     = dgId;
+
+					m_direction = DIRECTION::TO_FROM;
+
+					writeJSONStatus();
 				}
 			}
 		}
 
-		if (m_fromMode == DATA_MODE::NONE) {
+		if (m_from.m_mode == DATA_MODE::NONE) {
 			uint16_t tg = find(m_nxdnYSFTGs, dgId);
 			if (tg != NULL_ID16) {
 				uint16_t id = m_nxdnLookup.lookup(srcCallsign);
 				if (id != NULL_ID16) {
 					LogDebug("NXDN <= YSF, %u>TG%u <- %s>%u", id, tg, srcCallsign.c_str(), dgId);
 
-					m_srcId    = id;
-					m_dstId    = tg;
-					m_group    = true;
-					m_fromMode = DATA_MODE::NXDN;
-					m_toMode   = DATA_MODE::YSF;
+					m_from.m_mode     = DATA_MODE::NXDN;
+					m_from.NXDN.srcId = id;
+					m_from.NXDN.dstId = tg;
+					m_from.NXDN.group = true;
+
+					m_to.m_mode       = DATA_MODE::YSF;
+					m_to.YSF.callsign = srcCallsign;
+					m_to.YSF.dgId     = dgId;
+
+					m_direction = DIRECTION::TO_FROM;
+
+					writeJSONStatus();
 				}
 			}
 		}
 
-		if (m_fromMode == DATA_MODE::NONE) {
+		if (m_from.m_mode == DATA_MODE::NONE) {
 			if (dgId == m_ysfFMDGId) {
 				LogDebug("FM <= YSF, <- %s>%u", srcCallsign.c_str(), dgId);
 
-				m_fromMode = DATA_MODE::FM;
-				m_toMode   = DATA_MODE::YSF;
+				m_from.m_mode      = DATA_MODE::FM;
+				m_from.FM.callsign = srcCallsign;
+
+				m_to.m_mode       = DATA_MODE::YSF;
+				m_to.YSF.callsign = srcCallsign;
+				m_to.YSF.dgId     = dgId;
+
+				m_direction = DIRECTION::TO_FROM;
+
+				writeJSONStatus();
 			}
 		}
 
-		else if (m_fromMode == DATA_MODE::NONE) {
+		if (m_from.m_mode == DATA_MODE::NONE) {
 			if (m_toYSF) {
 				LogDebug("YSF <= YSF, %s>%u <- %s>%u", srcCallsign.c_str(), dgId, srcCallsign.c_str(), dgId);
 
-				m_srcCallsign = srcCallsign;
-				m_dgId        = dgId;
-				m_fromMode    = DATA_MODE::YSF;
-				m_toMode      = DATA_MODE::YSF;
+				m_from.m_mode       = DATA_MODE::YSF;
+				m_from.YSF.callsign = srcCallsign;
+				m_from.YSF.dgId     = dgId;
+
+				m_to.m_mode       = DATA_MODE::YSF;
+				m_to.YSF.callsign = srcCallsign;
+				m_to.YSF.dgId     = dgId;
+
+				m_direction = DIRECTION::TO_FROM;
+
+				writeJSONStatus();
 			}
 		}
 	}
@@ -943,8 +1200,8 @@ void CMetaData::setP25(NETWORK network, uint32_t source, uint32_t destination, b
 	assert(destination > 0U);
 
 	if (network == NETWORK::FROM) {
-		m_fromMode = DATA_MODE::NONE;
-		m_toMode   = DATA_MODE::NONE;
+		m_from.reset();
+		m_to.reset();
 
 		std::string dst = find(m_p25DStarTGs, destination);
 		if (dst != NULL_CALLSIGN) {
@@ -952,49 +1209,67 @@ void CMetaData::setP25(NETWORK network, uint32_t source, uint32_t destination, b
 			if (src != NULL_CALLSIGN) {
 				LogDebug("P25 => D-Star, %u>TG%u -> %s>%s", source, destination, src.c_str(), dst.c_str());
 
-				m_srcCallsign = src;
-				m_dstCallsign = dst;
-				m_fromMode    = DATA_MODE::P25;
-				m_toMode      = DATA_MODE::DSTAR;
+				m_from.m_mode    = DATA_MODE::P25;
+				m_from.P25.srcId = source;
+				m_from.P25.dstId = destination;
+				m_from.P25.group = true;
 
-				writeJSONStatus(DATA_MODE::P25, DATA_MODE::DSTAR, destination, 0U, true, false, "", m_dstCallsign);
+				m_to.m_mode            = DATA_MODE::DSTAR;
+				m_to.DStar.srcCallsign = src;
+				m_to.DStar.dstCallsign = dst;
+
+				m_direction = DIRECTION::FROM_TO;
+
+				writeJSONStatus();
 			}
 		}
 
-		if (m_toMode == DATA_MODE::NONE) {
+		if (m_to.m_mode == DATA_MODE::NONE) {
 			std::pair<uint8_t, uint32_t> slotTG = find(m_p25DMRTGs, destination);
 			if (slotTG.second != NULL_ID32) {
 				LogDebug("P25 => DMR, %u>TG%u -> %u>%u:TG%u", source, destination, source, slotTG.first, slotTG.second);
 
-				m_slot     = slotTG.first;
-				m_srcId    = source;
-				m_dstId    = slotTG.second;
-				m_group    = true;
-				m_fromMode = DATA_MODE::P25;
-				m_toMode   = DATA_MODE::DMR;
+				m_from.m_mode    = DATA_MODE::P25;
+				m_from.P25.srcId = source;
+				m_from.P25.dstId = destination;
+				m_from.P25.group = true;
 
-				writeJSONStatus(DATA_MODE::P25, DATA_MODE::DMR, destination, m_dstId, true, true, "", "", 0U, m_slot);
+				m_to.m_mode    = DATA_MODE::DMR;
+				m_to.DMR.slot  = slotTG.first;
+				m_to.DMR.srcId = source;
+				m_to.DMR.dstId = slotTG.second;
+				m_to.DMR.group = true;
+
+				m_direction = DIRECTION::FROM_TO;
+
+				writeJSONStatus();
 			}
 		}
 
-		if (m_toMode == DATA_MODE::NONE) {
+		if (m_to.m_mode == DATA_MODE::NONE) {
 			uint8_t dgId = find(m_p25YSFTGs, destination);
 			if (dgId != NULL_DGID) {
 				std::string src = m_dmrLookup.lookup(source);
 				if (src != NULL_CALLSIGN) {
 					LogDebug("P25 => YSF, %u>TG%u -> %s>%u", source, destination, src.c_str(), dgId);
 
-					m_srcCallsign = src;
-					m_dgId        = dgId;
-					m_fromMode    = DATA_MODE::P25;
-					m_toMode      = DATA_MODE::YSF;
+					m_from.m_mode    = DATA_MODE::P25;
+					m_from.P25.srcId = source;
+					m_from.P25.dstId = destination;
+					m_from.P25.group = true;
 
-					writeJSONStatus(DATA_MODE::P25, DATA_MODE::YSF, destination, m_dgId, true, false);
+					m_to.m_mode       = DATA_MODE::YSF;
+					m_to.YSF.callsign = src;
+					m_to.YSF.dgId     = dgId;
+
+					m_direction = DIRECTION::FROM_TO;
+
+					writeJSONStatus();
 				}
 			}
 		}
 
-		if (m_toMode == DATA_MODE::NONE) {
+		if (m_to.m_mode == DATA_MODE::NONE) {
 			uint16_t tg = find(m_p25NXDNTGs, destination);
 			if (tg != NULL_ID16) {
 				std::string src = m_dmrLookup.lookup(source);
@@ -1003,91 +1278,135 @@ void CMetaData::setP25(NETWORK network, uint32_t source, uint32_t destination, b
 					if (id != NULL_ID16) {
 						LogDebug("P25 => NXDN, %u>TG%u -> %u>TG%u", source, destination, id, tg);
 
-						m_srcId    = id;
-						m_dstId    = tg;
-						m_group    = true;
-						m_fromMode = DATA_MODE::P25;
-						m_toMode   = DATA_MODE::NXDN;
+						m_from.m_mode    = DATA_MODE::P25;
+						m_from.P25.srcId = source;
+						m_from.P25.dstId = destination;
+						m_from.P25.group = true;
 
-						writeJSONStatus(DATA_MODE::P25, DATA_MODE::NXDN, destination, m_dstId, true, true);
+						m_to.m_mode     = DATA_MODE::NXDN;
+						m_to.NXDN.srcId = id;
+						m_to.NXDN.dstId = tg;
+						m_to.NXDN.group = true;
+
+						m_direction = DIRECTION::FROM_TO;
+
+						writeJSONStatus();
 					}
 				}
 			}
 		}
 
-		if (m_toMode == DATA_MODE::NONE) {
+		if (m_to.m_mode == DATA_MODE::NONE) {
 			if (destination == m_p25FMTG) {
-				LogDebug("P25 => FM, %u>TG%u ->", source, destination);
+				std::string src = m_dmrLookup.lookup(source);
+				if (src != NULL_CALLSIGN) {
+					LogDebug("P25 => FM, %u>TG%u -> %s", source, destination, src.c_str());
 
-				m_fromMode = DATA_MODE::P25;
-				m_toMode   = DATA_MODE::FM;
+					m_from.m_mode    = DATA_MODE::P25;
+					m_from.P25.srcId = source;
+					m_from.P25.dstId = destination;
+					m_from.P25.group = true;
 
-				writeJSONStatus(DATA_MODE::P25, DATA_MODE::FM, destination, 0U, true, true);
+					m_to.m_mode      = DATA_MODE::FM;
+					m_to.FM.callsign = src;
+
+					m_direction = DIRECTION::FROM_TO;
+
+					writeJSONStatus();
+				}
 			}
 		}
 
-		if (m_toMode == DATA_MODE::NONE) {
+		if (m_to.m_mode == DATA_MODE::NONE) {
 			if (m_toP25) {
 				LogDebug("P25 => P25, %u>TG%u -> %u>TG%u", source, destination, source, destination);
 
-				m_srcId    = source;
-				m_dstId    = destination;
-				m_group    = group;
-				m_fromMode = DATA_MODE::P25;
-				m_toMode   = DATA_MODE::P25;
+				m_from.m_mode    = DATA_MODE::P25;
+				m_from.P25.srcId = source;
+				m_from.P25.dstId = destination;
+				m_from.P25.group = true;
 
-				writeJSONStatus(DATA_MODE::P25, DATA_MODE::P25, destination, destination, true, true);
+				m_to.m_mode    = DATA_MODE::P25;
+				m_to.P25.srcId = source;
+				m_to.P25.dstId = destination;
+				m_to.P25.group = true;
+
+				m_direction = DIRECTION::FROM_TO;
+
+				writeJSONStatus();
 			}
 		}
 	} else {
-		m_fromMode = DATA_MODE::NONE;
-		m_toMode   = DATA_MODE::NONE;
+		m_from.reset();
+		m_to.reset();
 
 		std::string dest = find(m_dstarP25Dests, destination);
 		if (dest != NULL_CALLSIGN) {
 			std::string src = m_dmrLookup.lookup(source);
-			if (src == NULL_CALLSIGN)
-				return;
+			if (src != NULL_CALLSIGN) {
+				LogDebug("D-Star <= P25, %s>%s <- %u>TG%u", src.c_str(), dest.c_str(), source, destination);
 
-			LogDebug("D-Star <= P25, %s>%s <- %u>TG%u", src.c_str(), dest.c_str(), source, destination);
+				m_from.m_mode            = DATA_MODE::DSTAR;
+				m_from.DStar.srcCallsign = src;
+				m_from.DStar.dstCallsign = dest;
 
-			m_srcCallsign = src;
-			m_dstCallsign = dest;
-			m_fromMode    = DATA_MODE::DSTAR;
-			m_toMode      = DATA_MODE::P25;
+				m_to.m_mode    = DATA_MODE::P25;
+				m_to.P25.srcId = source;
+				m_to.P25.dstId = destination;
+				m_to.P25.group = true;
+
+				m_direction = DIRECTION::TO_FROM;
+
+				writeJSONStatus();
+			}
 		}
 
-		else if (m_fromMode == DATA_MODE::NONE) {
+		if (m_from.m_mode == DATA_MODE::NONE) {
 			std::pair<uint8_t, uint32_t> slotTG = find(m_dmrP25TGs, destination);
 			if (slotTG.second != NULL_ID32) {
 				LogDebug("DMR <= P25, %u>%u:TG%u <- %u>TG%u", source, slotTG.first, slotTG.second, source, destination);
 
-				m_slot     = slotTG.first;
-				m_srcId    = source;
-				m_dstId    = slotTG.second;
-				m_group    = true;
-				m_fromMode = DATA_MODE::DMR;
-				m_toMode   = DATA_MODE::P25;
+				m_from.m_mode    = DATA_MODE::DMR;
+				m_from.DMR.slot  = slotTG.first;
+				m_from.DMR.srcId = source;
+				m_from.DMR.dstId = slotTG.second;
+				m_from.DMR.group = true;
+
+				m_to.m_mode    = DATA_MODE::P25;
+				m_to.P25.srcId = source;
+				m_to.P25.dstId = destination;
+				m_to.P25.group = true;
+
+				m_direction = DIRECTION::TO_FROM;
+
+				writeJSONStatus();
 			}
 		}
 
-		else if (m_fromMode == DATA_MODE::NONE) {
+		if (m_from.m_mode == DATA_MODE::NONE) {
 			uint8_t dgId = find(m_ysfP25DGIds, destination);
 			if (dgId != NULL_DGID) {
 				std::string src = m_dmrLookup.lookup(source);
-				if (src == NULL_CALLSIGN)
-					return;
+				if (src != NULL_CALLSIGN) {
+					LogDebug("YSF <= P25, %s>%u <- %u>TG%u", src.c_str(), dgId, source, destination);
 
-				LogDebug("YSF <= P25, %s>%u <- %u>TG%u", src.c_str(), dgId, source, destination);
+					m_from.m_mode       = DATA_MODE::YSF;
+					m_from.YSF.callsign = src;
+					m_from.YSF.dgId     = dgId;
 
-				m_srcCallsign = src;
-				m_dgId        = dgId;
-				m_fromMode    = DATA_MODE::YSF;
-				m_toMode      = DATA_MODE::P25;
+					m_to.m_mode    = DATA_MODE::P25;
+					m_to.P25.srcId = source;
+					m_to.P25.dstId = destination;
+					m_to.P25.group = true;
+
+					m_direction = DIRECTION::TO_FROM;
+
+					writeJSONStatus();
+				}
 			}
 		}
 
-		else if (m_fromMode == DATA_MODE::NONE) {
+		if (m_from.m_mode == DATA_MODE::NONE) {
 			uint16_t tg = find(m_nxdnP25TGs, destination);
 			if (tg != NULL_ID16) {
 				std::string src = m_dmrLookup.lookup(source);
@@ -1096,34 +1415,62 @@ void CMetaData::setP25(NETWORK network, uint32_t source, uint32_t destination, b
 					if (id != NULL_ID16) {
 						LogDebug("NXDN <= P25, %u>TG%u <- %u>TG%u", id, tg, source, destination);
 
-						m_srcId    = id;
-						m_dstId    = tg;
-						m_group    = true;
-						m_fromMode = DATA_MODE::NXDN;
-						m_toMode   = DATA_MODE::P25;
+						m_from.m_mode     = DATA_MODE::NXDN;
+						m_from.NXDN.srcId = id;
+						m_from.NXDN.dstId = tg;
+						m_from.NXDN.group = true;
+
+						m_to.m_mode    = DATA_MODE::P25;
+						m_to.P25.srcId = source;
+						m_to.P25.dstId = destination;
+						m_to.P25.group = true;
+
+						m_direction = DIRECTION::TO_FROM;
+
+						writeJSONStatus();
 					}
 				}
 			}
 		}
 
-		if (m_fromMode == DATA_MODE::NONE) {
+		if (m_from.m_mode == DATA_MODE::NONE) {
 			if (destination == m_p25FMTG) {
-				LogDebug("FM <= P25, <- %u>TG%u", source, destination);
+				std::string src = m_dmrLookup.lookup(source);
+				if (src != NULL_CALLSIGN) {
+					LogDebug("FM <= P25, %s <- %u>TG%u", src.c_str(), source, destination);
 
-				m_fromMode = DATA_MODE::FM;
-				m_toMode   = DATA_MODE::P25;
+					m_from.m_mode      = DATA_MODE::FM;
+					m_from.FM.callsign = src;
+
+					m_to.m_mode    = DATA_MODE::P25;
+					m_to.P25.srcId = source;
+					m_to.P25.dstId = destination;
+					m_to.P25.group = true;
+
+					m_direction = DIRECTION::TO_FROM;
+
+					writeJSONStatus();
+				}
 			}
 		}
 
-		else if (m_fromMode == DATA_MODE::NONE) {
+		if (m_from.m_mode == DATA_MODE::NONE) {
 			if (m_toP25) {
 				LogDebug("P25 <= P25, %u>TG%u <- %u>TG%u", source, destination, source, destination);
 
-				m_srcId    = source;
-				m_dstId    = destination;
-				m_group    = group;
-				m_fromMode = DATA_MODE::P25;
-				m_toMode   = DATA_MODE::P25;
+				m_from.m_mode    = DATA_MODE::P25;
+				m_from.P25.srcId = source;
+				m_from.P25.dstId = destination;
+				m_from.P25.group = true;
+
+				m_to.m_mode    = DATA_MODE::P25;
+				m_to.P25.srcId = source;
+				m_to.P25.dstId = destination;
+				m_to.P25.group = true;
+
+				m_direction = DIRECTION::TO_FROM;
+
+				writeJSONStatus();
 			}
 		}
 	}
@@ -1135,8 +1482,8 @@ void CMetaData::setNXDN(NETWORK network, uint16_t source, uint16_t destination, 
 	assert(destination > 0U);
 
 	if (network == NETWORK::FROM) {
-		m_fromMode = DATA_MODE::NONE;
-		m_toMode   = DATA_MODE::NONE;
+		m_from.reset();
+		m_to.reset();
 
 		std::string dst = find(m_nxdnDStarTGs, destination);
 		if (dst != NULL_CALLSIGN) {
@@ -1144,49 +1491,67 @@ void CMetaData::setNXDN(NETWORK network, uint16_t source, uint16_t destination, 
 			if (src != NULL_CALLSIGN) {
 				LogDebug("NXDN => D-Star, %u>TG%u -> %s>%s", source, destination, src.c_str(), dst.c_str());
 
-				m_srcCallsign = src;
-				m_dstCallsign = dst;
-				m_fromMode    = DATA_MODE::NXDN;
-				m_toMode      = DATA_MODE::DSTAR;
+				m_from.m_mode     = DATA_MODE::NXDN;
+				m_from.NXDN.srcId = source;
+				m_from.NXDN.dstId = destination;
+				m_from.NXDN.group = true;
 
-				writeJSONStatus(DATA_MODE::NXDN, DATA_MODE::DSTAR, destination, 0U, true, false, "", m_dstCallsign);
+				m_to.m_mode            = DATA_MODE::DSTAR;
+				m_to.DStar.srcCallsign = src;
+				m_to.DStar.dstCallsign = dst;
+
+				m_direction = DIRECTION::FROM_TO;
+
+				writeJSONStatus();
 			}
 		}
 
-		if (m_toMode == DATA_MODE::NONE) {
+		if (m_to.m_mode == DATA_MODE::NONE) {
 			std::pair<uint8_t, uint32_t> slotTG = find(m_nxdnDMRTGs, destination);
 			if (slotTG.second != NULL_ID32) {
 				LogDebug("NXDN => DMR, %u>TG%u -> %u>%u:TG%u", source, destination, source, slotTG.first, slotTG.second);
 
-				m_slot     = slotTG.first;
-				m_srcId    = source;
-				m_dstId    = slotTG.second;
-				m_group    = true;
-				m_fromMode = DATA_MODE::NXDN;
-				m_toMode   = DATA_MODE::DMR;
+				m_from.m_mode     = DATA_MODE::NXDN;
+				m_from.NXDN.srcId = source;
+				m_from.NXDN.dstId = destination;
+				m_from.NXDN.group = true;
 
-				writeJSONStatus(DATA_MODE::NXDN, DATA_MODE::DMR, destination, m_dstId, true, true, "", "", 0U, m_slot);
+				m_to.m_mode    = DATA_MODE::DMR;
+				m_to.DMR.slot  = slotTG.first;
+				m_to.DMR.srcId = source;
+				m_to.DMR.dstId = slotTG.second;
+				m_to.DMR.group = true;
+
+				m_direction = DIRECTION::FROM_TO;
+
+				writeJSONStatus();
 			}
 		}
 
-		if (m_toMode == DATA_MODE::NONE) {
+		if (m_to.m_mode == DATA_MODE::NONE) {
 			uint8_t dgId = find(m_nxdnYSFTGs, destination);
 			if (dgId != NULL_DGID) {
-				std::string src = m_dmrLookup.lookup(source);
+				std::string src = m_nxdnLookup.lookup(source);
 				if (src != NULL_CALLSIGN) {
 					LogDebug("NXDN => YSF, %u>TG%u -> %s>%u", source, destination, src.c_str(), dgId);
 
-					m_srcCallsign = src;
-					m_dgId        = dgId;
-					m_fromMode    = DATA_MODE::NXDN;
-					m_toMode      = DATA_MODE::YSF;
+					m_from.m_mode     = DATA_MODE::NXDN;
+					m_from.NXDN.srcId = source;
+					m_from.NXDN.dstId = destination;
+					m_from.NXDN.group = true;
 
-					writeJSONStatus(DATA_MODE::NXDN, DATA_MODE::YSF, destination, m_dgId, true, false);
+					m_to.m_mode       = DATA_MODE::YSF;
+					m_to.YSF.callsign = src;
+					m_to.YSF.dgId     = dgId;
+
+					m_direction = DIRECTION::FROM_TO;
+
+					writeJSONStatus();
 				}
 			}
 		}
 
-		if (m_toMode == DATA_MODE::NONE) {
+		if (m_to.m_mode == DATA_MODE::NONE) {
 			uint32_t tg = find(m_nxdnP25TGs, destination);
 			if (tg != NULL_ID32) {
 				std::string src = m_nxdnLookup.lookup(source);
@@ -1195,91 +1560,135 @@ void CMetaData::setNXDN(NETWORK network, uint16_t source, uint16_t destination, 
 					if (id != NULL_ID32) {
 						LogDebug("NXDN => P25, %u>TG%u -> %u>TG%u", source, destination, id, tg);
 
-						m_srcId    = id;
-						m_dstId    = tg;
-						m_group    = true;
-						m_fromMode = DATA_MODE::NXDN;
-						m_toMode   = DATA_MODE::P25;
+						m_from.m_mode     = DATA_MODE::NXDN;
+						m_from.NXDN.srcId = source;
+						m_from.NXDN.dstId = destination;
+						m_from.NXDN.group = true;
 
-						writeJSONStatus(DATA_MODE::NXDN, DATA_MODE::P25, destination, m_dstId, true, true);
+						m_to.m_mode    = DATA_MODE::P25;
+						m_to.P25.srcId = id;
+						m_to.P25.dstId = tg;
+						m_to.P25.group = true;
+
+						m_direction = DIRECTION::FROM_TO;
+
+						writeJSONStatus();
 					}
 				}
 			}
 		}
 
-		if (m_toMode == DATA_MODE::NONE) {
+		if (m_to.m_mode == DATA_MODE::NONE) {
 			if (destination == m_nxdnFMTG) {
-				LogDebug("NXDN => FM, %u>TG%u ->", source, destination);
+				std::string src = m_nxdnLookup.lookup(source);
+				if (src != NULL_CALLSIGN) {
+					LogDebug("NXDN => FM, %u>TG%u -> %s", source, destination, src.c_str());
 
-				m_fromMode = DATA_MODE::NXDN;
-				m_toMode   = DATA_MODE::FM;
+					m_from.m_mode     = DATA_MODE::NXDN;
+					m_from.NXDN.srcId = source;
+					m_from.NXDN.dstId = destination;
+					m_from.NXDN.group = true;
 
-				writeJSONStatus(DATA_MODE::NXDN, DATA_MODE::FM, destination, 0U, true, true);
+					m_to.m_mode      = DATA_MODE::FM;
+					m_to.FM.callsign = src;
+
+					m_direction = DIRECTION::FROM_TO;
+
+					writeJSONStatus();
+				}
 			}
 		}
 
-		if (m_toMode == DATA_MODE::NONE) {
+		if (m_to.m_mode == DATA_MODE::NONE) {
 			if (m_toNXDN) {
 				LogDebug("NXDN => NXDN, %u>TG%u -> %u>TG%u", source, destination, source, destination);
 
-				m_srcId    = source;
-				m_dstId    = destination;
-				m_group    = group;
-				m_fromMode = DATA_MODE::NXDN;
-				m_toMode   = DATA_MODE::NXDN;
+				m_from.m_mode     = DATA_MODE::NXDN;
+				m_from.NXDN.srcId = source;
+				m_from.NXDN.dstId = destination;
+				m_from.NXDN.group = true;
 
-				writeJSONStatus(DATA_MODE::NXDN, DATA_MODE::NXDN, destination, destination, true, true);
+				m_to.m_mode     = DATA_MODE::NXDN;
+				m_to.NXDN.srcId = source;
+				m_to.NXDN.dstId = destination;
+				m_to.NXDN.group = true;
+
+				m_direction = DIRECTION::FROM_TO;
+
+				writeJSONStatus();
 			}
 		}
 	} else {
-		m_fromMode = DATA_MODE::NONE;
-		m_toMode   = DATA_MODE::NONE;
+		m_from.reset();
+		m_to.reset();
 
 		std::string dest = find(m_dstarNXDNDests, destination);
 		if (dest != NULL_CALLSIGN) {
 			std::string src = m_nxdnLookup.lookup(source);
-			if (src == NULL_CALLSIGN)
-				return;
+			if (src != NULL_CALLSIGN) {
+				LogDebug("D-Star <= NXDN, %s>%s <- %u>TG%u", src.c_str(), dest.c_str(), source, destination);
 
-			LogDebug("D-Star <= NXDN, %s>%s <- %u>TG%u", src.c_str(), dest.c_str(), source, destination);
+				m_from.m_mode            = DATA_MODE::DSTAR;
+				m_from.DStar.srcCallsign = src;
+				m_from.DStar.dstCallsign = dest;
 
-			m_srcCallsign = src;
-			m_dstCallsign = dest;
-			m_fromMode    = DATA_MODE::DSTAR;
-			m_toMode      = DATA_MODE::NXDN;
+				m_to.m_mode     = DATA_MODE::NXDN;
+				m_to.NXDN.srcId = source;
+				m_to.NXDN.dstId = destination;
+				m_to.NXDN.group = true;
+
+				m_direction = DIRECTION::TO_FROM;
+
+				writeJSONStatus();
+			}
 		}
 
-		else if (m_fromMode == DATA_MODE::NONE) {
+		if (m_from.m_mode == DATA_MODE::NONE) {
 			std::pair<uint8_t, uint32_t> slotTG = find(m_dmrNXDNTGs, destination);
 			if (slotTG.second != NULL_ID32) {
 				LogDebug("DMR <= NXDN, %u>%u:TG%u <- %u>TG%u", source, slotTG.first, slotTG.second, source, destination);
 
-				m_slot     = slotTG.first;
-				m_srcId    = source;
-				m_dstId    = slotTG.second;
-				m_group    = true;
-				m_fromMode = DATA_MODE::DMR;
-				m_toMode   = DATA_MODE::NXDN;
+				m_from.m_mode    = DATA_MODE::DMR;
+				m_from.DMR.slot  = slotTG.first;
+				m_from.DMR.srcId = source;
+				m_from.DMR.dstId = slotTG.second;
+				m_from.DMR.group = true;
+
+				m_to.m_mode     = DATA_MODE::NXDN;
+				m_to.NXDN.srcId = source;
+				m_to.NXDN.dstId = destination;
+				m_to.NXDN.group = true;
+
+				m_direction = DIRECTION::TO_FROM;
+
+				writeJSONStatus();
 			}
 		}
 
-		else if (m_fromMode == DATA_MODE::NONE) {
+		if (m_from.m_mode == DATA_MODE::NONE) {
 			uint8_t dgId = find(m_ysfNXDNDGIds, destination);
 			if (dgId != NULL_DGID) {
 				std::string src = m_nxdnLookup.lookup(source);
-				if (src == NULL_CALLSIGN)
-					return;
+				if (src != NULL_CALLSIGN) {
+					LogDebug("YSF <= NXDN, %s>%u <- %u>TG%u", src.c_str(), dgId, source, destination);
 
-				LogDebug("YSF <= NXDN, %s>%u <- %u>TG%u", src.c_str(), dgId, source, destination);
+					m_from.m_mode       = DATA_MODE::YSF;
+					m_from.YSF.callsign = src;
+					m_from.YSF.dgId     = dgId;
 
-				m_srcCallsign = src;
-				m_dgId        = dgId;
-				m_fromMode    = DATA_MODE::YSF;
-				m_toMode      = DATA_MODE::NXDN;
+					m_to.m_mode     = DATA_MODE::NXDN;
+					m_to.NXDN.srcId = source;
+					m_to.NXDN.dstId = destination;
+					m_to.NXDN.group = true;
+
+					m_direction = DIRECTION::TO_FROM;
+
+					writeJSONStatus();
+				}
 			}
 		}
 
-		else if (m_fromMode == DATA_MODE::NONE) {
+		if (m_from.m_mode == DATA_MODE::NONE) {
 			uint32_t tg = find(m_p25NXDNTGs, destination);
 			if (tg != NULL_ID32) {
 				std::string src = m_nxdnLookup.lookup(source);
@@ -1288,110 +1697,194 @@ void CMetaData::setNXDN(NETWORK network, uint16_t source, uint16_t destination, 
 					if (id != NULL_ID32) {
 						LogDebug("P25 <= NXDN, %u>TG%u <- %u>TG%u", id, tg, source, destination);
 
-						m_srcId    = id;
-						m_dstId    = tg;
-						m_group    = true;
-						m_fromMode = DATA_MODE::P25;
-						m_toMode   = DATA_MODE::NXDN;
+						m_from.m_mode    = DATA_MODE::P25;
+						m_from.P25.srcId = id;
+						m_from.P25.dstId = tg;
+						m_from.P25.group = true;
+
+						m_to.m_mode     = DATA_MODE::NXDN;
+						m_to.NXDN.srcId = source;
+						m_to.NXDN.dstId = destination;
+						m_to.NXDN.group = true;
+
+						m_direction = DIRECTION::TO_FROM;
+
+						writeJSONStatus();
 					}
 				}
 			}
 		}
 
-		if (m_fromMode == DATA_MODE::NONE) {
+		if (m_from.m_mode == DATA_MODE::NONE) {
 			if (destination == m_nxdnFMTG) {
-				LogDebug("FM <= NXDN, <- %u>TG%u", source, destination);
+				std::string src = m_nxdnLookup.lookup(source);
+				if (src != NULL_CALLSIGN) {
+					LogDebug("FM <= NXDN, %s <- %u>TG%u", src.c_str(), source, destination);
 
-				m_fromMode = DATA_MODE::FM;
-				m_toMode   = DATA_MODE::NXDN;
+					m_from.m_mode      = DATA_MODE::FM;
+					m_from.FM.callsign = src;
+
+					m_to.m_mode     = DATA_MODE::NXDN;
+					m_to.NXDN.srcId = source;
+					m_to.NXDN.dstId = destination;
+					m_to.NXDN.group = true;
+
+					m_direction = DIRECTION::TO_FROM;
+
+					writeJSONStatus();
+				}
 			}
 		}
 
-		else if (m_fromMode == DATA_MODE::NONE) {
+		if (m_from.m_mode == DATA_MODE::NONE) {
 			if (m_toNXDN) {
 				LogDebug("NXDN <= NXDN, %u>TG%u <- %u>TG%u", source, destination, source, destination);
 
-				m_srcId    = source;
-				m_dstId    = destination;
-				m_group    = group;
-				m_fromMode = DATA_MODE::NXDN;
-				m_toMode   = DATA_MODE::NXDN;
+				m_from.m_mode     = DATA_MODE::NXDN;
+				m_from.NXDN.srcId = source;
+				m_from.NXDN.dstId = destination;
+				m_from.NXDN.group = true;
+
+				m_to.m_mode     = DATA_MODE::NXDN;
+				m_to.NXDN.srcId = source;
+				m_to.NXDN.dstId = destination;
+				m_to.NXDN.group = true;
+
+				m_direction = DIRECTION::TO_FROM;
+
+				writeJSONStatus();
 			}
 		}
 	}
 }
 
-// XXX FIXME this'll need rework for the new FM network protocol
-void CMetaData::setFM(NETWORK network)
+void CMetaData::setFM(NETWORK network, const uint8_t* source)
 {
+	assert(source != nullptr);
+
+	std::string src = bytesToString(source, ::strlen((char*)source));
+
 	if (network == NETWORK::FROM) {
-		if (m_toMode == DATA_MODE::NONE) {
-			if (m_toFM) {
-				LogDebug("FM => FM, ->");
+		m_from.reset();
+		m_to.reset();
 
-				m_toMode = DATA_MODE::FM;
+		if (m_toFM) {
+			LogDebug("FM => FM, %s -> %s", src.c_str(), src.c_str());
 
-				writeJSONStatus(DATA_MODE::FM, DATA_MODE::FM);
-			}
+			m_from.m_mode      = DATA_MODE::FM;
+			m_from.FM.callsign = src;
+
+			m_to.m_mode      = DATA_MODE::FM;
+			m_to.FM.callsign = src;
+
+			m_direction = DIRECTION::FROM_TO;
+
+			writeJSONStatus();
 		}
 	} else {
-		if (m_fromMode == DATA_MODE::DSTAR) {
-			if (m_dstarFMDest != NULL_CALLSIGN) {
-				LogDebug("D-Star <= FM, %s>%s <-", m_defaultCallsign.c_str(), m_dstarFMDest.c_str());
+		m_from.reset();
+		m_to.reset();
 
-				m_srcCallsign = m_defaultCallsign;
-				m_dstCallsign = m_dstarFMDest;
-				m_toMode      = DATA_MODE::FM;
-			}
+		if (m_dstarFMDest != NULL_CALLSIGN) {
+			LogDebug("D-Star <= FM, %s>%s <- %s", m_defaultCallsign.c_str(), m_dstarFMDest.c_str(), m_defaultCallsign.c_str());
+
+			m_from.m_mode            = DATA_MODE::DSTAR;
+			m_from.DStar.srcCallsign = src;
+			m_from.DStar.dstCallsign = m_dstarFMDest;
+
+			m_to.m_mode      = DATA_MODE::FM;
+			m_to.FM.callsign = src;
+
+			m_direction = DIRECTION::TO_FROM;
+
+			writeJSONStatus();
 		}
 
-		if (m_fromMode == DATA_MODE::DMR) {
+		if (m_from.m_mode == DATA_MODE::NONE) {
 			if (m_dmrFMTG.second != NULL_ID32) {
-				LogDebug("DMR <= FM, %u>%u:%u <-", m_defaultDMRId, m_dmrFMTG.first, m_dmrFMTG.second);
+				LogDebug("DMR <= FM, %u>%u:%u <- %s", m_defaultDMRId, m_dmrFMTG.first, m_dmrFMTG.second, src.c_str());
 
-				m_srcId  = m_defaultDMRId;
-				m_dstId  = m_dmrFMTG.second;
-				m_slot   = m_dmrFMTG.first;
-				m_group  = true;
-				m_toMode = DATA_MODE::FM;
+				m_from.m_mode    = DATA_MODE::DMR;
+				m_from.DMR.srcId = m_defaultDMRId;
+				m_from.DMR.dstId = m_dmrFMTG.second;
+				m_from.DMR.slot  = m_dmrFMTG.first;
+				m_from.DMR.group = true;
+
+				m_to.m_mode      = DATA_MODE::FM;
+				m_to.FM.callsign = src;
+
+				m_direction = DIRECTION::TO_FROM;
+
+				writeJSONStatus();
 			}
 		}
 
-		else if (m_fromMode == DATA_MODE::YSF) {
+		if (m_from.m_mode == DATA_MODE::NONE) {
 			if (m_ysfFMDGId != NULL_DGID) {
-				LogDebug("YSF <= FM, %s>%u <-", m_defaultCallsign.c_str(), m_ysfFMDGId);
+				LogDebug("YSF <= FM, %s>%u <- %s", m_defaultCallsign.c_str(), m_ysfFMDGId, src.c_str());
 
-				m_srcCallsign = m_defaultCallsign;
-				m_dgId        = m_ysfFMDGId;
-				m_toMode      = DATA_MODE::FM;
+				m_from.m_mode       = DATA_MODE::YSF;
+				m_from.YSF.callsign = src;
+				m_from.YSF.dgId     = m_ysfFMDGId;
+
+				m_to.m_mode      = DATA_MODE::FM;
+				m_to.FM.callsign = src;
+
+				m_direction = DIRECTION::TO_FROM;
+
+				writeJSONStatus();
 			}
 		}
 
-		else if (m_fromMode == DATA_MODE::P25) {
+		if (m_from.m_mode == DATA_MODE::NONE) {
 			if (m_p25FMTG != NULL_ID32) {
-				LogDebug("P25 <= FM, %s>%u <-", m_defaultCallsign.c_str(), m_p25FMTG);
+				LogDebug("P25 <= FM, %s>%u <- %s", m_defaultCallsign.c_str(), m_p25FMTG, src.c_str());
 
-				m_srcId  = m_defaultDMRId;
-				m_dstId  = m_p25FMTG;
-				m_toMode = DATA_MODE::FM;
+				m_from.m_mode    = DATA_MODE::P25;
+				m_from.P25.srcId = m_defaultDMRId;
+				m_from.P25.dstId = m_p25FMTG;
+				m_from.P25.group = true;
+
+				m_to.m_mode      = DATA_MODE::FM;
+				m_to.FM.callsign = src;
+
+				m_direction = DIRECTION::TO_FROM;
+
+				writeJSONStatus();
 			}
 		}
 
-		else if (m_fromMode == DATA_MODE::NXDN) {
+		if (m_from.m_mode == DATA_MODE::NONE) {
 			if (m_nxdnFMTG != NULL_ID16) {
-				LogDebug("NXDN <= FM, %s>%u <-", m_defaultCallsign.c_str(), m_nxdnFMTG);
+				LogDebug("NXDN <= FM, %s>%u <- %s", m_defaultCallsign.c_str(), m_nxdnFMTG, src.c_str());
 
-				m_srcId  = m_defaultNXDNId;
-				m_dstId  = m_nxdnFMTG;
-				m_toMode = DATA_MODE::FM;
+				m_from.m_mode     = DATA_MODE::NXDN;
+				m_from.NXDN.srcId = m_defaultNXDNId;
+				m_from.NXDN.dstId = m_nxdnFMTG;
+				m_from.NXDN.group = true;
+
+				m_to.m_mode      = DATA_MODE::FM;
+				m_to.FM.callsign = src;
+
+				m_direction = DIRECTION::TO_FROM;
+
+				writeJSONStatus();
 			}
 		}
 
-		else if (m_fromMode == DATA_MODE::FM) {
+		if (m_from.m_mode == DATA_MODE::NONE) {
 			if (m_toFM) {
-				LogDebug("FM <= FM, <-");
+				LogDebug("FM <= FM, %s <- %s", src.c_str(), src.c_str());
 
-				m_toMode = DATA_MODE::FM;
+				m_from.m_mode      = DATA_MODE::FM;
+				m_from.FM.callsign = src;
+
+				m_to.m_mode      = DATA_MODE::FM;
+				m_to.FM.callsign = src;
+
+				m_direction = DIRECTION::TO_FROM;
+
+				writeJSONStatus();
 			}
 		}
 	}
@@ -1410,7 +1903,7 @@ bool CMetaData::setData(const uint8_t* data)
 {
 	assert(data != nullptr);
 
-	if ((m_fromMode == DATA_MODE::NONE) || (m_toMode == DATA_MODE::NONE))
+	if ((m_from.m_mode == DATA_MODE::NONE) || (m_to.m_mode == DATA_MODE::NONE))
 		return false;
 
 	bool ret = m_transcoder.write(data);
@@ -1424,6 +1917,9 @@ bool CMetaData::setData(const uint8_t* data)
 
 void CMetaData::setEnd()
 {
+	if ((m_from.m_mode != DATA_MODE::NONE) && (m_to.m_mode != DATA_MODE::NONE))
+		LogDebug("END");
+
 	m_end = true;
 }
 
@@ -1432,57 +1928,148 @@ void CMetaData::getDStar(NETWORK network, uint8_t* source, uint8_t* destination)
 	assert(source != nullptr);
 	assert(destination != nullptr);
 
-	stringToBytes(source,      DSTAR_LONG_CALLSIGN_LENGTH, m_srcCallsign);
-	stringToBytes(destination, DSTAR_LONG_CALLSIGN_LENGTH, m_dstCallsign);
+	switch (network) {
+	case NETWORK::FROM:
+		assert(m_from.m_mode == DATA_MODE::DSTAR);
+		stringToBytes(source,      DSTAR_LONG_CALLSIGN_LENGTH, m_from.DStar.srcCallsign);
+		stringToBytes(destination, DSTAR_LONG_CALLSIGN_LENGTH, m_from.DStar.dstCallsign);
+		break;
+
+	case NETWORK::TO:
+		assert(m_to.m_mode == DATA_MODE::DSTAR);
+		stringToBytes(source,      DSTAR_LONG_CALLSIGN_LENGTH, m_to.DStar.srcCallsign);
+		stringToBytes(destination, DSTAR_LONG_CALLSIGN_LENGTH, m_to.DStar.dstCallsign);
+		break;
+
+	default:
+		break;
+	}
 }
 
 void CMetaData::getDMR(NETWORK network, uint8_t& slot, uint32_t& source, uint32_t& destination, bool& group) const
 {
-	slot        = m_slot;
-	source      = m_srcId;
-	destination = m_dstId;
-	group       = m_group;
+	switch (network) {
+	case NETWORK::FROM:
+		assert(m_from.m_mode == DATA_MODE::DMR);
+		slot        = m_from.DMR.slot;
+		source      = m_from.DMR.srcId;
+		destination = m_from.DMR.dstId;
+		group       = m_from.DMR.group;
+		break;
+
+	case NETWORK::TO:
+		assert(m_to.m_mode == DATA_MODE::DMR);
+		slot        = m_to.DMR.slot;
+		source      = m_to.DMR.srcId;
+		destination = m_to.DMR.dstId;
+		group       = m_to.DMR.group;
+		break;
+
+	default:
+		slot        = 0U;
+		source      = 0U;
+		destination = 0U;
+		group       = false;
+		break;
+	}
 }
 
-void CMetaData::getYSF(NETWORK network, uint8_t* source, uint8_t* destination, uint8_t& dgId) const
+void CMetaData::getYSF(NETWORK network, uint8_t* source, uint8_t& dgId) const
 {
 	assert(source != nullptr);
 
-	stringToBytes(source,      YSF_CALLSIGN_LENGTH, m_srcCallsign);
-	stringToBytes(destination, YSF_CALLSIGN_LENGTH, m_dstCallsign);
+	switch (network) {
+	case NETWORK::FROM:
+		assert(m_from.m_mode == DATA_MODE::YSF);
+		stringToBytes(source, YSF_CALLSIGN_LENGTH, m_from.YSF.callsign);
+		dgId = m_from.YSF.dgId;
+		break;
 
-	dgId = m_dgId;
+	case NETWORK::TO:
+		assert(m_to.m_mode == DATA_MODE::YSF);
+		stringToBytes(source, YSF_CALLSIGN_LENGTH, m_to.YSF.callsign);
+		dgId = m_to.YSF.dgId;
+		break;
+
+	default:
+		break;
+	}
 }
 
 void CMetaData::getP25(NETWORK network, uint32_t& source, uint32_t& destination, bool& group) const
 {
-	source      = m_srcId;
-	destination = m_dstId;
-	group       = m_group;
+	switch (network) {
+	case NETWORK::FROM:
+		assert(m_from.m_mode == DATA_MODE::P25);
+		source      = m_from.P25.srcId;
+		destination = m_from.P25.dstId;
+		group       = m_from.P25.group;
+		break;
+
+	case NETWORK::TO:
+		assert(m_to.m_mode == DATA_MODE::P25);
+		source      = m_to.P25.srcId;
+		destination = m_to.P25.dstId;
+		group       = m_to.P25.group;
+		break;
+
+	default:
+		source      = 0U;
+		destination = 0U;
+		group       = false;
+		break;
+	}
 }
 
 void CMetaData::getNXDN(NETWORK network, uint16_t& source, uint16_t& destination, bool& group) const
 {
-	source      = m_srcId;
-	destination = m_dstId;
-	group       = m_group;
+	switch (network) {
+	case NETWORK::FROM:
+		assert(m_from.m_mode == DATA_MODE::NXDN);
+		source      = m_from.NXDN.srcId;
+		destination = m_from.NXDN.dstId;
+		group       = m_from.NXDN.group;
+		break;
+
+	case NETWORK::TO:
+		assert(m_to.m_mode == DATA_MODE::NXDN);
+		source      = m_to.NXDN.srcId;
+		destination = m_to.NXDN.dstId;
+		group       = m_to.NXDN.group;
+		break;
+
+	default:
+		source      = 0U;
+		destination = 0U;
+		group       = false;
+		break;
+	}
 }
 
-void CMetaData::setFM(const uint8_t* source)
+void CMetaData::getFM(NETWORK network, uint8_t* source) const
 {
 	assert(source != nullptr);
 
-	m_srcCallsign = bytesToString(source, ::strlen((char*)source));
-}
+	switch (network) {
+	case NETWORK::FROM: {
+			assert(m_from.m_mode == DATA_MODE::FM);
+			uint16_t length = uint16_t(m_from.FM.callsign.size());
+			stringToBytes(source, length, m_from.FM.callsign);
+			source[length] = 0x00U;
+		}
+		break;
 
-void CMetaData::getFM(uint8_t* source) const
-{
-	assert(source != nullptr);
+	case NETWORK::TO: {
+			assert(m_to.m_mode == DATA_MODE::FM);
+			uint16_t length = uint16_t(m_to.FM.callsign.size());
+			stringToBytes(source, length, m_to.FM.callsign);
+			source[length] = 0x00U;
+		}
+		break;
 
-	uint16_t length = uint16_t(m_srcCallsign.size());
-
-	stringToBytes(source, length, m_srcCallsign);
-	source[length] = 0x00U;
+	default:
+		break;
+	}
 }
 
 bool CMetaData::hasRaw() const
@@ -1534,20 +2121,20 @@ bool CMetaData::isEnd() const
 
 bool CMetaData::isTranscode() const
 {
-	return m_fromMode != m_toMode;
+	return m_from.m_mode != m_to.m_mode;
 }
 
 void CMetaData::reset()
 {
+	m_from.reset();
+	m_to.reset();
+
 	m_end       = false;
 	m_length    = 0U;
 	m_count     = 0U;
 	m_rawLength = 0U;
-	m_fromMode  = DATA_MODE::NONE;
-	m_toMode    = DATA_MODE::NONE;
-	m_direction = DIRECTION::NONE;
 
-	writeJSONStatus(DATA_MODE::NONE, DATA_MODE::NONE);
+	m_direction = DIRECTION::NONE;
 }
 
 void CMetaData::clock(unsigned int ms)
@@ -2004,77 +2591,68 @@ void CMetaData::stringToBytes(uint8_t* str, size_t length, const std::string& ca
 		str[i] = callsign[i];
 }
 
-void CMetaData::writeJSONStatus(DATA_MODE fromMode, DATA_MODE toMode, uint32_t fromId, uint32_t toId, bool fromGroup, bool toGroup, const std::string& fromCS, const std::string& toCS, uint8_t fromSlot, uint8_t toSlot)
+void CMetaData::writeJSONStatus() const
 {
 	nlohmann::json json;
 
 	json["timestamp"] = CUtils::createTimestamp();
 
-	switch (fromMode) {
-	case DATA_MODE::DSTAR:
-		json["from_mode"]             = "D-Star";
-		json["from_dstar_callsign"]   = fromCS;
+	switch (m_direction) {
+	case DIRECTION::FROM_TO:
+		json["direction"] = "FROM -> TO";
 		break;
-	case DATA_MODE::DMR:
-		json["from_mode"]             = "DMR";
-		json["from_dmr_slot"]         = fromSlot;
-		json["from_dmr_id"]           = fromId;
-		json["from_destination_type"] = fromGroup ? "group" : "individual";
-		break;
-	case DATA_MODE::YSF:
-		json["from_mode"]             = "YSF";
-		json["from_dg-id"]            = fromId;
-		break;
-	case DATA_MODE::P25:
-		json["from_mode"]             = "P25";
-		json["from_p25_id"]           = fromId;
-		json["from_destination_type"] = fromGroup ? "group" : "individual";
-		break;
-	case DATA_MODE::NXDN:
-		json["from_mode"]             = "NXDN";
-		json["from_nxdn_id"]          = fromId;
-		json["from_destination_type"] = fromGroup ? "group" : "individual";
-		break;
-	case DATA_MODE::FM:
-		json["from_mode"]             = "FM";
+	case DIRECTION::TO_FROM:
+		json["direction"] = "FROM <- TO";
 		break;
 	default:
-		json["from_mode"]             = "none";
+		json["direction"] = "Unknown";
 		break;
 	}
 
-	switch (toMode) {
-	case DATA_MODE::DSTAR:
-		json["to_mode"]             = "D-Star";
-		json["to_dstar_callsign"]   = toCS;
-		break;
-	case DATA_MODE::DMR:
-		json["to_mode"]             = "DMR";
-		json["to_dmr_slot"]         = toSlot;
-		json["to_dmr_id"]           = toId;
-		json["to_destination_type"] = toGroup ? "group" : "individual";
-		break;
-	case DATA_MODE::YSF:
-		json["to_mode"]             = "YSF";
-		json["to_dg-id"]            = toId;
-		break;
-	case DATA_MODE::P25:
-		json["to_mode"]             = "P25";
-		json["to_p25_id"]           = toId;
-		json["to_destination_type"] = toGroup ? "group" : "individual";
-		break;
-	case DATA_MODE::NXDN:
-		json["to_mode"]             = "NXDN";
-		json["to_nxdn_id"]          = toId;
-		json["to_destination_type"] = toGroup ? "group" : "individual";
-		break;
-	case DATA_MODE::FM:
-		json["to_mode"]             = "FM";
-		break;
-	default:
-		json["to_mode"]             = "none";
-		break;
-	}
+	json["from"] = createDestination(m_from);
+	json["to"]   = createDestination(m_to);
 
 	WriteJSON("Status", json);
+}
+
+	
+nlohmann::json CMetaData::createDestination(const CDestination& destination) const
+{
+	nlohmann::json json;
+
+	json["mode"] = CUtils::getModeName(destination.m_mode);
+
+	switch (destination.m_mode) {
+	case DATA_MODE::DSTAR:
+		json["src_callsign"] = destination.DStar.srcCallsign;
+		json["dst_callsign"] = destination.DStar.dstCallsign;
+		break;
+	case DATA_MODE::DMR:
+		json["slot"]   = destination.DMR.slot;
+		json["src_id"] = destination.DMR.srcId;
+		json["dst_id"] = destination.DMR.dstId;
+		json["group"]  = destination.DMR.group ? "yes" : "no";
+		break;
+	case DATA_MODE::YSF:
+		json["src_callsign"] = destination.YSF.callsign;
+		json["dg-id"]        = destination.YSF.dgId;
+		break;
+	case DATA_MODE::P25:
+		json["src_id"] = destination.P25.srcId;
+		json["dst_id"] = destination.P25.dstId;
+		json["group"]  = destination.P25.group ? "yes" : "no";
+		break;
+	case DATA_MODE::NXDN:
+		json["src_id"] = destination.NXDN.srcId;
+		json["dst_id"] = destination.NXDN.dstId;
+		json["group"]  = destination.NXDN.group ? "yes" : "no";
+		break;
+	case DATA_MODE::FM:
+		json["src_callsign"] = destination.FM.callsign;
+		break;
+	default:
+		break;
+	}
+
+	return json;
 }

@@ -30,6 +30,54 @@
 #include <vector>
 #include <tuple>
 
+class CDestination {
+public:
+	CDestination() :
+	m_mode(DATA_MODE::NONE)
+	{
+	}
+
+	void reset()
+	{
+		m_mode = DATA_MODE::NONE;
+	}
+
+	DATA_MODE m_mode;
+
+	struct {
+		std::string srcCallsign;
+		std::string dstCallsign;
+	} DStar;
+
+	struct {
+		bool     group;
+		uint8_t  slot;
+		uint32_t srcId;
+		uint32_t dstId;
+	} DMR;
+
+	struct {
+		std::string callsign;
+		uint8_t     dgId;
+	} YSF;
+
+	struct {
+		bool     group;
+		uint32_t srcId;
+		uint32_t dstId;
+	} P25;
+
+	struct {
+		bool     group;
+		uint16_t srcId;
+		uint16_t dstId;
+	} NXDN;
+
+	struct {
+		std::string callsign;
+	} FM;
+};
+
 class CMetaData {
 public:
 	CMetaData(const std::string& callsign, uint32_t dmrId, uint16_t nxdnId, bool debug);
@@ -87,18 +135,16 @@ public:
 	void setYSF(NETWORK network, const uint8_t* source, uint8_t dgId);
 	void setNXDN(NETWORK network, uint16_t source, uint16_t destination, bool group);
 	void setP25(NETWORK network, uint32_t source, uint32_t destination, bool group);
-	void setFM(NETWORK network);
+	void setFM(NETWORK network, const uint8_t* source);
 
 	void setEnd();
 
 	void getDStar(NETWORK network, uint8_t* source, uint8_t* destination) const;
 	void getDMR(NETWORK network, uint8_t& slot, uint32_t& source, uint32_t& destination, bool& group) const;
-	void getYSF(NETWORK network, uint8_t* source, uint8_t* destination, uint8_t& dgId) const;
+	void getYSF(NETWORK network, uint8_t* source, uint8_t& dgId) const;
 	void getNXDN(NETWORK network, uint16_t& source, uint16_t& destination, bool& group) const;
 	void getP25(NETWORK network, uint32_t& source, uint32_t& destination, bool& group) const;
-
-	void setFM(const uint8_t* source);
-	void getFM(uint8_t* source) const;
+	void getFM(NETWORK network, uint8_t* source) const;
 
 	void     setRaw(const uint8_t* data, uint16_t length);
 	bool     setData(const uint8_t* data);
@@ -166,22 +212,15 @@ private:
 	std::vector<std::pair<uint16_t, uint32_t>>              m_nxdnP25TGs;
 	uint16_t                                                m_nxdnFMTG;
 
-	DATA_MODE   m_fromMode;
-	DATA_MODE   m_toMode;
-	DIRECTION   m_direction;
-	std::string m_srcCallsign;	// D-Star, YSF, M17
-	std::string m_dstCallsign;	// D-Star, M17
-	uint8_t     m_dgId;			// YSF
-	uint8_t     m_slot;			// DMR
-	uint32_t    m_srcId;		// DMR, NXDN, P25
-	uint32_t    m_dstId;		// DMR, NXDN, P25
-	bool        m_group;		// DMR, NXDN, P25
-	bool        m_end;
-	uint8_t*    m_data;
-	uint16_t    m_length;
-	uint8_t*    m_rawData;
-	uint16_t    m_rawLength;
-	uint16_t    m_count;
+	DIRECTION    m_direction;
+	CDestination m_from;
+	CDestination m_to;
+	bool         m_end;
+	uint8_t*     m_data;
+	uint16_t     m_length;
+	uint8_t*     m_rawData;
+	uint16_t     m_rawLength;
+	uint16_t     m_count;
 
 	// uint8_t <=> std::string
 	uint8_t find(const std::vector<std::pair<std::string, uint8_t>>& mapping, const std::string& dest) const;
@@ -256,7 +295,9 @@ private:
 	std::string bytesToString(const uint8_t* str, size_t length) const;
 	void stringToBytes(uint8_t* str, size_t length, const std::string& callsign) const;
 
-	void writeJSONStatus(DATA_MODE fromMode, DATA_MODE toMode, uint32_t fromId = 0U, uint32_t toId = 0U, bool fromGroup = false, bool toGroup = false, const std::string& fromCS = "", const std::string& toCS = "", uint8_t fromSlot = 0U, uint8_t toSlot = 0U);
+	void writeJSONStatus() const;
+	
+	nlohmann::json createDestination(const CDestination& destination) const;
 };
 
 #endif

@@ -254,8 +254,6 @@ bool CDStarNetwork::writeTrailer(CMetaData& data)
 
 	const unsigned int length = 9U + DSTAR_END_PATTERN_LENGTH_BYTES;
 
-	LogMessage("END");
-
 	if (m_debug) {
 		if (m_network == NETWORK::FROM)
 			CUtils::dump(1U, "D-Star FROM Network Data Sent", buffer, length);

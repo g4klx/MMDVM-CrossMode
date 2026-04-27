@@ -171,8 +171,6 @@ bool CFMNetwork::read(CMetaData& data)
 	uint8_t buffer[BUFFER_LENGTH];
 	m_buffer.get(buffer, length);
 
-	data.setFM(m_network);
-
 	data.setRaw(buffer, length);
 
 	if (::memcmp(buffer + 0U, "FMD", 3U) == 0)
@@ -180,7 +178,7 @@ bool CFMNetwork::read(CMetaData& data)
 	else if (::memcmp(buffer + 0U, "FME", 3U) == 0)
 		data.setEnd();
 	else if (::memcmp(buffer + 0U, "FMS", 3U) == 0)
-		data.setFM(buffer + 3U);
+		data.setFM(m_network, buffer + 3U);
 
 	return true;
 }
@@ -229,7 +227,7 @@ bool CFMNetwork::writeStart(CMetaData& data)
 	buffer[1U] = 'M';
 	buffer[2U] = 'S';
 
-	data.getFM(buffer + 3U);
+	data.getFM(m_network, buffer + 3U);
 
 	uint16_t length = uint16_t(::strlen((char*)buffer));
 
