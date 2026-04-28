@@ -296,7 +296,7 @@ private:
 	std::string bytesToString(const uint8_t* str, size_t length) const;
 	void stringToBytes(uint8_t* str, size_t length, const std::string& callsign) const;
 
-	void writeJSONStatus(const std::string& action = "matched") const;
+	void writeJSONStatus(const std::string& action = "") const;
 	
 	nlohmann::json createDestination(const CDestination& destination) const;
 };

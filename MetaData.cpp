@@ -2310,31 +2310,39 @@ void CMetaData::writeJSONStatus(const std::string& action) const
 {
 	nlohmann::json json;
 
-	json["timestamp"] = CUtils::createTimestamp();
+	try {
+		json["timestamp"] = CUtils::createTimestamp();
 
-	json["action"] = action;
+		if (action.empty()) {
+			json["action"] = "matched";
 
-	switch (m_direction) {
-	case DIRECTION::FROM_TO:
-		json["direction"] = "from>to";
-		break;
-	case DIRECTION::TO_FROM:
-		json["direction"] = "from<to";
-		break;
-	default:
-		json["direction"] = "unknown";
-		break;
+			switch (m_direction) {
+			case DIRECTION::FROM_TO:
+				json["direction"] = "from>to";
+				break;
+			case DIRECTION::TO_FROM:
+				json["direction"] = "from<to";
+				break;
+			default:
+				json["direction"] = "unknown";
+				break;
+			}
+
+			if (m_from.m_mode != DATA_MODE::NONE)
+				json["from"] = createDestination(m_from);
+
+			if (m_to.m_mode != DATA_MODE::NONE)
+				json["to"]   = createDestination(m_to);
+		} else {
+			json["action"] = action;
+		}
+
+		WriteJSON("Status", json);
 	}
-
-	if (m_from.m_mode != DATA_MODE::NONE)
-		json["from"] = createDestination(m_from);
-
-	if (m_to.m_mode != DATA_MODE::NONE)
-		json["to"]   = createDestination(m_to);
-
-	WriteJSON("Status", json);
+	catch (nlohmann::json::exception& ex) {
+		LogError("Error creating JSON - %s", ex.what());
+	}
 }
-
 	
 nlohmann::json CMetaData::createDestination(const CDestination& destination) const
 {

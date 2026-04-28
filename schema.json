@@ -25,7 +25,7 @@
 		"action": {"$ref": "#/$defs/action"},
 		"from": {"$ref": "#/Destination"},
 		"to": {"$ref": "#/Destination"},
-		"required": ["timestamp", "action", "direction"]
+		"required": ["timestamp", "action"]
 	},
 	
 	"Destination" : {
