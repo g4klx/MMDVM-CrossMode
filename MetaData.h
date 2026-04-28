@@ -138,6 +138,7 @@ public:
 	void setFM(NETWORK network, const uint8_t* source);
 
 	void setEnd();
+	void setLost();
 
 	void getDStar(NETWORK network, uint8_t* source, uint8_t* destination) const;
 	void getDMR(NETWORK network, uint8_t& slot, uint32_t& source, uint32_t& destination, bool& group) const;
@@ -295,7 +296,7 @@ private:
 	std::string bytesToString(const uint8_t* str, size_t length) const;
 	void stringToBytes(uint8_t* str, size_t length, const std::string& callsign) const;
 
-	void writeJSONStatus() const;
+	void writeJSONStatus(const std::string& action = "matched") const;
 	
 	nlohmann::json createDestination(const CDestination& destination) const;
 };
