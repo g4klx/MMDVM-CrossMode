@@ -275,11 +275,10 @@ bool CDMRNetwork::writeData(CMetaData& data)
 
 bool CDMRNetwork::writeHeader(CMetaData& data)
 {
-	NETWORK network = NETWORK::FROM;
 	uint8_t slot = 0U;
 	uint32_t srcId = 0U, dstId = 0U;
 	bool grp = true;
-	data.getDMR(network, slot, srcId, dstId, grp);
+	data.getDMR(m_network, slot, srcId, dstId, grp);
 
 	FLCO flco = grp ? FLCO::GROUP : FLCO::USER_USER;
 
@@ -338,11 +337,10 @@ bool CDMRNetwork::writeHeader(CMetaData& data)
 
 bool CDMRNetwork::writeAudio(CMetaData& data)
 {
-	NETWORK network = NETWORK::FROM;
 	uint8_t slot = 0U;
 	uint32_t srcId = 0U, dstId = 0U;
 	bool grp = true;
-	data.getDMR(network, slot, srcId, dstId, grp);
+	data.getDMR(m_network, slot, srcId, dstId, grp);
 
 	FLCO flco = grp ? FLCO::GROUP : FLCO::USER_USER;
 
@@ -444,11 +442,10 @@ bool CDMRNetwork::writeAudio(CMetaData& data)
 
 bool CDMRNetwork::writeTrailer(CMetaData& data)
 {
-	NETWORK network = NETWORK::FROM;
 	uint8_t slot = 0U;
 	uint32_t srcId = 0U, dstId = 0U;
 	bool grp = true;
-	data.getDMR(network, slot, srcId, dstId, grp);
+	data.getDMR(m_network, slot, srcId, dstId, grp);
 
 	FLCO flco = grp ? FLCO::GROUP : FLCO::USER_USER;
 
