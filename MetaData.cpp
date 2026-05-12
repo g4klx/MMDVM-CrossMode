@@ -1278,15 +1278,22 @@ void CMetaData::setNXDN(NETWORK network, uint16_t source, uint16_t destination, 
 		if (m_to.m_mode == DATA_MODE::NONE) {
 			std::pair<uint8_t, uint32_t> slotTG = find(m_nxdnDMRTGs, destination);
 			if (slotTG.second != NULL_ID32) {
-				LogDebug("NXDN => DMR, %u>TG%u -> %u>%u:TG%u", source, destination, source, slotTG.first, slotTG.second);
+				std::string src = m_nxdnLookup.lookup(source);
+				if (src != NULL_CALLSIGN) {
+					uint32_t id = m_dmrLookup.lookup(src);
+					if (id != NULL_ID32) {
+						LogDebug("NXDN => DMR, %u>TG%u -> %u>%u:TG%u", source, destination, source, slotTG.first, slotTG.second);
 
-				m_to.m_mode    = DATA_MODE::DMR;
-				m_to.DMR.slot  = slotTG.first;
-				m_to.DMR.srcId = source;
-				m_to.DMR.dstId = slotTG.second;
-				m_to.DMR.group = true;
+						m_to.m_mode    = DATA_MODE::DMR;
+						m_to.DMR.slot  = slotTG.first;
+						m_to.DMR.srcId = source;
+						m_to.DMR.dstId = slotTG.second;
+						m_to.DMR.group = true;
 
-				writeJSONStatus();
+						writeJSONStatus();
+
+					}
+				}
 			}
 		}
 
@@ -1387,15 +1394,21 @@ void CMetaData::setNXDN(NETWORK network, uint16_t source, uint16_t destination, 
 		if (m_from.m_mode == DATA_MODE::NONE) {
 			std::pair<uint8_t, uint32_t> slotTG = find(m_dmrNXDNTGs, destination);
 			if (slotTG.second != NULL_ID32) {
-				LogDebug("DMR <= NXDN, %u>%u:TG%u <- %u>TG%u", source, slotTG.first, slotTG.second, source, destination);
+				std::string src = m_nxdnLookup.lookup(source);
+				if (src != NULL_CALLSIGN) {
+					uint32_t id = m_dmrLookup.lookup(src);
+					if (id != NULL_ID32) {
+						LogDebug("DMR <= NXDN, %u>%u:TG%u <- %u>TG%u", source, slotTG.first, slotTG.second, source, destination);
 
-				m_from.m_mode    = DATA_MODE::DMR;
-				m_from.DMR.slot  = slotTG.first;
-				m_from.DMR.srcId = source;
-				m_from.DMR.dstId = slotTG.second;
-				m_from.DMR.group = true;
+						m_from.m_mode    = DATA_MODE::DMR;
+						m_from.DMR.slot  = slotTG.first;
+						m_from.DMR.srcId = source;
+						m_from.DMR.dstId = slotTG.second;
+						m_from.DMR.group = true;
 
-				writeJSONStatus();
+						writeJSONStatus();
+					}
+				}
 			}
 		}
 
@@ -1477,6 +1490,8 @@ void CMetaData::setFM(NETWORK network, const uint8_t* source)
 	assert(source != nullptr);
 
 	std::string src = bytesToString(source, ::strlen((char*)source));
+	if (src.empty())
+		src = m_defaultCallsign;
 
 	if (network == NETWORK::FROM) {
 		m_to.reset();

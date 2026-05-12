@@ -277,6 +277,8 @@ int CMMDVMCrossMode::run()
 	stopwatch.start();
 
 	while (!m_killed) {
+		bool end = false;
+
 		switch (direction) {
 		case DIRECTION::FROM_TO:
 			ret = readFromNetwork(fromMode, data);
@@ -313,18 +315,15 @@ int CMMDVMCrossMode::run()
 			drainToNetworks();
 
 			if (toMode != DATA_MODE::NONE) {
-				bool end = data.isEnd();
+				end = data.isEnd();
 
 				if (data.isTranscode()) {
 					if (data.hasData() || end)
 						writeToNetworkData(toMode, data);
 				} else {
-					if (data.hasRaw())
+					if (data.hasRaw() || end)
 						writeToNetworkRaw(toMode, data);
 				}
-				
-				if (end)
-					watchdog.stop();
 			}
 
 			break;
@@ -364,18 +363,15 @@ int CMMDVMCrossMode::run()
 			drainFromNetworks();
 
 			if (fromMode != DATA_MODE::NONE) {
-				bool end = data.isEnd();
+				end = data.isEnd();
 
 				if (data.isTranscode()) {
 					if (data.hasData() || end)
 						writeFromNetworkData(fromMode, data);
 				} else {
-					if (data.hasRaw())
+					if (data.hasRaw() || end)
 						writeFromNetworkRaw(fromMode, data);
 				}
-				
-				if (end)
-					watchdog.stop();
 			}
 
 			break;
@@ -404,7 +400,7 @@ int CMMDVMCrossMode::run()
 			break;
 		}
 
-		if (data.isEnd()) {
+		if (end) {
 			resetFromNetworks();
 			resetToNetworks();
 			data.reset();
