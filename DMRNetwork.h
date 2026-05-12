@@ -34,7 +34,7 @@
 class CDMRNetwork : public INetwork
 {
 public:
-	CDMRNetwork(NETWORK network, uint32_t id, const std::string& localAddress, uint16_t localPort, const std::string& remoteAddress, uint16_t remotePort, bool debug);
+	CDMRNetwork(NETWORK network, uint32_t id, const std::string& callsign, const char* version, const std::string& localAddress, uint16_t localPort, const std::string& remoteAddress, uint16_t remotePort, bool debug);
 	virtual ~CDMRNetwork();
 
 	virtual bool open();
@@ -59,6 +59,8 @@ private:
 	sockaddr_storage m_addr;
 	size_t           m_addrLen;
 	uint8_t*         m_id;
+	std::string      m_callsign;
+	const char*      m_version;
 	bool             m_debug;
 	uint8_t*         m_buffer;
 	uint32_t         m_streamId;
@@ -74,6 +76,7 @@ private:
 	bool writeHeader(CMetaData& data);
 	bool writeAudio(CMetaData& data);
 	bool writeTrailer(CMetaData& data);
+	bool writeConfig();
 	bool writePing();
 };
 
