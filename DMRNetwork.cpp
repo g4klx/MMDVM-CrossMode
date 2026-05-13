@@ -37,15 +37,19 @@ const uint8_t BIT_MASK_TABLE[] = { 0x80U, 0x40U, 0x20U, 0x10U, 0x08U, 0x04U, 0x0
 #define READ_BIT8(p,i)    (p[(i)>>3] & BIT_MASK_TABLE[(i)&7])
 
 
-CDMRNetwork::CDMRNetwork(NETWORK network, uint32_t id, const std::string& callsign, const char* version, const std::string& localAddress, uint16_t localPort, const std::string& remoteAddress, uint16_t remotePort, bool debug) :
+CDMRNetwork::CDMRNetwork(NETWORK network, uint32_t id, const std::string& localAddress, uint16_t localPort, const std::string& remoteAddress, uint16_t remotePort, bool debug) :
 m_network(network),
 m_socket(localAddress, localPort),
 m_addr(),
 m_addrLen(0U),
 m_id(nullptr),
-m_callsign(callsign),
-m_version(version),
 m_debug(debug),
+m_callsign(),
+m_version(),
+m_txFrequency(0U),
+m_rxFrequency(0U),
+m_colorCode(0U),
+m_power(0U),
 m_buffer(nullptr),
 m_streamId(0U),
 m_rxData(1000U, "DMR Network"),
@@ -57,7 +61,6 @@ m_lc(),
 m_seqNo(0U),
 m_N(0U)
 {
-	assert(version != nullptr);
 	assert(remotePort > 0U);
 	assert(id > 0U);
 
@@ -83,6 +86,18 @@ CDMRNetwork::~CDMRNetwork()
 	delete[] m_buffer;
 	delete[] m_id;
 	delete[] m_audio;
+}
+
+void CDMRNetwork::setConfig(const std::string& callsign, const char* version, uint32_t txFrequency, uint32_t rxFrequency, uint8_t colorCode, uint16_t power)
+{
+	assert(version != nullptr);
+
+	m_callsign    = callsign;
+	m_version     = version;
+	m_txFrequency = txFrequency;
+	m_rxFrequency = rxFrequency;
+	m_colorCode   = colorCode;
+	m_power       = power;
 }
 
 bool CDMRNetwork::open()
@@ -562,18 +577,22 @@ void CDMRNetwork::clock(unsigned int ms)
 
 bool CDMRNetwork::writeConfig()
 {
-	const char* software = "MMDVM-CrossMode";
-	const char slots = '3';
-	const unsigned int power = 1U;
-	const unsigned int colorCode = 1U;
-	const unsigned int frequency = 439000000U;
+	const char* software = "MMDVM_CrossMode";
+
+	char slots = '3';
+	if (m_txFrequency != m_rxFrequency)
+		slots = '4';
+
+	unsigned int power = m_power;
+	if (power > 99U)
+		power = 99U;
 
 	uint8_t buffer[150U];
 
 	::memcpy(buffer + 0U, "DMRC", 4U);
 	::memcpy(buffer + 4U, m_id, 4U);
 	::sprintf((char*)(buffer + 8U), "%-8.8s%09u%09u%02u%02u%c%-40.40s%-40.40s",
-		m_callsign.c_str(), frequency, frequency, power, colorCode, slots, m_version,
+		m_callsign.c_str(), m_rxFrequency, m_txFrequency, power, m_colorCode, slots, m_version,
 		software);
 
 	// if (m_debug) {

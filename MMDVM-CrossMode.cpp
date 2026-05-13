@@ -534,7 +534,7 @@ bool CMMDVMCrossMode::createFromNetworks()
 		uint16_t localPort        = m_conf.getDMRFromLocalPort();
 		bool debug                = m_conf.getDMRFromDebug();
 
-		CDMRNetwork* network = new CDMRNetwork(NETWORK::FROM, id, callsign, VERSION, localAddress, localPort, remoteAddress, remotePort, debug);
+		CDMRNetwork* network = new CDMRNetwork(NETWORK::FROM, id, localAddress, localPort, remoteAddress, remotePort, debug);
 
 		bool ret = network->open();
 		if (!ret) {
@@ -725,7 +725,13 @@ bool CMMDVMCrossMode::createToNetworks()
 		uint16_t localPort        = m_conf.getDMRToLocalPort();
 		bool debug                = m_conf.getDMRToDebug();
 
-		CDMRNetwork* network = new CDMRNetwork(NETWORK::TO, id, callsign, VERSION, localAddress, localPort, remoteAddress, remotePort, debug);
+		uint32_t txFrequency = m_conf.getInfoTXFrequency();
+		uint32_t rxFrequency = m_conf.getInfoRXFrequency();
+		uint8_t  colorCode   = m_conf.getInfoColorCode();
+		uint16_t power       = m_conf.getInfoPower();
+
+		CDMRNetwork* network = new CDMRNetwork(NETWORK::TO, id, localAddress, localPort, remoteAddress, remotePort, debug);
+		network->setConfig(callsign, VERSION, txFrequency, rxFrequency, colorCode, power);
 
 		bool ret = network->open();
 		if (!ret) {

@@ -40,6 +40,7 @@ enum class SECTION {
 	LOG,
 	MQTT,
 	TRANSCODER,
+	INFO,
 	LOOKUP,
 	DSTAR,
 	DMR,
@@ -120,6 +121,10 @@ m_transcoderDebug(false),
 m_dmrLookupFile(),
 m_nxdnLookupFile(),
 m_reloadTime(24U),
+m_infoTXFrequency(0U),
+m_infoRXFrequency(0U),
+m_infoColorCode(0U),
+m_infoPower(0U),
 m_dStarModule("C"),
 m_dmrId(123456U),
 m_nxdnId(1234U),
@@ -277,6 +282,8 @@ bool CConf::read()
 				section = SECTION::TRANSCODER;
 			else if (::strncmp(buffer, "[Lookup]", 8U) == 0)
 				section = SECTION::LOOKUP;
+			else if (::strncmp(buffer, "[Info]", 6U) == 0)
+				section = SECTION::INFO;
 			else if (::strncmp(buffer, "[D-Star]", 8U) == 0)
 				section = SECTION::DSTAR;
 			else if (::strncmp(buffer, "[DMR]", 5U) == 0)
@@ -453,6 +460,15 @@ bool CConf::read()
 				m_nxdnLookupFile = value;
 			else if (::strcmp(key, "ReloadTime") == 0)
 				m_reloadTime = (unsigned int)::atoi(value);
+		} else if (section == SECTION::INFO) {
+			if (::strcmp(key, "TXFrequency") == 0)
+				m_infoTXFrequency = uint32_t(::atoi(value));
+			else if (::strcmp(key, "RXFrequency") == 0)
+				m_infoRXFrequency = uint32_t(::atoi(value));
+			else if (::strcmp(key, "ColorCode") == 0)
+				m_infoColorCode = uint8_t(::atoi(value));
+			else if (::strcmp(key, "Power") == 0)
+				m_infoPower = uint16_t(::atoi(value));
 		} else if (section == SECTION::DSTAR) {
 			if (::strcmp(key, "Module") == 0)
 				m_dStarModule = value;
@@ -1254,6 +1270,26 @@ std::string CConf::getNXDNLookupFile() const
 unsigned int CConf::getReloadTime() const
 {
 	return m_reloadTime;
+}
+
+uint32_t CConf::getInfoTXFrequency() const
+{
+	return m_infoTXFrequency;
+}
+
+uint32_t CConf::getInfoRXFrequency() const
+{
+	return m_infoRXFrequency;
+}
+
+uint8_t CConf::getInfoColorCode() const
+{
+	return m_infoColorCode;
+}
+
+uint16_t CConf::getInfoPower() const
+{
+	return m_infoPower;
 }
 
 std::string CConf::getDStarModule() const

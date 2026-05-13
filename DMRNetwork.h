@@ -34,8 +34,10 @@
 class CDMRNetwork : public INetwork
 {
 public:
-	CDMRNetwork(NETWORK network, uint32_t id, const std::string& callsign, const char* version, const std::string& localAddress, uint16_t localPort, const std::string& remoteAddress, uint16_t remotePort, bool debug);
+	CDMRNetwork(NETWORK network, uint32_t id, const std::string& localAddress, uint16_t localPort, const std::string& remoteAddress, uint16_t remotePort, bool debug);
 	virtual ~CDMRNetwork();
+
+	void setConfig(const std::string& callsign, const char* version, uint32_t txFrequency, uint32_t rxFrequency, uint8_t colorCode, uint16_t power);
 
 	virtual bool open();
 
@@ -59,9 +61,13 @@ private:
 	sockaddr_storage m_addr;
 	size_t           m_addrLen;
 	uint8_t*         m_id;
+	bool             m_debug;
 	std::string      m_callsign;
 	const char*      m_version;
-	bool             m_debug;
+	uint32_t         m_txFrequency;
+	uint32_t         m_rxFrequency;
+	uint8_t          m_colorCode;
+	uint16_t         m_power;
 	uint8_t*         m_buffer;
 	uint32_t         m_streamId;
 	CRingBuffer<uint8_t> m_rxData;
