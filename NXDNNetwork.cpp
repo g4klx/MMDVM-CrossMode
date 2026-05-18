@@ -66,17 +66,17 @@ CNXDNNetwork::~CNXDNNetwork()
 bool CNXDNNetwork::open()
 {
 	if (m_addrLen == 0U) {
-		if (m_network == NETWORK::FROM)
-			LogError("Unable to resolve the address of the NXDN FROM network");
+		if (m_network == NETWORK::RF)
+			LogError("Unable to resolve the address of the NXDN RF network");
 		else
-			LogError("Unable to resolve the address of the NXDN TO network");
+			LogError("Unable to resolve the address of the NXDN Net network");
 		return false;
 	}
 
-	if (m_network == NETWORK::FROM)
-		LogMessage("Opening the NXDN FROM network");
+	if (m_network == NETWORK::RF)
+		LogMessage("Opening the NXDN RF network");
 	else
-		LogMessage("Opening the NXDN TO network");
+		LogMessage("Opening the NXDN Net network");
 
 	return m_socket.open(m_addr);
 }
@@ -93,10 +93,10 @@ bool CNXDNNetwork::writeRaw(CMetaData& data)
 		return true;
 
 	if (m_debug) {
-		if (m_network == NETWORK::FROM)
-			CUtils::dump(1U, "NXDN FROM Network Raw Sent", buffer, length);
+		if (m_network == NETWORK::RF)
+			CUtils::dump(1U, "NXDN RF Network Raw Sent", buffer, length);
 		else
-			CUtils::dump(1U, "NXDN TO Network Raw Sent", buffer, length);
+			CUtils::dump(1U, "NXDN Net Network Raw Sent", buffer, length);
 	}
 
 	return m_socket.write(buffer, length, m_addr, m_addrLen);
@@ -170,7 +170,7 @@ bool CNXDNNetwork::writeHeader(CMetaData& data)
 
 	::memcpy(buffer + 40U, HEADER_BYTES, 8U);
 
-	NETWORK network = NETWORK::TO;
+	NETWORK network = NETWORK::NET;
 	uint16_t srcId = 0U, dstId = 0U;
 	bool grp = true;
 	data.getNXDN(network, srcId, dstId, grp);
@@ -191,10 +191,10 @@ bool CNXDNNetwork::writeHeader(CMetaData& data)
 	m_seqNo++;
 
 	if (m_debug) {
-		if (m_network == NETWORK::FROM)
-			CUtils::dump(1U, "NXDN FROM Network Header Sent", buffer, 102U);
+		if (m_network == NETWORK::RF)
+			CUtils::dump(1U, "NXDN RF Network Header Sent", buffer, 102U);
 		else
-			CUtils::dump(1U, "NXDN TO Network Header Sent", buffer, 102U);
+			CUtils::dump(1U, "NXDN Net Network Header Sent", buffer, 102U);
 	}
 
 	return m_socket.write(buffer, 102U, m_addr, m_addrLen);
@@ -220,7 +220,7 @@ bool CNXDNNetwork::writeBody(CMetaData& data)
 
 	buffer[40U] = 0xAEU;
 
-	NETWORK network = NETWORK::TO;
+	NETWORK network = NETWORK::NET;
 	uint16_t srcId = 0U, dstId = 0U;
 	bool grp = true;
 	data.getNXDN(network, srcId, dstId, grp);
@@ -272,10 +272,10 @@ bool CNXDNNetwork::writeBody(CMetaData& data)
 	m_seqNo++;
 
 	if (m_debug) {
-		if (m_network == NETWORK::FROM)
-			CUtils::dump(1U, "NXDN FROM Network Audio Sent", buffer, 102U);
+		if (m_network == NETWORK::RF)
+			CUtils::dump(1U, "NXDN RF Network Audio Sent", buffer, 102U);
 		else
-			CUtils::dump(1U, "NXDN TO Network Audio Sent", buffer, 102U);
+			CUtils::dump(1U, "NXDN Net Network Audio Sent", buffer, 102U);
 	}
 
 	return m_socket.write(buffer, 102U, m_addr, m_addrLen);
@@ -301,7 +301,7 @@ bool CNXDNNetwork::writeTrailer(CMetaData& data)
 
 	::memcpy(buffer + 40U, TRAILER_BYTES, 8U);
 
-	NETWORK network = NETWORK::TO;
+	NETWORK network = NETWORK::NET;
 	uint16_t srcId = 0U, dstId = 0U;
 	bool grp = true;
 	data.getNXDN(network, srcId, dstId, grp);
@@ -322,10 +322,10 @@ bool CNXDNNetwork::writeTrailer(CMetaData& data)
 	m_seqNo = 0U;
 
 	if (m_debug) {
-		if (m_network == NETWORK::FROM)
-			CUtils::dump(1U, "NXDN FROM Network Trailer Sent", buffer, 102U);
+		if (m_network == NETWORK::RF)
+			CUtils::dump(1U, "NXDN RF Network Trailer Sent", buffer, 102U);
 		else
-			CUtils::dump(1U, "NXDN TO Network Trailer Sent", buffer, 102U);
+			CUtils::dump(1U, "NXDN Net Network Trailer Sent", buffer, 102U);
 	}
 
 	return m_socket.write(buffer, 102U, m_addr, m_addrLen);
@@ -342,10 +342,10 @@ void CNXDNNetwork::clock(unsigned int ms)
 		return;
 
 	if (!CUDPSocket::match(m_addr, addr, IPMATCHTYPE::ADDRESS_AND_PORT)) {
-		if (m_network == NETWORK::FROM)
-			LogWarning("NXDN FROM packet received from an unknown address");
+		if (m_network == NETWORK::RF)
+			LogWarning("NXDN RF packet received from an unknown address");
 		else
-			LogWarning("NXDN TO packet received from an unknown address");
+			LogWarning("NXDN Net packet received from an unknown address");
 		return;
 	}
 
@@ -354,10 +354,10 @@ void CNXDNNetwork::clock(unsigned int ms)
 		return;
 
 	if (m_debug) {
-		if (m_network == NETWORK::FROM)
-			CUtils::dump(1U, "NXDN FROM Data Received", buffer, length);
+		if (m_network == NETWORK::RF)
+			CUtils::dump(1U, "NXDN RF Data Received", buffer, length);
 		else
-			CUtils::dump(1U, "NXDN TO Data Received", buffer, length);
+			CUtils::dump(1U, "NXDN Net Data Received", buffer, length);
 	}
 
 	uint8_t c = length;
@@ -512,8 +512,8 @@ void CNXDNNetwork::close()
 {
 	m_socket.close();
 
-	if (m_network == NETWORK::FROM)
-		LogMessage("Closing the NXDN FROM network");
+	if (m_network == NETWORK::RF)
+		LogMessage("Closing the NXDN RF network");
 	else
-		LogMessage("Closing the NXDN TO network");
+		LogMessage("Closing the NXDN Net network");
 }

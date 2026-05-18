@@ -90,8 +90,8 @@ public:
 
 	bool setTranscoder();
 
-	DATA_MODE getFromMode() const;
-	DATA_MODE getToMode() const;
+	DATA_MODE getRFMode() const;
+	DATA_MODE getNetMode() const;
 
 	void setThroughModes(bool toDStar, bool toDMR1, bool toDMR2, bool toYSF, bool toP25, bool toNXDN, bool toFM);
 
@@ -214,8 +214,8 @@ private:
 	uint16_t                                                m_nxdnFMTG;
 
 	DIRECTION    m_direction;
-	CDestination m_from;
-	CDestination m_to;
+	CDestination m_rf;
+	CDestination m_net;
 	bool         m_end;
 	uint8_t*     m_data;
 	uint16_t     m_length;
@@ -298,7 +298,7 @@ private:
 
 	void writeJSONStatus(const std::string& action = "") const;
 	
-	nlohmann::json createDestination(const CDestination& destination) const;
+	nlohmann::json createAddress(const CDestination& destination) const;
 };
 
 #endif

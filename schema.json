@@ -1,8 +1,8 @@
 {
 	"$defs": {
 		"mode": {"type": "string", "enum": ["None", "D-Star", "DMR", "YSF", "P25", "NXDN", "FM", "???"]},
-		"direction": {"type": "string", "enum": ["from>to", "from<to", "unknown"]},
-		"action": {"type": "string", "enum": ["matched", "unmatched", "end"]},
+		"source": {"type": "string", "enum": ["RF", "Net"]},
+		"action": {"type": "string", "enum": ["begin", "end", "lost"]},
 		"callsign": {"type": "string", "minLength": 8, "maxLength": 10},
 		"slot": {"type": "integer", "enum": [1, 2]},
 		"id": {"type": "integer", "minimum": 1, "maximum": 16777215},
@@ -21,14 +21,15 @@
 	"Status": {
 		"type": "object",
 		"timestamp": {"$ref": "#/$defs/timestamp"},
-		"direction": {"$ref": "#/$defs/direction"},
+		"src": {"$ref": "#/$defs/source"},
+		"dst": {"$ref": "#/$defs/source"},
 		"action": {"$ref": "#/$defs/action"},
-		"from": {"$ref": "#/Destination"},
-		"to": {"$ref": "#/Destination"},
+		"RF": {"$ref": "#/Address"},
+		"Net": {"$ref": "#/Address"},
 		"required": ["timestamp", "action"]
 	},
 	
-	"Destination" : {
+	"Address" : {
 		"type": "object",
 		"mode": {"$ref": "#/$defs/mode"},
 		"src_callsign": {"$ref": "#/$defs/callsign"},

@@ -81,18 +81,18 @@ enum class SECTION {
 	FM_P25,
 	FM_NXDN,
 	FM_FM,
-	DSTAR_NETWORK_FROM,
-	DSTAR_NETWORK_TO,
-	DMR_NETWORK_FROM,
-	DMR_NETWORK_TO,
-	YSF_NETWORK_FROM,
-	YSF_NETWORK_TO,
-	P25_NETWORK_FROM,
-	P25_NETWORK_TO,
-	NXDN_NETWORK_FROM,
-	NXDN_NETWORK_TO,
-	FM_NETWORK_FROM,
-	FM_NETWORK_TO
+	DSTAR_NETWORK_RF,
+	DSTAR_NETWORK_NET,
+	DMR_NETWORK_RF,
+	DMR_NETWORK_NET,
+	YSF_NETWORK_RF,
+	YSF_NETWORK_NET,
+	P25_NETWORK_RF,
+	P25_NETWORK_NET,
+	NXDN_NETWORK_RF,
+	NXDN_NETWORK_NET,
+	FM_NETWORK_RF,
+	FM_NETWORK_NET
 };
 
 CConf::CConf(const std::string& file) :
@@ -189,66 +189,66 @@ m_fmYSFEnable(false),
 m_fmP25Enable(false),
 m_fmNXDNEnable(false),
 m_fmFMEnable(false),
-m_dStarFromRemoteAddress("127.0.0.1"),
-m_dStarFromRemotePort(20011U),
-m_dStarFromLocalAddress("127.0.0.1"),
-m_dStarFromLocalPort(20010U),
-m_dStarFromDebug(false),
-m_dStarToRemoteAddress("127.0.0.1"),
-m_dStarToRemotePort(20011U),
-m_dStarToLocalAddress("127.0.0.1"),
-m_dStarToLocalPort(20010U),
-m_dStarToDebug(false),
-m_dmrFromRemoteAddress("127.0.0.1"),
-m_dmrFromRemotePort(62031U),
-m_dmrFromLocalAddress("127.0.0.1"),
-m_dmrFromLocalPort(62032U),
-m_dmrFromDebug(false),
-m_dmrToRemoteAddress("127.0.0.1"),
-m_dmrToRemotePort(62032U),
-m_dmrToLocalAddress("127.0.0.1"),
-m_dmrToLocalPort(62031U),
-m_dmrToDebug(false),
-m_ysfFromRemoteAddress("127.0.0.1"),
-m_ysfFromRemotePort(20011U),
-m_ysfFromLocalAddress("127.0.0.1"),
-m_ysfFromLocalPort(20010U),
-m_ysfFromDebug(false),
-m_ysfToRemoteAddress("127.0.0.1"),
-m_ysfToRemotePort(20011U),
-m_ysfToLocalAddress("127.0.0.1"),
-m_ysfToLocalPort(20010U),
-m_ysfToDebug(false),
-m_p25FromRemoteAddress("127.0.0.1"),
-m_p25FromRemotePort(32010U),
-m_p25FromLocalAddress("127.0.0.1"),
-m_p25FromLocalPort(42020U),
-m_p25FromDebug(false),
-m_p25ToRemoteAddress("127.0.0.1"),
-m_p25ToRemotePort(42020U),
-m_p25ToLocalAddress("127.0.0.1"),
-m_p25ToLocalPort(32010U),
-m_p25ToDebug(false),
-m_nxdnFromRemoteAddress("127.0.0.1"),
-m_nxdnFromRemotePort(42021U),
-m_nxdnFromLocalAddress("127.0.0.1"),
-m_nxdnFromLocalPort(42022U),
-m_nxdnFromDebug(false),
-m_nxdnToRemoteAddress("127.0.0.1"),
-m_nxdnToRemotePort(42022U),
-m_nxdnToLocalAddress("127.0.0.1"),
-m_nxdnToLocalPort(42021U),
-m_nxdnToDebug(false),
-m_fmFromRemoteAddress("127.0.0.1"),
-m_fmFromRemotePort(20011U),
-m_fmFromLocalAddress("127.0.0.1"),
-m_fmFromLocalPort(20010U),
-m_fmFromDebug(false),
-m_fmToRemoteAddress("127.0.0.1"),
-m_fmToRemotePort(20011U),
-m_fmToLocalAddress("127.0.0.1"),
-m_fmToLocalPort(20010U),
-m_fmToDebug(false)
+m_dStarRFRemoteAddress("127.0.0.1"),
+m_dStarRFRemotePort(20011U),
+m_dStarRFLocalAddress("127.0.0.1"),
+m_dStarRFLocalPort(20010U),
+m_dStarRFDebug(false),
+m_dStarNetRemoteAddress("127.0.0.1"),
+m_dStarNetRemotePort(20011U),
+m_dStarNetLocalAddress("127.0.0.1"),
+m_dStarNetLocalPort(20010U),
+m_dStarNetDebug(false),
+m_dmrRFRemoteAddress("127.0.0.1"),
+m_dmrRFRemotePort(62031U),
+m_dmrRFLocalAddress("127.0.0.1"),
+m_dmrRFLocalPort(62032U),
+m_dmrRFDebug(false),
+m_dmrNetRemoteAddress("127.0.0.1"),
+m_dmrNetRemotePort(62032U),
+m_dmrNetLocalAddress("127.0.0.1"),
+m_dmrNetLocalPort(62031U),
+m_dmrNetDebug(false),
+m_ysfRFRemoteAddress("127.0.0.1"),
+m_ysfRFRemotePort(20011U),
+m_ysfRFLocalAddress("127.0.0.1"),
+m_ysfRFLocalPort(20010U),
+m_ysfRFDebug(false),
+m_ysfNetRemoteAddress("127.0.0.1"),
+m_ysfNetRemotePort(20011U),
+m_ysfNetLocalAddress("127.0.0.1"),
+m_ysfNetLocalPort(20010U),
+m_ysfNetDebug(false),
+m_p25RFRemoteAddress("127.0.0.1"),
+m_p25RFRemotePort(32010U),
+m_p25RFLocalAddress("127.0.0.1"),
+m_p25RFLocalPort(42020U),
+m_p25RFDebug(false),
+m_p25NetRemoteAddress("127.0.0.1"),
+m_p25NetRemotePort(42020U),
+m_p25NetLocalAddress("127.0.0.1"),
+m_p25NetLocalPort(32010U),
+m_p25NetDebug(false),
+m_nxdnRFRemoteAddress("127.0.0.1"),
+m_nxdnRFRemotePort(42021U),
+m_nxdnRFLocalAddress("127.0.0.1"),
+m_nxdnRFLocalPort(42022U),
+m_nxdnRFDebug(false),
+m_nxdnNetRemoteAddress("127.0.0.1"),
+m_nxdnNetRemotePort(42022U),
+m_nxdnNetLocalAddress("127.0.0.1"),
+m_nxdnNetLocalPort(42021U),
+m_nxdnNetDebug(false),
+m_fmRFRemoteAddress("127.0.0.1"),
+m_fmRFRemotePort(20011U),
+m_fmRFLocalAddress("127.0.0.1"),
+m_fmRFLocalPort(20010U),
+m_fmRFDebug(false),
+m_fmNetRemoteAddress("127.0.0.1"),
+m_fmNetRemotePort(20011U),
+m_fmNetLocalAddress("127.0.0.1"),
+m_fmNetLocalPort(20010U),
+m_fmNetDebug(false)
 {
 }
 
@@ -362,30 +362,30 @@ bool CConf::read()
 				section = SECTION::FM_NXDN;
 			else if (::strncmp(buffer, "[FM to FM]", 10U) == 0)
 				section = SECTION::FM_FM;
-			else if (::strncmp(buffer, "[D-Star Network From]", 21U) == 0)
-				section = SECTION::DSTAR_NETWORK_FROM;
-			else if (::strncmp(buffer, "[D-Star Network To]", 19U) == 0)
-				section = SECTION::DSTAR_NETWORK_TO;
-			else if (::strncmp(buffer, "[DMR Network From]", 18U) == 0)
-				section = SECTION::DMR_NETWORK_FROM;
-			else if (::strncmp(buffer, "[DMR Network To]", 16U) == 0)
-				section = SECTION::DMR_NETWORK_TO;
-			else if (::strncmp(buffer, "[System Fusion Network From]", 28U) == 0)
-				section = SECTION::YSF_NETWORK_FROM;
-			else if (::strncmp(buffer, "[System Fusion Network To]", 26U) == 0)
-				section = SECTION::YSF_NETWORK_TO;
-			else if (::strncmp(buffer, "[P25 Network From]", 18U) == 0)
-				section = SECTION::P25_NETWORK_FROM;
-			else if (::strncmp(buffer, "[P25 Network To]", 16U) == 0)
-				section = SECTION::P25_NETWORK_TO;
-			else if (::strncmp(buffer, "[NXDN Network From]", 19U) == 0)
-				section = SECTION::NXDN_NETWORK_FROM;
-			else if (::strncmp(buffer, "[NXDN Network To]", 17U) == 0)
-				section = SECTION::NXDN_NETWORK_TO;
-			else if (::strncmp(buffer, "[FM Network From]", 17U) == 0)
-				section = SECTION::FM_NETWORK_FROM;
-			else if (::strncmp(buffer, "[FM Network To]", 15U) == 0)
-				section = SECTION::FM_NETWORK_TO;
+			else if (::strncmp(buffer, "[D-Star RF Network]", 19U) == 0)
+				section = SECTION::DSTAR_NETWORK_RF;
+			else if (::strncmp(buffer, "[D-Star Net Network]", 20U) == 0)
+				section = SECTION::DSTAR_NETWORK_NET;
+			else if (::strncmp(buffer, "[DMR RF Network]", 16U) == 0)
+				section = SECTION::DMR_NETWORK_RF;
+			else if (::strncmp(buffer, "[DMR Net Network]", 17U) == 0)
+				section = SECTION::DMR_NETWORK_NET;
+			else if (::strncmp(buffer, "[System Fusion RF Network]", 26U) == 0)
+				section = SECTION::YSF_NETWORK_RF;
+			else if (::strncmp(buffer, "[System Fusion Net Network]", 27U) == 0)
+				section = SECTION::YSF_NETWORK_NET;
+			else if (::strncmp(buffer, "[P25 RF Network]", 16U) == 0)
+				section = SECTION::P25_NETWORK_RF;
+			else if (::strncmp(buffer, "[P25 Net Network]", 17U) == 0)
+				section = SECTION::P25_NETWORK_NET;
+			else if (::strncmp(buffer, "[NXDN RF Network]", 17U) == 0)
+				section = SECTION::NXDN_NETWORK_RF;
+			else if (::strncmp(buffer, "[NXDN Net Network]", 18U) == 0)
+				section = SECTION::NXDN_NETWORK_NET;
+			else if (::strncmp(buffer, "[FM RF Network]", 15U) == 0)
+				section = SECTION::FM_NETWORK_RF;
+			else if (::strncmp(buffer, "[FM Net Network]", 16U) == 0)
+				section = SECTION::FM_NETWORK_NET;
 			else
 				section = SECTION::NONE;
 
@@ -1012,138 +1012,138 @@ bool CConf::read()
 		} else if (section == SECTION::FM_FM) {
 			if (::strcmp(key, "Enable") == 0)
 				m_fmFMEnable = ::atoi(value) == 1;
-		} else if (section == SECTION::DSTAR_NETWORK_FROM) {
+		} else if (section == SECTION::DSTAR_NETWORK_RF) {
 			if (::strcmp(key, "RemoteAddress") == 0)
-				m_dStarFromRemoteAddress = value;
+				m_dStarRFRemoteAddress = value;
 			else if (::strcmp(key, "RemotePort") == 0)
-				m_dStarFromRemotePort = uint16_t(::atoi(value));
+				m_dStarRFRemotePort = uint16_t(::atoi(value));
 			else if (::strcmp(key, "LocalAddress") == 0)
-				m_dStarFromLocalAddress = value;
+				m_dStarRFLocalAddress = value;
 			else if (::strcmp(key, "LocalPort") == 0)
-				m_dStarFromLocalPort = uint16_t(::atoi(value));
+				m_dStarRFLocalPort = uint16_t(::atoi(value));
 			else if (::strcmp(key, "Debug") == 0)
-				m_dStarFromDebug = ::atoi(value) == 1;
-		} else if (section == SECTION::DSTAR_NETWORK_TO) {
+				m_dStarRFDebug = ::atoi(value) == 1;
+		} else if (section == SECTION::DSTAR_NETWORK_NET) {
 			if (::strcmp(key, "RemoteAddress") == 0)
-				m_dStarToRemoteAddress = value;
+				m_dStarNetRemoteAddress = value;
 			else if (::strcmp(key, "RemotePort") == 0)
-				m_dStarToRemotePort = uint16_t(::atoi(value));
+				m_dStarNetRemotePort = uint16_t(::atoi(value));
 			else if (::strcmp(key, "LocalAddress") == 0)
-				m_dStarToLocalAddress = value;
+				m_dStarNetLocalAddress = value;
 			else if (::strcmp(key, "LocalPort") == 0)
-				m_dStarToLocalPort = uint16_t(::atoi(value));
+				m_dStarNetLocalPort = uint16_t(::atoi(value));
 			else if (::strcmp(key, "Debug") == 0)
-				m_dStarToDebug = ::atoi(value) == 1;
-		} else if (section == SECTION::DMR_NETWORK_FROM) {
+				m_dStarNetDebug = ::atoi(value) == 1;
+		} else if (section == SECTION::DMR_NETWORK_RF) {
 			if (::strcmp(key, "RemoteAddress") == 0)
-				m_dmrFromRemoteAddress = value;
+				m_dmrRFRemoteAddress = value;
 			else if (::strcmp(key, "RemotePort") == 0)
-				m_dmrFromRemotePort = uint16_t(::atoi(value));
+				m_dmrRFRemotePort = uint16_t(::atoi(value));
 			else if (::strcmp(key, "LocalAddress") == 0)
-				m_dmrFromLocalAddress = value;
+				m_dmrRFLocalAddress = value;
 			else if (::strcmp(key, "LocalPort") == 0)
-				m_dmrFromLocalPort = uint16_t(::atoi(value));
+				m_dmrRFLocalPort = uint16_t(::atoi(value));
 			else if (::strcmp(key, "Debug") == 0)
-				m_dmrFromDebug = ::atoi(value) == 1;
-		} else if (section == SECTION::DMR_NETWORK_TO) {
+				m_dmrRFDebug = ::atoi(value) == 1;
+		} else if (section == SECTION::DMR_NETWORK_NET) {
 			if (::strcmp(key, "RemoteAddress") == 0)
-				m_dmrToRemoteAddress = value;
+				m_dmrNetRemoteAddress = value;
 			else if (::strcmp(key, "RemotePort") == 0)
-				m_dmrToRemotePort = uint16_t(::atoi(value));
+				m_dmrNetRemotePort = uint16_t(::atoi(value));
 			else if (::strcmp(key, "LocalAddress") == 0)
-				m_dmrToLocalAddress = value;
+				m_dmrNetLocalAddress = value;
 			else if (::strcmp(key, "LocalPort") == 0)
-				m_dmrToLocalPort = uint16_t(::atoi(value));
+				m_dmrNetLocalPort = uint16_t(::atoi(value));
 			else if (::strcmp(key, "Debug") == 0)
-				m_dmrToDebug = ::atoi(value) == 1;
-		} else if (section == SECTION::YSF_NETWORK_FROM) {
+				m_dmrNetDebug = ::atoi(value) == 1;
+		} else if (section == SECTION::YSF_NETWORK_RF) {
 			if (::strcmp(key, "RemoteAddress") == 0)
-				m_ysfFromRemoteAddress = value;
+				m_ysfRFRemoteAddress = value;
 			else if (::strcmp(key, "RemotePort") == 0)
-				m_ysfFromRemotePort = uint16_t(::atoi(value));
+				m_ysfRFRemotePort = uint16_t(::atoi(value));
 			else if (::strcmp(key, "LocalAddress") == 0)
-				m_ysfFromLocalAddress = value;
+				m_ysfRFLocalAddress = value;
 			else if (::strcmp(key, "LocalPort") == 0)
-				m_ysfFromLocalPort = uint16_t(::atoi(value));
+				m_ysfRFLocalPort = uint16_t(::atoi(value));
 			else if (::strcmp(key, "Debug") == 0)
-				m_ysfFromDebug = ::atoi(value) == 1;
-		} else if (section == SECTION::YSF_NETWORK_TO) {
+				m_ysfRFDebug = ::atoi(value) == 1;
+		} else if (section == SECTION::YSF_NETWORK_NET) {
 			if (::strcmp(key, "RemoteAddress") == 0)
-				m_ysfToRemoteAddress = value;
+				m_ysfNetRemoteAddress = value;
 			else if (::strcmp(key, "RemotePort") == 0)
-				m_ysfToRemotePort = uint16_t(::atoi(value));
+				m_ysfNetRemotePort = uint16_t(::atoi(value));
 			else if (::strcmp(key, "LocalAddress") == 0)
-				m_ysfToLocalAddress = value;
+				m_ysfNetLocalAddress = value;
 			else if (::strcmp(key, "LocalPort") == 0)
-				m_ysfToLocalPort = uint16_t(::atoi(value));
+				m_ysfNetLocalPort = uint16_t(::atoi(value));
 			else if (::strcmp(key, "Debug") == 0)
-				m_ysfToDebug = ::atoi(value) == 1;
-		} else if (section == SECTION::P25_NETWORK_FROM) {
+				m_ysfNetDebug = ::atoi(value) == 1;
+		} else if (section == SECTION::P25_NETWORK_RF) {
 			if (::strcmp(key, "RemoteAddress") == 0)
-				m_p25FromRemoteAddress = value;
+				m_p25RFRemoteAddress = value;
 			else if (::strcmp(key, "RemotePort") == 0)
-				m_p25FromRemotePort = uint16_t(::atoi(value));
+				m_p25RFRemotePort = uint16_t(::atoi(value));
 			else if (::strcmp(key, "LocalAddress") == 0)
-				m_p25FromLocalAddress = value;
+				m_p25RFLocalAddress = value;
 			else if (::strcmp(key, "LocalPort") == 0)
-				m_p25FromLocalPort = uint16_t(::atoi(value));
+				m_p25RFLocalPort = uint16_t(::atoi(value));
 			else if (::strcmp(key, "Debug") == 0)
-				m_p25FromDebug = ::atoi(value) == 1;
-		} else if (section == SECTION::P25_NETWORK_TO) {
+				m_p25RFDebug = ::atoi(value) == 1;
+		} else if (section == SECTION::P25_NETWORK_NET) {
 			if (::strcmp(key, "RemoteAddress") == 0)
-				m_p25ToRemoteAddress = value;
+				m_p25NetRemoteAddress = value;
 			else if (::strcmp(key, "RemotePort") == 0)
-				m_p25ToRemotePort = uint16_t(::atoi(value));
+				m_p25NetRemotePort = uint16_t(::atoi(value));
 			else if (::strcmp(key, "LocalAddress") == 0)
-				m_p25ToLocalAddress = value;
+				m_p25NetLocalAddress = value;
 			else if (::strcmp(key, "LocalPort") == 0)
-				m_p25ToLocalPort = uint16_t(::atoi(value));
+				m_p25NetLocalPort = uint16_t(::atoi(value));
 			else if (::strcmp(key, "Debug") == 0)
-				m_p25ToDebug = ::atoi(value) == 1;
-		} else if (section == SECTION::NXDN_NETWORK_FROM) {
+				m_p25NetDebug = ::atoi(value) == 1;
+		} else if (section == SECTION::NXDN_NETWORK_RF) {
 			if (::strcmp(key, "RemoteAddress") == 0)
-				m_nxdnFromRemoteAddress = value;
+				m_nxdnRFRemoteAddress = value;
 			else if (::strcmp(key, "RemotePort") == 0)
-				m_nxdnFromRemotePort = uint16_t(::atoi(value));
+				m_nxdnRFRemotePort = uint16_t(::atoi(value));
 			else if (::strcmp(key, "LocalAddress") == 0)
-				m_nxdnFromLocalAddress = value;
+				m_nxdnRFLocalAddress = value;
 			else if (::strcmp(key, "LocalPort") == 0)
-				m_nxdnFromLocalPort = uint16_t(::atoi(value));
+				m_nxdnRFLocalPort = uint16_t(::atoi(value));
 			else if (::strcmp(key, "Debug") == 0)
-				m_nxdnFromDebug = ::atoi(value) == 1;
-		} else if (section == SECTION::NXDN_NETWORK_TO) {
+				m_nxdnRFDebug = ::atoi(value) == 1;
+		} else if (section == SECTION::NXDN_NETWORK_NET) {
 			if (::strcmp(key, "RemoteAddress") == 0)
-				m_nxdnToRemoteAddress = value;
+				m_nxdnNetRemoteAddress = value;
 			else if (::strcmp(key, "RemotePort") == 0)
-				m_nxdnToRemotePort = uint16_t(::atoi(value));
+				m_nxdnNetRemotePort = uint16_t(::atoi(value));
 			else if (::strcmp(key, "LocalAddress") == 0)
-				m_nxdnToLocalAddress = value;
+				m_nxdnNetLocalAddress = value;
 			else if (::strcmp(key, "LocalPort") == 0)
-				m_nxdnToLocalPort = uint16_t(::atoi(value));
+				m_nxdnNetLocalPort = uint16_t(::atoi(value));
 			else if (::strcmp(key, "Debug") == 0)
-				m_nxdnToDebug = ::atoi(value) == 1;
-		} else if (section == SECTION::FM_NETWORK_FROM) {
+				m_nxdnNetDebug = ::atoi(value) == 1;
+		} else if (section == SECTION::FM_NETWORK_RF) {
 			if (::strcmp(key, "RemoteAddress") == 0)
-				m_fmFromRemoteAddress = value;
+				m_fmRFRemoteAddress = value;
 			else if (::strcmp(key, "RemotePort") == 0)
-				m_fmFromRemotePort = uint16_t(::atoi(value));
+				m_fmRFRemotePort = uint16_t(::atoi(value));
 			else if (::strcmp(key, "LocalAddress") == 0)
-				m_fmFromLocalAddress = value;
+				m_fmRFLocalAddress = value;
 			else if (::strcmp(key, "LocalPort") == 0)
-				m_fmFromLocalPort = uint16_t(::atoi(value));
+				m_fmRFLocalPort = uint16_t(::atoi(value));
 			else if (::strcmp(key, "Debug") == 0)
-				m_fmFromDebug = ::atoi(value) == 1;
-		} else if (section == SECTION::FM_NETWORK_TO) {
+				m_fmRFDebug = ::atoi(value) == 1;
+		} else if (section == SECTION::FM_NETWORK_NET) {
 			if (::strcmp(key, "RemoteAddress") == 0)
-				m_fmToRemoteAddress = value;
+				m_fmNetRemoteAddress = value;
 			else if (::strcmp(key, "RemotePort") == 0)
-				m_fmToRemotePort = uint16_t(::atoi(value));
+				m_fmNetRemotePort = uint16_t(::atoi(value));
 			else if (::strcmp(key, "LocalAddress") == 0)
-				m_fmToLocalAddress = value;
+				m_fmNetLocalAddress = value;
 			else if (::strcmp(key, "LocalPort") == 0)
-				m_fmToLocalPort = uint16_t(::atoi(value));
+				m_fmNetLocalPort = uint16_t(::atoi(value));
 			else if (::strcmp(key, "Debug") == 0)
-				m_fmToDebug = ::atoi(value) == 1;
+				m_fmNetDebug = ::atoi(value) == 1;
 		}
 	}
 
@@ -1617,304 +1617,304 @@ bool CConf::getFMFMEnable() const
 	return m_fmFMEnable;
 }
 
-std::string CConf::getDStarFromRemoteAddress() const
+std::string CConf::getDStarRFRemoteAddress() const
 {
-	return m_dStarFromRemoteAddress;
+	return m_dStarRFRemoteAddress;
 }
 
-uint16_t CConf::getDStarFromRemotePort() const
+uint16_t CConf::getDStarRFRemotePort() const
 {
-	return m_dStarFromRemotePort;
+	return m_dStarRFRemotePort;
 }
 
-std::string CConf::getDStarFromLocalAddress() const
+std::string CConf::getDStarRFLocalAddress() const
 {
-	return m_dStarFromLocalAddress;
+	return m_dStarRFLocalAddress;
 }
 
-uint16_t CConf::getDStarFromLocalPort() const
+uint16_t CConf::getDStarRFLocalPort() const
 {
-	return m_dStarFromLocalPort;
+	return m_dStarRFLocalPort;
 }
 
-bool CConf::getDStarFromDebug() const
+bool CConf::getDStarRFDebug() const
 {
-	return m_dStarFromDebug;
+	return m_dStarRFDebug;
 }
 
-std::string CConf::getDStarToRemoteAddress() const
+std::string CConf::getDStarNetRemoteAddress() const
 {
-	return m_dStarToRemoteAddress;
+	return m_dStarNetRemoteAddress;
 }
 
-uint16_t CConf::getDStarToRemotePort() const
+uint16_t CConf::getDStarNetRemotePort() const
 {
-	return m_dStarToRemotePort;
+	return m_dStarNetRemotePort;
 }
 
-std::string CConf::getDStarToLocalAddress() const
+std::string CConf::getDStarNetLocalAddress() const
 {
-	return m_dStarToLocalAddress;
+	return m_dStarNetLocalAddress;
 }
 
-uint16_t CConf::getDStarToLocalPort() const
+uint16_t CConf::getDStarNetLocalPort() const
 {
-	return m_dStarToLocalPort;
+	return m_dStarNetLocalPort;
 }
 
-bool CConf::getDStarToDebug() const
+bool CConf::getDStarNetDebug() const
 {
-	return m_dStarToDebug;
+	return m_dStarNetDebug;
 }
 
-std::string CConf::getDMRFromRemoteAddress() const
+std::string CConf::getDMRRFRemoteAddress() const
 {
-	return m_dmrFromRemoteAddress;
+	return m_dmrRFRemoteAddress;
 }
 
-uint16_t CConf::getDMRFromRemotePort() const
+uint16_t CConf::getDMRRFRemotePort() const
 {
-	return m_dmrFromRemotePort;
+	return m_dmrRFRemotePort;
 }
 
-std::string CConf::getDMRFromLocalAddress() const
+std::string CConf::getDMRRFLocalAddress() const
 {
-	return m_dmrFromLocalAddress;
+	return m_dmrRFLocalAddress;
 }
 
-uint16_t CConf::getDMRFromLocalPort() const
+uint16_t CConf::getDMRRFLocalPort() const
 {
-	return m_dmrFromLocalPort;
+	return m_dmrRFLocalPort;
 }
 
-bool CConf::getDMRFromDebug() const
+bool CConf::getDMRRFDebug() const
 {
-	return m_dmrFromDebug;
+	return m_dmrRFDebug;
 }
 
-std::string CConf::getDMRToRemoteAddress() const
+std::string CConf::getDMRNetRemoteAddress() const
 {
-	return m_dmrToRemoteAddress;
+	return m_dmrNetRemoteAddress;
 }
 
-uint16_t CConf::getDMRToRemotePort() const
+uint16_t CConf::getDMRNetRemotePort() const
 {
-	return m_dmrToRemotePort;
+	return m_dmrNetRemotePort;
 }
 
-std::string CConf::getDMRToLocalAddress() const
+std::string CConf::getDMRNetLocalAddress() const
 {
-	return m_dmrToLocalAddress;
+	return m_dmrNetLocalAddress;
 }
 
-uint16_t CConf::getDMRToLocalPort() const
+uint16_t CConf::getDMRNetLocalPort() const
 {
-	return m_dmrToLocalPort;
+	return m_dmrNetLocalPort;
 }
 
-bool CConf::getDMRToDebug() const
+bool CConf::getDMRNetDebug() const
 {
-	return m_dmrToDebug;
+	return m_dmrNetDebug;
 }
 
-std::string CConf::getYSFFromRemoteAddress() const
+std::string CConf::getYSFRFRemoteAddress() const
 {
-	return m_ysfFromRemoteAddress;
+	return m_ysfRFRemoteAddress;
 }
 
-uint16_t CConf::getYSFFromRemotePort() const
+uint16_t CConf::getYSFRFRemotePort() const
 {
-	return m_ysfFromRemotePort;
+	return m_ysfRFRemotePort;
 }
 
-std::string CConf::getYSFFromLocalAddress() const
+std::string CConf::getYSFRFLocalAddress() const
 {
-	return m_ysfFromLocalAddress;
+	return m_ysfRFLocalAddress;
 }
 
-uint16_t CConf::getYSFFromLocalPort() const
+uint16_t CConf::getYSFRFLocalPort() const
 {
-	return m_ysfFromLocalPort;
+	return m_ysfRFLocalPort;
 }
 
-bool CConf::getYSFFromDebug() const
+bool CConf::getYSFRFDebug() const
 {
-	return m_ysfFromDebug;
+	return m_ysfRFDebug;
 }
 
-std::string CConf::getYSFToRemoteAddress() const
+std::string CConf::getYSFNetRemoteAddress() const
 {
-	return m_ysfToRemoteAddress;
+	return m_ysfNetRemoteAddress;
 }
 
-uint16_t CConf::getYSFToRemotePort() const
+uint16_t CConf::getYSFNetRemotePort() const
 {
-	return m_ysfToRemotePort;
+	return m_ysfNetRemotePort;
 }
 
-std::string CConf::getYSFToLocalAddress() const
+std::string CConf::getYSFNetLocalAddress() const
 {
-	return m_ysfToLocalAddress;
+	return m_ysfNetLocalAddress;
 }
 
-uint16_t CConf::getYSFToLocalPort() const
+uint16_t CConf::getYSFNetLocalPort() const
 {
-	return m_ysfToLocalPort;
+	return m_ysfNetLocalPort;
 }
 
-bool CConf::getYSFToDebug() const
+bool CConf::getYSFNetDebug() const
 {
-	return m_ysfToDebug;
+	return m_ysfNetDebug;
 }
 
-std::string CConf::getP25FromRemoteAddress() const
+std::string CConf::getP25RFRemoteAddress() const
 {
-	return m_p25FromRemoteAddress;
+	return m_p25RFRemoteAddress;
 }
 
-uint16_t CConf::getP25FromRemotePort() const
+uint16_t CConf::getP25RFRemotePort() const
 {
-	return m_p25FromRemotePort;
+	return m_p25RFRemotePort;
 }
 
-std::string CConf::getP25FromLocalAddress() const
+std::string CConf::getP25RFLocalAddress() const
 {
-	return m_p25FromLocalAddress;
+	return m_p25RFLocalAddress;
 }
 
-uint16_t CConf::getP25FromLocalPort() const
+uint16_t CConf::getP25RFLocalPort() const
 {
-	return m_p25FromLocalPort;
+	return m_p25RFLocalPort;
 }
 
-bool CConf::getP25FromDebug() const
+bool CConf::getP25RFDebug() const
 {
-	return m_p25FromDebug;
+	return m_p25RFDebug;
 }
 
-std::string CConf::getP25ToRemoteAddress() const
+std::string CConf::getP25NetRemoteAddress() const
 {
-	return m_p25ToRemoteAddress;
+	return m_p25NetRemoteAddress;
 }
 
-uint16_t CConf::getP25ToRemotePort() const
+uint16_t CConf::getP25NetRemotePort() const
 {
-	return m_p25ToRemotePort;
+	return m_p25NetRemotePort;
 }
 
-std::string CConf::getP25ToLocalAddress() const
+std::string CConf::getP25NetLocalAddress() const
 {
-	return m_p25ToLocalAddress;
+	return m_p25NetLocalAddress;
 }
 
-uint16_t CConf::getP25ToLocalPort() const
+uint16_t CConf::getP25NetLocalPort() const
 {
-	return m_p25ToLocalPort;
+	return m_p25NetLocalPort;
 }
 
-bool CConf::getP25ToDebug() const
+bool CConf::getP25NetDebug() const
 {
-	return m_p25ToDebug;
+	return m_p25NetDebug;
 }
 
-std::string CConf::getNXDNFromRemoteAddress() const
+std::string CConf::getNXDNRFRemoteAddress() const
 {
-	return m_nxdnFromRemoteAddress;
+	return m_nxdnRFRemoteAddress;
 }
 
-uint16_t CConf::getNXDNFromRemotePort() const
+uint16_t CConf::getNXDNRFRemotePort() const
 {
-	return m_nxdnFromRemotePort;
+	return m_nxdnRFRemotePort;
 }
 
-std::string CConf::getNXDNFromLocalAddress() const
+std::string CConf::getNXDNRFLocalAddress() const
 {
-	return m_nxdnFromLocalAddress;
+	return m_nxdnRFLocalAddress;
 }
 
-uint16_t CConf::getNXDNFromLocalPort() const
+uint16_t CConf::getNXDNRFLocalPort() const
 {
-	return m_nxdnFromLocalPort;
+	return m_nxdnRFLocalPort;
 }
 
-bool CConf::getNXDNFromDebug() const
+bool CConf::getNXDNRFDebug() const
 {
-	return m_nxdnFromDebug;
+	return m_nxdnRFDebug;
 }
 
-std::string CConf::getNXDNToRemoteAddress() const
+std::string CConf::getNXDNNetRemoteAddress() const
 {
-	return m_nxdnToRemoteAddress;
+	return m_nxdnNetRemoteAddress;
 }
 
-uint16_t CConf::getNXDNToRemotePort() const
+uint16_t CConf::getNXDNNetRemotePort() const
 {
-	return m_nxdnToRemotePort;
+	return m_nxdnNetRemotePort;
 }
 
-std::string CConf::getNXDNToLocalAddress() const
+std::string CConf::getNXDNNetLocalAddress() const
 {
-	return m_nxdnToLocalAddress;
+	return m_nxdnNetLocalAddress;
 }
 
-uint16_t CConf::getNXDNToLocalPort() const
+uint16_t CConf::getNXDNNetLocalPort() const
 {
-	return m_nxdnToLocalPort;
+	return m_nxdnNetLocalPort;
 }
 
-bool CConf::getNXDNToDebug() const
+bool CConf::getNXDNNetDebug() const
 {
-	return m_nxdnToDebug;
+	return m_nxdnNetDebug;
 }
 
-std::string CConf::getFMFromRemoteAddress() const
+std::string CConf::getFMRFRemoteAddress() const
 {
-	return m_fmFromRemoteAddress;
+	return m_fmRFRemoteAddress;
 }
 
-uint16_t CConf::getFMFromRemotePort() const
+uint16_t CConf::getFMRFRemotePort() const
 {
-	return m_fmFromRemotePort;
+	return m_fmRFRemotePort;
 }
 
-std::string CConf::getFMFromLocalAddress() const
+std::string CConf::getFMRFLocalAddress() const
 {
-	return m_fmFromLocalAddress;
+	return m_fmRFLocalAddress;
 }
 
-uint16_t CConf::getFMFromLocalPort() const
+uint16_t CConf::getFMRFLocalPort() const
 {
-	return m_fmFromLocalPort;
+	return m_fmRFLocalPort;
 }
 
-bool CConf::getFMFromDebug() const
+bool CConf::getFMRFDebug() const
 {
-	return m_fmFromDebug;
+	return m_fmRFDebug;
 }
 
-std::string CConf::getFMToRemoteAddress() const
+std::string CConf::getFMNetRemoteAddress() const
 {
-	return m_fmToRemoteAddress;
+	return m_fmNetRemoteAddress;
 }
 
-uint16_t CConf::getFMToRemotePort() const
+uint16_t CConf::getFMNetRemotePort() const
 {
-	return m_fmToRemotePort;
+	return m_fmNetRemotePort;
 }
 
-std::string CConf::getFMToLocalAddress() const
+std::string CConf::getFMNetLocalAddress() const
 {
-	return m_fmToLocalAddress;
+	return m_fmNetLocalAddress;
 }
 
-uint16_t CConf::getFMToLocalPort() const
+uint16_t CConf::getFMNetLocalPort() const
 {
-	return m_fmToLocalPort;
+	return m_fmNetLocalPort;
 }
 
-bool CConf::getFMToDebug() const
+bool CConf::getFMNetDebug() const
 {
-	return m_fmToDebug;
+	return m_fmNetDebug;
 }
 
 std::string CConf::getString(const char* text) const

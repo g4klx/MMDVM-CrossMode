@@ -54,17 +54,17 @@ CFMNetwork::~CFMNetwork()
 bool CFMNetwork::open()
 {
 	if (m_addrLen == 0U) {
-		if (m_network == NETWORK::FROM)
-			LogError("Unable to resolve the address of the FM FROM network");
+		if (m_network == NETWORK::RF)
+			LogError("Unable to resolve the address of the FM RF network");
 		else
-			LogError("Unable to resolve the address of the FM TO network");
+			LogError("Unable to resolve the address of the FM Net network");
 		return false;
 	}
 
-	if (m_network == NETWORK::FROM)
-		LogMessage("Opening the FM FROM network");
+	if (m_network == NETWORK::RF)
+		LogMessage("Opening the FM RF network");
 	else
-		LogMessage("Opening the FM TO network");
+		LogMessage("Opening the FM Net network");
 
 	return m_socket.open(m_addr);
 }
@@ -81,10 +81,10 @@ bool CFMNetwork::writeRaw(CMetaData& data)
 		return true;
 
 	if (m_debug) {
-		if (m_network == NETWORK::FROM)
-			CUtils::dump(1U, "FM FROM Network Raw Sent", buffer, length);
+		if (m_network == NETWORK::RF)
+			CUtils::dump(1U, "FM RF Network Raw Sent", buffer, length);
 		else
-			CUtils::dump(1U, "FM TO Network Raw Sent", buffer, length);
+			CUtils::dump(1U, "FM Net Network Raw Sent", buffer, length);
 	}
 
 	return m_socket.write(buffer, length, m_addr, m_addrLen);
@@ -114,10 +114,10 @@ bool CFMNetwork::writeData(CMetaData& data)
 	data.getData(buffer + 3U);
 
 	if (m_debug) {
-		if (m_network == NETWORK::FROM)
-			CUtils::dump(1U, "FM FROM Network Data Sent", buffer, 3U + PCM_DATA_LENGTH);
+		if (m_network == NETWORK::RF)
+			CUtils::dump(1U, "FM RF Network Data Sent", buffer, 3U + PCM_DATA_LENGTH);
 		else
-			CUtils::dump(1U, "FM TO Network Data Sent", buffer, 3U + PCM_DATA_LENGTH);
+			CUtils::dump(1U, "FM Net Network Data Sent", buffer, 3U + PCM_DATA_LENGTH);
 	}
 
 	m_seqNo++;
@@ -137,18 +137,18 @@ void CFMNetwork::clock(unsigned int ms)
 
 	// Check if the data is for us
 	if (!CUDPSocket::match(addr, m_addr, IPMATCHTYPE::ADDRESS_AND_PORT)) {
-		if (m_network == NETWORK::FROM)
-			LogMessage("FM FROM packet received from an invalid source");
+		if (m_network == NETWORK::RF)
+			LogMessage("FM RF packet received from an invalid source");
 		else
-			LogMessage("FM TO packet received from an invalid source");
+			LogMessage("FM Net packet received from an invalid source");
 		return;
 	}
 
 	if (m_debug) {
-		if (m_network == NETWORK::FROM)
-			CUtils::dump(1U, "FM FROM Network Data Received", buffer, length);
+		if (m_network == NETWORK::RF)
+			CUtils::dump(1U, "FM RF Network Data Received", buffer, length);
 		else
-			CUtils::dump(1U, "FM TO Network Data Received", buffer, length);
+			CUtils::dump(1U, "FM Net Network Data Received", buffer, length);
 	}
 
 	// Invalid packet type?
@@ -212,10 +212,10 @@ void CFMNetwork::close()
 {
 	m_socket.close();
 
-	if (m_network == NETWORK::FROM)
-		LogMessage("Closing the FM FROM network");
+	if (m_network == NETWORK::RF)
+		LogMessage("Closing the FM RF network");
 	else
-		LogMessage("Closing the FM TO network");
+		LogMessage("Closing the FM Net network");
 }
 
 bool CFMNetwork::writeStart(CMetaData& data)
@@ -232,10 +232,10 @@ bool CFMNetwork::writeStart(CMetaData& data)
 	uint16_t length = uint16_t(::strlen((char*)buffer));
 
 	if (m_debug) {
-		if (m_network == NETWORK::FROM)
-			CUtils::dump(1U, "FM FROM Network Data Sent", buffer, length + 1U);
+		if (m_network == NETWORK::RF)
+			CUtils::dump(1U, "FM RF Network Data Sent", buffer, length + 1U);
 		else
-			CUtils::dump(1U, "FM TO Network Data Sent", buffer, length + 1U);
+			CUtils::dump(1U, "FM Net Network Data Sent", buffer, length + 1U);
 	}
 
 	return m_socket.write(buffer, length + 1U, m_addr, m_addrLen);
@@ -250,10 +250,10 @@ bool CFMNetwork::writeEnd()
 	buffer[2U] = 'E';
 
 	if (m_debug) {
-		if (m_network == NETWORK::FROM)
-			CUtils::dump(1U, "FM FROM Network Data Sent", buffer, 3U);
+		if (m_network == NETWORK::RF)
+			CUtils::dump(1U, "FM RF Network Data Sent", buffer, 3U);
 		else
-			CUtils::dump(1U, "FM TO Network Data Sent", buffer, 3U);
+			CUtils::dump(1U, "FM Net Network Data Sent", buffer, 3U);
 	}
 
 	return m_socket.write(buffer, 3U, m_addr, m_addrLen);

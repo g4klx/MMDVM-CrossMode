@@ -66,17 +66,17 @@ CYSFNetwork::~CYSFNetwork()
 bool CYSFNetwork::open()
 {
 	if (m_addrLen == 0U) {
-		if (m_network == NETWORK::FROM)
-			LogError("Unable to resolve the address of the remote YSF FROM network");
+		if (m_network == NETWORK::RF)
+			LogError("Unable to resolve the address of the remote YSF RF network");
 		else
-			LogError("Unable to resolve the address of the remote YSF TO network");
+			LogError("Unable to resolve the address of the remote YSF Net network");
 		return false;
 	}
 
-	if (m_network == NETWORK::FROM)
-		LogMessage("Opening the YSF FROM network");
+	if (m_network == NETWORK::RF)
+		LogMessage("Opening the YSF RF network");
 	else
-		LogMessage("Opening the YSF TO network");
+		LogMessage("Opening the YSF Net network");
 
 	m_pollTimer.start();
 
@@ -95,10 +95,10 @@ bool CYSFNetwork::writeRaw(CMetaData& data)
 		return true;
 
 	if (m_debug) {
-		if (m_network == NETWORK::FROM)
-			CUtils::dump(1U, "YSF FROM Network Raw Sent", buffer, length);
+		if (m_network == NETWORK::RF)
+			CUtils::dump(1U, "YSF RF Network Raw Sent", buffer, length);
 		else
-			CUtils::dump(1U, "YSF TO Network Raw Sent", buffer, length);
+			CUtils::dump(1U, "YSF Net Network Raw Sent", buffer, length);
 	}
 
 	return m_socket.write(buffer, length, m_addr, m_addrLen);
@@ -226,10 +226,10 @@ bool CYSFNetwork::writeHeader(CMetaData& data)
 	m_fn = 0U;
 
 	if (m_debug) {
-		if (m_network == NETWORK::FROM)
-			CUtils::dump(1U, "YSF FROM Network Data Sent", buffer, 155U);
+		if (m_network == NETWORK::RF)
+			CUtils::dump(1U, "YSF RF Network Data Sent", buffer, 155U);
 		else
-			CUtils::dump(1U, "YSF TO Network Data Sent", buffer, 155U);
+			CUtils::dump(1U, "YSF Net Network Data Sent", buffer, 155U);
 	}
 
 	return m_socket.write(buffer, 155U, m_addr, m_addrLen);
@@ -302,10 +302,10 @@ bool CYSFNetwork::writeCommunication(CMetaData& data)
 		m_fn = 0U;
 
 	if (m_debug) {
-		if (m_network == NETWORK::FROM)
-			CUtils::dump(1U, "YSF FROM Network Data Sent", buffer, 155U);
+		if (m_network == NETWORK::RF)
+			CUtils::dump(1U, "YSF RF Network Data Sent", buffer, 155U);
 		else
-			CUtils::dump(1U, "YSF TO Network Data Sent", buffer, 155U);
+			CUtils::dump(1U, "YSF Net Network Data Sent", buffer, 155U);
 	}
 
 	return m_socket.write(buffer, 155U, m_addr, m_addrLen);
@@ -353,10 +353,10 @@ bool CYSFNetwork::writeTerminator(CMetaData& data)
 	payload.createHeaderData(buffer + 35U, source, YSF_NULL_CALLSIGN2, YSF_NULL_CALLSIGN1, YSF_NULL_CALLSIGN1);
 
 	if (m_debug) {
-		if (m_network == NETWORK::FROM)
-			CUtils::dump(1U, "YSF FROM Network Data Sent", buffer, 155U);
+		if (m_network == NETWORK::RF)
+			CUtils::dump(1U, "YSF RF Network Data Sent", buffer, 155U);
 		else
-			CUtils::dump(1U, "YSF TO Network Data Sent", buffer, 155U);
+			CUtils::dump(1U, "YSF Net Network Data Sent", buffer, 155U);
 	}
 
 	return m_socket.write(buffer, 155U, m_addr, m_addrLen);
@@ -375,10 +375,10 @@ bool CYSFNetwork::writePoll()
 		buffer[i + 4U] = m_callsign.at(i);
 
 	// if (m_debug) {
-	//	if (m_network == NETWORK::FROM)
-	//		CUtils::dump(1U, "YSF FROM Network Poll Sent", buffer, 14U);
+	//	if (m_network == NETWORK::RF)
+	//		CUtils::dump(1U, "YSF RF Network Poll Sent", buffer, 14U);
 	//	else
-	//		CUtils::dump(1U, "YSF TO Network Poll Sent", buffer, 14U);
+	//		CUtils::dump(1U, "YSF Net Network Poll Sent", buffer, 14U);
 	// }
 
 	return m_socket.write(buffer, 14U, m_addr, m_addrLen);
@@ -401,10 +401,10 @@ void CYSFNetwork::clock(unsigned int ms)
 		return;
 
 	if (!CUDPSocket::match(m_addr, address)) {
-		if (m_network == NETWORK::FROM)
-			LogMessage("YSF FROM packet received from an invalid source");
+		if (m_network == NETWORK::RF)
+			LogMessage("YSF RF packet received from an invalid source");
 		else
-			LogMessage("YSF TO packet received from an invalid source");
+			LogMessage("YSF Net packet received from an invalid source");
 		return;
 	}
 
@@ -413,10 +413,10 @@ void CYSFNetwork::clock(unsigned int ms)
 		return;
 
 	if (m_debug) {
-		if (m_network == NETWORK::FROM)
-			CUtils::dump(1U, "YSF FROM Network Data Received", buffer, length);
+		if (m_network == NETWORK::RF)
+			CUtils::dump(1U, "YSF RF Network Data Received", buffer, length);
 		else
-			CUtils::dump(1U, "YSF TO Network Data Received", buffer, length);
+			CUtils::dump(1U, "YSF Net Network Data Received", buffer, length);
 	}
 
 	if (::memcmp(m_tag, "          ", YSF_CALLSIGN_LENGTH) == 0) {
@@ -545,8 +545,8 @@ void CYSFNetwork::close()
 {
 	m_socket.close();
 
-	if (m_network == NETWORK::FROM)
-		LogMessage("Closing the YSF FROM network");
+	if (m_network == NETWORK::RF)
+		LogMessage("Closing the YSF RF network");
 	else
-		LogMessage("Closing the YSF TO network");
+		LogMessage("Closing the YSF Net network");
 }

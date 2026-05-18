@@ -216,89 +216,89 @@ public:
 	// The FM to FM section
 	bool         getFMFMEnable() const;
 
-	// The From D-Star Network section
-	std::string  getDStarFromRemoteAddress() const;
-	uint16_t     getDStarFromRemotePort() const;
-	std::string  getDStarFromLocalAddress() const;
-	uint16_t     getDStarFromLocalPort() const;
-	bool         getDStarFromDebug() const;
+	// The D-Star RF Network section
+	std::string  getDStarRFRemoteAddress() const;
+	uint16_t     getDStarRFRemotePort() const;
+	std::string  getDStarRFLocalAddress() const;
+	uint16_t     getDStarRFLocalPort() const;
+	bool         getDStarRFDebug() const;
 
-	// The To D-Star Network section
-	std::string  getDStarToRemoteAddress() const;
-	uint16_t     getDStarToRemotePort() const;
-	std::string  getDStarToLocalAddress() const;
-	uint16_t     getDStarToLocalPort() const;
-	bool         getDStarToDebug() const;
+	// The D-Star Net Network section
+	std::string  getDStarNetRemoteAddress() const;
+	uint16_t     getDStarNetRemotePort() const;
+	std::string  getDStarNetLocalAddress() const;
+	uint16_t     getDStarNetLocalPort() const;
+	bool         getDStarNetDebug() const;
 
-	// The From DMR Network section
-	std::string  getDMRFromRemoteAddress() const;
-	uint16_t     getDMRFromRemotePort() const;
-	std::string  getDMRFromLocalAddress() const;
-	uint16_t     getDMRFromLocalPort() const;
-	bool         getDMRFromDebug() const;
+	// The DMR RF Network section
+	std::string  getDMRRFRemoteAddress() const;
+	uint16_t     getDMRRFRemotePort() const;
+	std::string  getDMRRFLocalAddress() const;
+	uint16_t     getDMRRFLocalPort() const;
+	bool         getDMRRFDebug() const;
 
-	// The To DMR Network section
-	std::string  getDMRToRemoteAddress() const;
-	uint16_t     getDMRToRemotePort() const;
-	std::string  getDMRToLocalAddress() const;
-	uint16_t     getDMRToLocalPort() const;
-	bool         getDMRToDebug() const;
+	// The DMR Net Network section
+	std::string  getDMRNetRemoteAddress() const;
+	uint16_t     getDMRNetRemotePort() const;
+	std::string  getDMRNetLocalAddress() const;
+	uint16_t     getDMRNetLocalPort() const;
+	bool         getDMRNetDebug() const;
 
-	// The From YSF Network section
-	std::string  getYSFFromRemoteAddress() const;
-	uint16_t     getYSFFromRemotePort() const;
-	std::string  getYSFFromLocalAddress() const;
-	uint16_t     getYSFFromLocalPort() const;
-	bool         getYSFFromDebug() const;
+	// The YSF RF Network section
+	std::string  getYSFRFRemoteAddress() const;
+	uint16_t     getYSFRFRemotePort() const;
+	std::string  getYSFRFLocalAddress() const;
+	uint16_t     getYSFRFLocalPort() const;
+	bool         getYSFRFDebug() const;
 
-	// The To YSF Network section
-	std::string  getYSFToRemoteAddress() const;
-	uint16_t     getYSFToRemotePort() const;
-	std::string  getYSFToLocalAddress() const;
-	uint16_t     getYSFToLocalPort() const;
-	bool         getYSFToDebug() const;
+	// The YSF Net Network section
+	std::string  getYSFNetRemoteAddress() const;
+	uint16_t     getYSFNetRemotePort() const;
+	std::string  getYSFNetLocalAddress() const;
+	uint16_t     getYSFNetLocalPort() const;
+	bool         getYSFNetDebug() const;
 
-	// The From P25 Network section
-	std::string  getP25FromRemoteAddress() const;
-	uint16_t     getP25FromRemotePort() const;
-	std::string  getP25FromLocalAddress() const;
-	uint16_t     getP25FromLocalPort() const;
-	bool         getP25FromDebug() const;
+	// The P25 RF Network section
+	std::string  getP25RFRemoteAddress() const;
+	uint16_t     getP25RFRemotePort() const;
+	std::string  getP25RFLocalAddress() const;
+	uint16_t     getP25RFLocalPort() const;
+	bool         getP25RFDebug() const;
 
-	// The To P25 Network section
-	std::string  getP25ToRemoteAddress() const;
-	uint16_t     getP25ToRemotePort() const;
-	std::string  getP25ToLocalAddress() const;
-	uint16_t     getP25ToLocalPort() const;
-	bool         getP25ToDebug() const;
+	// The P25 Net Network section
+	std::string  getP25NetRemoteAddress() const;
+	uint16_t     getP25NetRemotePort() const;
+	std::string  getP25NetLocalAddress() const;
+	uint16_t     getP25NetLocalPort() const;
+	bool         getP25NetDebug() const;
 
-	// The From NXDN Network section
-	std::string  getNXDNFromRemoteAddress() const;
-	uint16_t     getNXDNFromRemotePort() const;
-	std::string  getNXDNFromLocalAddress() const;
-	uint16_t     getNXDNFromLocalPort() const;
-	bool         getNXDNFromDebug() const;
+	// The NXDN RF Network section
+	std::string  getNXDNRFRemoteAddress() const;
+	uint16_t     getNXDNRFRemotePort() const;
+	std::string  getNXDNRFLocalAddress() const;
+	uint16_t     getNXDNRFLocalPort() const;
+	bool         getNXDNRFDebug() const;
 
-	// The To NXDN Network section
-	std::string  getNXDNToRemoteAddress() const;
-	uint16_t     getNXDNToRemotePort() const;
-	std::string  getNXDNToLocalAddress() const;
-	uint16_t     getNXDNToLocalPort() const;
-	bool         getNXDNToDebug() const;
+	// The NXDN Net Network section
+	std::string  getNXDNNetRemoteAddress() const;
+	uint16_t     getNXDNNetRemotePort() const;
+	std::string  getNXDNNetLocalAddress() const;
+	uint16_t     getNXDNNetLocalPort() const;
+	bool         getNXDNNetDebug() const;
 
-	// The From FM Network section
-	std::string  getFMFromRemoteAddress() const;
-	uint16_t     getFMFromRemotePort() const;
-	std::string  getFMFromLocalAddress() const;
-	uint16_t     getFMFromLocalPort() const;
-	bool         getFMFromDebug() const;
+	// The FM RF Network section
+	std::string  getFMRFRemoteAddress() const;
+	uint16_t     getFMRFRemotePort() const;
+	std::string  getFMRFLocalAddress() const;
+	uint16_t     getFMRFLocalPort() const;
+	bool         getFMRFDebug() const;
 
-	// The To FM Network section
-	std::string  getFMToRemoteAddress() const;
-	uint16_t     getFMToRemotePort() const;
-	std::string  getFMToLocalAddress() const;
-	uint16_t     getFMToLocalPort() const;
-	bool         getFMToDebug() const;
+	// The FM Net Network section
+	std::string  getFMNetRemoteAddress() const;
+	uint16_t     getFMNetRemotePort() const;
+	std::string  getFMNetLocalAddress() const;
+	uint16_t     getFMNetLocalPort() const;
+	bool         getFMNetDebug() const;
 
 private:
 	std::string  m_file;
@@ -441,77 +441,77 @@ private:
 
 	bool         m_fmFMEnable;
 
-	std::string  m_dStarFromRemoteAddress;
-	uint16_t     m_dStarFromRemotePort;
-	std::string  m_dStarFromLocalAddress;
-	uint16_t     m_dStarFromLocalPort;
-	bool         m_dStarFromDebug;
+	std::string  m_dStarRFRemoteAddress;
+	uint16_t     m_dStarRFRemotePort;
+	std::string  m_dStarRFLocalAddress;
+	uint16_t     m_dStarRFLocalPort;
+	bool         m_dStarRFDebug;
 
-	std::string  m_dStarToRemoteAddress;
-	uint16_t     m_dStarToRemotePort;
-	std::string  m_dStarToLocalAddress;
-	uint16_t     m_dStarToLocalPort;
-	bool         m_dStarToDebug;
+	std::string  m_dStarNetRemoteAddress;
+	uint16_t     m_dStarNetRemotePort;
+	std::string  m_dStarNetLocalAddress;
+	uint16_t     m_dStarNetLocalPort;
+	bool         m_dStarNetDebug;
 
-	std::string  m_dmrFromRemoteAddress;
-	uint16_t     m_dmrFromRemotePort;
-	std::string  m_dmrFromLocalAddress;
-	uint16_t     m_dmrFromLocalPort;
-	bool         m_dmrFromDebug;
+	std::string  m_dmrRFRemoteAddress;
+	uint16_t     m_dmrRFRemotePort;
+	std::string  m_dmrRFLocalAddress;
+	uint16_t     m_dmrRFLocalPort;
+	bool         m_dmrRFDebug;
 
-	std::string  m_dmrToRemoteAddress;
-	uint16_t     m_dmrToRemotePort;
-	std::string  m_dmrToLocalAddress;
-	uint16_t     m_dmrToLocalPort;
-	bool         m_dmrToDebug;
+	std::string  m_dmrNetRemoteAddress;
+	uint16_t     m_dmrNetRemotePort;
+	std::string  m_dmrNetLocalAddress;
+	uint16_t     m_dmrNetLocalPort;
+	bool         m_dmrNetDebug;
 
-	std::string  m_ysfFromRemoteAddress;
-	uint16_t     m_ysfFromRemotePort;
-	std::string  m_ysfFromLocalAddress;
-	uint16_t     m_ysfFromLocalPort;
-	bool         m_ysfFromDebug;
+	std::string  m_ysfRFRemoteAddress;
+	uint16_t     m_ysfRFRemotePort;
+	std::string  m_ysfRFLocalAddress;
+	uint16_t     m_ysfRFLocalPort;
+	bool         m_ysfRFDebug;
 
-	std::string  m_ysfToRemoteAddress;
-	uint16_t     m_ysfToRemotePort;
-	std::string  m_ysfToLocalAddress;
-	uint16_t     m_ysfToLocalPort;
-	bool         m_ysfToDebug;
+	std::string  m_ysfNetRemoteAddress;
+	uint16_t     m_ysfNetRemotePort;
+	std::string  m_ysfNetLocalAddress;
+	uint16_t     m_ysfNetLocalPort;
+	bool         m_ysfNetDebug;
 
-	std::string  m_p25FromRemoteAddress;
-	uint16_t     m_p25FromRemotePort;
-	std::string  m_p25FromLocalAddress;
-	uint16_t     m_p25FromLocalPort;
-	bool         m_p25FromDebug;
+	std::string  m_p25RFRemoteAddress;
+	uint16_t     m_p25RFRemotePort;
+	std::string  m_p25RFLocalAddress;
+	uint16_t     m_p25RFLocalPort;
+	bool         m_p25RFDebug;
 
-	std::string  m_p25ToRemoteAddress;
-	uint16_t     m_p25ToRemotePort;
-	std::string  m_p25ToLocalAddress;
-	uint16_t     m_p25ToLocalPort;
-	bool         m_p25ToDebug;
+	std::string  m_p25NetRemoteAddress;
+	uint16_t     m_p25NetRemotePort;
+	std::string  m_p25NetLocalAddress;
+	uint16_t     m_p25NetLocalPort;
+	bool         m_p25NetDebug;
 
-	std::string  m_nxdnFromRemoteAddress;
-	uint16_t     m_nxdnFromRemotePort;
-	std::string  m_nxdnFromLocalAddress;
-	uint16_t     m_nxdnFromLocalPort;
-	bool         m_nxdnFromDebug;
+	std::string  m_nxdnRFRemoteAddress;
+	uint16_t     m_nxdnRFRemotePort;
+	std::string  m_nxdnRFLocalAddress;
+	uint16_t     m_nxdnRFLocalPort;
+	bool         m_nxdnRFDebug;
 
-	std::string  m_nxdnToRemoteAddress;
-	uint16_t     m_nxdnToRemotePort;
-	std::string  m_nxdnToLocalAddress;
-	uint16_t     m_nxdnToLocalPort;
-	bool         m_nxdnToDebug;
+	std::string  m_nxdnNetRemoteAddress;
+	uint16_t     m_nxdnNetRemotePort;
+	std::string  m_nxdnNetLocalAddress;
+	uint16_t     m_nxdnNetLocalPort;
+	bool         m_nxdnNetDebug;
 
-	std::string  m_fmFromRemoteAddress;
-	uint16_t     m_fmFromRemotePort;
-	std::string  m_fmFromLocalAddress;
-	uint16_t     m_fmFromLocalPort;
-	bool         m_fmFromDebug;
+	std::string  m_fmRFRemoteAddress;
+	uint16_t     m_fmRFRemotePort;
+	std::string  m_fmRFLocalAddress;
+	uint16_t     m_fmRFLocalPort;
+	bool         m_fmRFDebug;
 
-	std::string  m_fmToRemoteAddress;
-	uint16_t     m_fmToRemotePort;
-	std::string  m_fmToLocalAddress;
-	uint16_t     m_fmToLocalPort;
-	bool         m_fmToDebug;
+	std::string  m_fmNetRemoteAddress;
+	uint16_t     m_fmNetRemotePort;
+	std::string  m_fmNetLocalAddress;
+	uint16_t     m_fmNetLocalPort;
+	bool         m_fmNetDebug;
 
 	std::string getString(const char* text) const;
 	std::pair<uint8_t, uint32_t> getSlotTG(char* text) const;

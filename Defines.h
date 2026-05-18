@@ -33,13 +33,13 @@ enum class DATA_MODE {
 
 enum class DIRECTION {
 	NONE,
-	FROM_TO,
-	TO_FROM
+	RF_TO_NET,
+	NET_TO_RF
 };
 
 enum class NETWORK {
-	FROM,
-	TO
+	RF,
+	NET
 };
 
 const uint8_t TAG_HEADER = 0U;

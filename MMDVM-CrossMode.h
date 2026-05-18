@@ -36,29 +36,29 @@ public:
 
 private:
 	CConf                          m_conf;
-	std::map<DATA_MODE, INetwork*> m_fromNetworks;
-	std::map<DATA_MODE, INetwork*> m_toNetworks;
+	std::map<DATA_MODE, INetwork*> m_rfNetworks;
+	std::map<DATA_MODE, INetwork*> m_netNetworks;
 
-	bool createFromNetworks();
-	bool createToNetworks();
+	bool createRFNetworks();
+	bool createNetNetworks();
 	void setThroughModes(CMetaData& data);
 	
-	DATA_MODE hasToNetworkGotData() const;
-	DATA_MODE hasFromNetworkGotData() const;
-	bool readFromNetwork(DATA_MODE mode, CMetaData& data);
-	bool readToNetwork(DATA_MODE mode, CMetaData& data);
-	bool writeFromNetworkData(DATA_MODE mode, CMetaData& data);
-	bool writeToNetworkData(DATA_MODE mode, CMetaData& data);
-	bool writeFromNetworkRaw(DATA_MODE mode, CMetaData& data);
-	bool writeToNetworkRaw(DATA_MODE mode, CMetaData& data);
-	void drainFromNetworks();
-	void drainToNetworks();
-	void resetFromNetworks();
-	void resetToNetworks();
-	void clockFromNetworks(unsigned int ms);
-	void clockToNetworks(unsigned int ms);
-	void closeFromNetworks();
-	void closeToNetworks();
+	DATA_MODE hasRFNetworkGotData() const;
+	DATA_MODE hasNetNetworkGotData() const;
+	bool readRFNetwork(DATA_MODE mode, CMetaData& data);
+	bool readNetNetwork(DATA_MODE mode, CMetaData& data);
+	bool writeRFNetworkData(DATA_MODE mode, CMetaData& data);
+	bool writeNetNetworkData(DATA_MODE mode, CMetaData& data);
+	bool writeRFNetworkRaw(DATA_MODE mode, CMetaData& data);
+	bool writeNetNetworkRaw(DATA_MODE mode, CMetaData& data);
+	void drainRFNetworks();
+	void drainNetNetworks();
+	void resetRFNetworks();
+	void resetNetNetworks();
+	void clockRFNetworks(unsigned int ms);
+	void clockNetNetworks(unsigned int ms);
+	void closeRFNetworks();
+	void closeNetNetworks();
 
 	bool loadIdLookupTables(CMetaData& data);
 	void loadModeTranslationTables(CMetaData& data);
