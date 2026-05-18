@@ -44,17 +44,10 @@ m_addr(),
 m_addrLen(0U),
 m_id(nullptr),
 m_debug(debug),
-m_callsign(),
-m_version(),
-m_txFrequency(0U),
-m_rxFrequency(0U),
-m_colorCode(0U),
-m_power(0U),
 m_buffer(nullptr),
 m_streamId(0U),
 m_rxData(1000U, "DMR Network"),
 m_random(),
-m_pingTimer(1000U, 10U),
 m_audio(nullptr),
 m_audioCount(0U),
 m_lc(),
@@ -88,18 +81,6 @@ CDMRNetwork::~CDMRNetwork()
 	delete[] m_audio;
 }
 
-void CDMRNetwork::setConfig(const std::string& callsign, const char* version, uint32_t txFrequency, uint32_t rxFrequency, uint8_t colorCode, uint16_t power)
-{
-	assert(version != nullptr);
-
-	m_callsign    = callsign;
-	m_version     = version;
-	m_txFrequency = txFrequency;
-	m_rxFrequency = rxFrequency;
-	m_colorCode   = colorCode;
-	m_power       = power;
-}
-
 bool CDMRNetwork::open()
 {
 	if (m_addrLen == 0U) {
@@ -118,8 +99,6 @@ bool CDMRNetwork::open()
 	bool ret = m_socket.open(m_addr);
 	if (!ret)
 		return false;
-
-	m_pingTimer.start();
 
 	return true;
 }
@@ -536,15 +515,6 @@ void CDMRNetwork::close()
 
 void CDMRNetwork::clock(unsigned int ms)
 {
-	m_pingTimer.clock(ms);
-	if (m_pingTimer.isRunning() && m_pingTimer.hasExpired()) {
-		if (m_network == NETWORK::RF)
-			writePing();
-		else
-			writeConfig();
-		m_pingTimer.start();
-	}
-
 	sockaddr_storage address;
 	size_t addrLen;
 	int length = m_socket.read(m_buffer, BUFFER_LENGTH, address, addrLen);
@@ -566,60 +536,7 @@ void CDMRNetwork::clock(unsigned int ms)
 			CUtils::dump(1U, "DMR Net Network Received", m_buffer, length);
 	}
 
-	// We only want data packets being passed on
-	if (::memcmp(m_buffer, "DMRD", 4U) != 0)
-		return;
-
 	uint8_t len = length;
 	m_rxData.add(&len, 1U);
 	m_rxData.add(m_buffer, len);
-}
-
-bool CDMRNetwork::writeConfig()
-{
-	const char* software = "MMDVM_CrossMode";
-
-	char slots = '3';
-	if (m_txFrequency != m_rxFrequency)
-		slots = '4';
-
-	unsigned int power = m_power;
-	if (power > 99U)
-		power = 99U;
-
-	uint8_t buffer[150U];
-
-	::memcpy(buffer + 0U, "DMRC", 4U);
-	::memcpy(buffer + 4U, m_id, 4U);
-	::sprintf((char*)(buffer + 8U), "%-8.8s%09u%09u%02u%02u%c%-40.40s%-40.40s",
-		m_callsign.c_str(), m_rxFrequency, m_txFrequency, power, m_colorCode, slots, m_version,
-		software);
-
-	// if (m_debug) {
-	//	if (m_network == NETWORK::RF)
-	//		CUtils::dump(1U, "DMR RF Network Config Sent", buffer, 119U);
-	//	else
-	//		CUtils::dump(1U, "DMR Net Network Config Sent", buffer, 119U);
-	// }
-
-	return m_socket.write(buffer, 119U, m_addr, m_addrLen);
-}
-
-bool CDMRNetwork::writePing()
-{
-	uint8_t buffer[10U];
-
-	buffer[0U] = 'D';
-	buffer[1U] = 'M';
-	buffer[2U] = 'R';
-	buffer[3U] = 'P';
-
-	// if (m_debug) {
-	//	if (m_network == NETWORK::RF)
-	//		CUtils::dump(1U, "DMR RF Network Ping Sent", buffer, 4U);
-	//	else
-	//		CUtils::dump(1U, "DMR Net Network Ping Sent", buffer, 4U);
-	// }
-
-	return m_socket.write(buffer, 4U, m_addr, m_addrLen);
 }

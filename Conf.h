@@ -67,12 +67,6 @@ public:
 	std::string  getNXDNLookupFile() const;
 	unsigned int getReloadTime() const;
 
-	// The Info section
-	uint32_t     getInfoTXFrequency() const;
-	uint32_t     getInfoRXFrequency() const;
-	uint8_t      getInfoColorCode() const;
-	uint16_t     getInfoPower() const;
-
 	// The D-Star section
 	std::string  getDStarModule() const;
 
@@ -331,11 +325,6 @@ private:
 	std::string  m_dmrLookupFile;
 	std::string  m_nxdnLookupFile;
 	unsigned int m_reloadTime;
-
-	uint32_t     m_infoTXFrequency;
-	uint32_t     m_infoRXFrequency;
-	uint8_t      m_infoColorCode;
-	uint16_t     m_infoPower;
 
 	std::string  m_dStarModule;
 

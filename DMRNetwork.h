@@ -22,7 +22,6 @@
 #include "Network.h"
 #include "Defines.h"
 #include "UDPSocket.h"
-#include "Timer.h"
 #include "RingBuffer.h"
 #include "DMRLC.h"
 #include "MetaData.h"
@@ -36,8 +35,6 @@ class CDMRNetwork : public INetwork
 public:
 	CDMRNetwork(NETWORK network, uint32_t id, const std::string& localAddress, uint16_t localPort, const std::string& remoteAddress, uint16_t remotePort, bool debug);
 	virtual ~CDMRNetwork();
-
-	void setConfig(const std::string& callsign, const char* version, uint32_t txFrequency, uint32_t rxFrequency, uint8_t colorCode, uint16_t power);
 
 	virtual bool open();
 
@@ -62,17 +59,10 @@ private:
 	size_t           m_addrLen;
 	uint8_t*         m_id;
 	bool             m_debug;
-	std::string      m_callsign;
-	const char*      m_version;
-	uint32_t         m_txFrequency;
-	uint32_t         m_rxFrequency;
-	uint8_t          m_colorCode;
-	uint16_t         m_power;
 	uint8_t*         m_buffer;
 	uint32_t         m_streamId;
 	CRingBuffer<uint8_t> m_rxData;
 	std::mt19937     m_random;
-	CTimer           m_pingTimer;
 	uint8_t*         m_audio;
 	uint8_t          m_audioCount;
 	CDMRLC           m_lc;
@@ -82,8 +72,6 @@ private:
 	bool writeHeader(CMetaData& data);
 	bool writeAudio(CMetaData& data);
 	bool writeTrailer(CMetaData& data);
-	bool writeConfig();
-	bool writePing();
 };
 
 #endif
